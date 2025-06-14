@@ -111,7 +111,6 @@ PyObject *import_module_full_path(const char *module_name, const char *file_path
     PyObject *main_dict = PyModule_GetDict(main_module);
 
     if (PyRun_String(python_code, Py_file_input, main_dict, main_dict) == NULL) {
-        printf("Error PyRun_String\n");
         PyErr_Print();
         return NULL;
     }
@@ -129,7 +128,7 @@ PyObject *import_module_full_path(const char *module_name, const char *file_path
     } else {
         PyObject *error = PyDict_GetItemString(main_dict, "error_msg");
         if (error && PyUnicode_Check(error)) {
-            printf("Error: %s\n", PyUnicode_AsUTF8(error));
+            PyErr_Print();
         }
     }
 
