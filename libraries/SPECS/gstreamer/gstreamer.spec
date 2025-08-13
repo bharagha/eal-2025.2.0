@@ -12,13 +12,13 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildRequires:  meson ninja-build gcc gcc-c++
 BuildRequires:  python3 python3-pip
-BuildRequires:  glib2-devel gobject-introspection-devel
-BuildRequires:  libva-devel intel-media-driver
-BuildRequires:  ffmpeg-devel >= 6.1.1
+#BuildRequires:  glib2-devel gobject-introspection-devel
+BuildRequires:  libva-devel libva-intel-media-driver
+#BuildRequires:  ffmpeg-devel >= 6.1.1
 BuildRequires:  pkgconfig flex bison
 
 Requires:       glib2 gobject-introspection
-Requires:       libva intel-media-driver
+Requires:       libva libva-intel-media-driver
 Requires:       ffmpeg >= 6.1.1
 
 %description
@@ -39,6 +39,7 @@ Development files and headers for Intel GStreamer.
 %build
 # Add FFmpeg to PKG_CONFIG_PATH
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/opt/intel/ffmpeg/lib/pkgconfig:${PKG_CONFIG_PATH}"
+export LD_LIBRARY_PATH="/opt/intel/ffmpeg/lib:${LD_LIBRARY_PATH}"
 
 meson setup -Dexamples=disabled \
             -Dtests=disabled \

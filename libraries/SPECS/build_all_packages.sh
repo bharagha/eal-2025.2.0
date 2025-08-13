@@ -1,24 +1,24 @@
 #!/bin/bash
 # Intel DL Streamer Modular Build Script
-set -e
+set -ex
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Define packages with their directory and spec file names
 declare -A PACKAGES=(
-    ["paho-mqtt-c"]="SPECS/paho-mqtt-c/paho-mqtt-c.spec"
-    ["ffmpeg"]="SPECS/ffmpeg/ffmpeg.spec"
-    ["opencv"]="SPECS/opencv/opencv.spec"
-    ["gstreamer"]="SPECS/gstreamer/gstreamer.spec"
-    ["intel-dlstreamer"]="SPECS/intel-dlstreamer/intel-dlstreamer.spec"
+    ["paho-mqtt-c"]="paho-mqtt-c/paho-mqtt-c.spec"
+    ["ffmpeg"]="ffmpeg/ffmpeg.spec"
+    ["opencv"]="opencv/opencv.spec"
+    ["gstreamer"]="gstreamer/gstreamer.spec"
+    ["intel-dlstreamer"]="intel-dlstreamer/intel-dlstreamer.spec"
 )
 
 # Build order (dependencies first)
 BUILD_ORDER=(
     "paho-mqtt-c"
-    "ffmpeg" 
-    "opencv"
+    "ffmpeg"
     "gstreamer"
+    "opencv"
     "intel-dlstreamer"
 )
 
@@ -46,8 +46,8 @@ check_sources() {
     sources=(
         "paho.mqtt.c-1.3.4.tar.gz"
         "ffmpeg-6.1.1.tar.gz"
-        "opencv-4.10.0.tar.gz"
         "gstreamer-1.26.1.tar.gz"
+        "opencv-4.10.0.tar.gz"
         "intel-dlstreamer-2025.2.0.tar.gz"
     )
     
@@ -151,10 +151,10 @@ main() {
     log_info "========================================"
     
     # Check if we're in the right directory
-    if [[ ! -d "SPECS" ]]; then
-        log_error "SPECS directory not found. Please run from the directory containing the SPECS folder."
-        exit 1
-    fi
+    #if [[ ! -d "SPECS" ]]; then
+    #    log_error "SPECS directory not found. Please run from the directory containing the SPECS folder."
+    #    exit 1
+    #fi
     
     # Validate all spec files exist
     local missing_specs=()

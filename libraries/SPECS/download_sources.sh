@@ -1,6 +1,6 @@
 #!/bin/bash
 # Source Download Script for Intel DL Streamer Modular Build
-set -e
+set -ex
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -44,19 +44,6 @@ main() {
     log_info "Downloading source files for Intel DL Streamer modular build..."
     log_info "================================================================="
     
-    # Check if SPECS directory exists
-    if [[ ! -d "SPECS" ]]; then
-        log_warn "SPECS directory not found. This script should be run from the root directory containing SPECS/"
-        log_info "Current directory: $(pwd)"
-        log_info "Expected structure:"
-        log_info "  ./SPECS/paho-mqtt-c/paho-mqtt-c.spec"
-        log_info "  ./SPECS/ffmpeg/ffmpeg.spec"
-        log_info "  ./SPECS/opencv/opencv.spec"
-        log_info "  ./SPECS/gstreamer/gstreamer.spec"
-        log_info "  ./SPECS/intel-dlstreamer/intel-dlstreamer.spec"
-        echo ""
-    fi
-    
     # Define sources
     declare -A sources=(
         ["https://github.com/eclipse/paho.mqtt.c/archive/v1.3.4.tar.gz"]="paho.mqtt.c-1.3.4.tar.gz"
@@ -71,10 +58,10 @@ main() {
     done
 
     # Download the DL Streamer src code
-    git clone https://github.com/open-edge-platform/edge-ai-libraries.git -b release-1.2
-    cd edge-ai-libraries
+    cd ../..
     git submodule update --init libraries/dl-streamer/thirdparty/spdlog
-    tar czf intel-dlstreamer-2025.2.0.tar.gz edge-ai-libraries/libraries/dl-streamer
+    tar czf intel-dlstreamer-2025.2.0.tar.gz libraries/dl-streamer
+    mv intel-dlstreamer-2025.2.0.tar.gz libraries/SPECS
     
     # Note about proprietary sources
     log_info ""

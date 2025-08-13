@@ -1,3 +1,4 @@
+%define debug_package %{nil}
 Name:           ffmpeg
 Version:        6.1.1
 Release:        1%{?dist}
@@ -11,16 +12,15 @@ ExclusiveArch:  x86_64
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildRequires:  gcc gcc-c++ make yasm nasm
-BuildRequires:  libva-devel intel-media-driver
-BuildRequires:  libX11-devel libXext-devel libXv-devel
-BuildRequires:  libvpx-devel opus-devel
-BuildRequires:  x264-devel x265-devel
-BuildRequires:  openssl-devel
+BuildRequires:  libva-devel libva-intel-media-driver
+BuildRequires:  libX11-devel libXext-devel
+#BuildRequires:  x264-devel x265-devel
+#BuildRequires:  openssl-devel
 
-Requires:       libva intel-media-driver
-Requires:       libX11 libXext libXv
-Requires:       libvpx opus
-Requires:       x264-libs x265-libs
+Requires:       libva2 libva-intel-media-driver
+#Requires:       libX11 libXext libXv
+#Requires:       libvpx opus
+#Requires:       x264-libs x265-libs
 
 %description
 Intel optimized FFmpeg build with VAAPI hardware acceleration support.
@@ -54,14 +54,7 @@ make -j "$(nproc)"
 %install
 rm -rf %{buildroot}
 make install DESTDIR=%{buildroot}
-
-# Create pkgconfig symlinks for easier discovery
-mkdir -p %{buildroot}/usr/lib64/pkgconfig
-for pc in %{buildroot}/opt/intel/ffmpeg/lib/pkgconfig/*.pc; do
-    basename_pc=$(basename "$pc")
-    ln -sf "/opt/intel/ffmpeg/lib/pkgconfig/$basename_pc" \
-           "%{buildroot}/usr/lib64/pkgconfig/intel-$basename_pc"
-done
+tree %{buildroot}
 
 %clean
 rm -rf %{buildroot}
@@ -73,17 +66,15 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %doc README.md COPYING.LGPLv2.1
 %license LICENSE.md
-/opt/intel/ffmpeg/bin/
-/opt/intel/ffmpeg/lib/*.so.*
-/opt/intel/ffmpeg/share/
-/usr/lib64/pkgconfig/intel-lib*.pc
+/opt/intel/ffmpeg
+/bin/ffmpeg
+/bin/ffprobe
 
 %files devel
 %defattr(-,root,root,-)
-/opt/intel/ffmpeg/include/
-/opt/intel/ffmpeg/lib/*.so
-/opt/intel/ffmpeg/lib/*.a
-/opt/intel/ffmpeg/lib/pkgconfig/
+/opt/intel/ffmpeg
+/bin/ffmpeg
+/bin/ffprobe
 
 %changelog
 * Thu Aug 07 2025 DL Streamer Team <dlstreamer@intel.com> - 6.1.1-1
