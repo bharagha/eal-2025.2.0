@@ -31,8 +31,8 @@
 #                      V
 #                  dlstreamer
 # ==============================================================================
-ARG DOCKER_PRIVATE_REGISTRY
-FROM ${DOCKER_PRIVATE_REGISTRY}fedora:41 AS builder
+ARG DOCKER_REGISTRY
+FROM ${DOCKER_REGISTRY}fedora:41 AS builder
 
 ARG BUILD_ARG=Release
 
@@ -433,8 +433,8 @@ RUN mkdir /rpms && \
     cp ~/rpmbuild/RPMS/x86_64/${RPM_PKG_NAME}* "/rpms/${RPM_PKG_NAME}.${DLSTREAMER_BUILD_NUMBER}-1.fc41.x86_64.rpm"
 
 # ==============================================================================
-ARG DOCKER_PRIVATE_REGISTRY
-FROM ${DOCKER_PRIVATE_REGISTRY}fedora:41 AS dlstreamer
+ARG DOCKER_REGISTRY
+FROM ${DOCKER_REGISTRY}fedora:41 AS dlstreamer
 
 SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 
