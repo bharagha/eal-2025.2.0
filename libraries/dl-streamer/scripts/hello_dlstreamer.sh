@@ -107,7 +107,7 @@ if [ "$ID" == "ubuntu" ]; then
     fi
     DLS_VERSION=$(dpkg -s intel-dlstreamer | grep '^Version:' | sed -En "s/Version: (.*)/\1/p")
 elif [ "$ID" == "fedora" ] || [ "$ID" == "rhel" ]; then
-    export LIBVA_DRIVERS_PATH=/usr/lib64/dri-nonfree
+    export LIBVA_DRIVERS_PATH=/usr/lib64/dri
     export GI_TYPELIB_PATH=/opt/intel/dlstreamer/gstreamer/lib/girepository-1.0:/usr/lib64/girepository-1.0
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/opencv:/opt/rdkafka:/opt/ffmpeg
     DLS_VERSION=$(rpm -q --qf '%{VERSION}\n' intel-dlstreamer)
