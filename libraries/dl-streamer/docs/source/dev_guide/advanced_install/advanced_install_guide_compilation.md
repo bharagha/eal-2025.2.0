@@ -320,8 +320,8 @@ make -j "$(nproc)"
 ```bash
 cd ~/edge-ai-libraries/libraries/dl-streamer
 
-# The below step of download, compilation and install of librdkafka is not required on EMT as 
-# it is being installed as part of the build dependencies above
+# Download, compile and install `librdkafka`. This step is not required on EMT, because `librdkafka`
+# is installed as part of build dependencies, in the steps above. 
 curl -sSL https://github.com/edenhill/librdkafka/archive/v2.3.0.tar.gz | tar -xz
 cd ./librdkafka-2.3.0
 ./configure && make && make INSTALL=install install
@@ -369,7 +369,7 @@ export GST_PLUGIN_FEATURE_RANK=${GST_PLUGIN_FEATURE_RANK},ximagesink:MAX
 
 ### EMT
 
-Follow below steps to enable `i915` graphics driver in the system
+Follow the steps below to enable `i915` graphics driver in the system.
 
 ```bash
 sudo vim /etc/default/grub
@@ -378,7 +378,7 @@ sudo grub2-mkconfig -o /boot/grub2/grub.cfg "$@"
 sudo reboot
 ```
 
-Post reboot, set these environment variables before trying the DL Streamer pipelines from the terminal
+After reboot set the following environment variables before trying the DL Streamer pipelines from the terminal.
 ```bash
 export LIBVA_DRIVER_NAME=iHD
 export GST_PLUGIN_PATH="$HOME/edge-ai-libraries/libraries/dl-streamer/build/intel64/Release/lib:/opt/intel/dlstreamer/gstreamer/lib/gstreamer-1.0:/usr/lib64/gstreamer-1.0"
