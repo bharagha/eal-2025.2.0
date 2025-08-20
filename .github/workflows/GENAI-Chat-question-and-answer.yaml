@@ -339,6 +339,21 @@ jobs:
           python-version: '3.12'
     
       - name: Run unit tests
+        env:
+          # Mock environment variables for testing
+          PG_CONNECTION_STRING: "postgresql+asyncpg://test:test@localhost:5432/test_db"
+          POSTGRES_HOST: "localhost"
+          POSTGRES_PORT: "5432"
+          POSTGRES_DB: "test_db"
+          POSTGRES_USER: "test"
+          POSTGRES_PASSWORD: "test"
+          # Optional environment variables with defaults
+          LLM_SERVICE_HOST_IP: "localhost"
+          LLM_SERVICE_PORT: "8080"
+          EMBEDDING_SERVICE_HOST_IP: "localhost"
+          EMBEDDING_SERVICE_PORT: "8081"
+          RERANK_SERVICE_HOST_IP: "localhost"
+          RERANK_SERVICE_PORT: "8082"
         run: |
           cd sample-applications/chat-question-and-answer/
           # Backend Coverage (including all production Python files)
