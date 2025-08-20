@@ -1,12 +1,12 @@
 # Advanced installation - compilation from source files
 
-The easiest way to install Intel® Deep Learning Streamer (Intel® DL
-Streamer) Pipeline Framework is installing it from pre-built Debian
+The easiest way to install Deep Learning Streamer Pipeline Framework
+is installing it from pre-built Debian
 packages. If you would like to follow this way, please see
 [the installation guide](../../get_started/install/install_guide_ubuntu).
 
-The instruction below focuses on installation steps with building Intel®
-DL Streamer Pipeline Framework from the source code provided in
+The instruction below focuses on installation steps with building Deep
+Learning Streamer Pipeline Framework from the source code provided in
 [Open Edge Platform repository](https://github.com/open-edge-platform/edge-ai-libraries.git).
 
 ## Step 1: Install prerequisites (only for Ubuntu)
@@ -223,7 +223,7 @@ ninja -j "$(nproc)"
 sudo env PATH=~/python3venv/bin:$PATH ninja install
 ```
 
-## Step 7: Clone Intel® DL Streamer repository
+## Step 7: Clone Deep Learning Streamer repository
 
 ```bash
 cd ~

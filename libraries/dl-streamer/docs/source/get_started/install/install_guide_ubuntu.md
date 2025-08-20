@@ -1,17 +1,16 @@
 # Install Guide Ubuntu
 
-The easiest way to install Intel® Deep Learning Streamer (Intel® DL
-Streamer) Pipeline Framework is installation
+The easiest way to install Deep Learning Streamer Pipeline Framework is installation
 [from Debian packages using APT repository](#option-1-install-intel-dl-streamer-pipeline-framework-from-debian-packages-using-apt-repository).
 If you prefer containerized environment based on Docker,
-the Intel® DL Streamer Pipeline Framework
+the Deep Learning Streamer Pipeline Framework
 [Docker image](#option-2-install-docker-image-from-docker-hub-and-run-it) is available as
 well as Dockerfile to build runtime Docker image. Regardless of chosen
 installations process, please follow
 [prerequisites](#prerequisites).
 
 For detailed description of installation process, including the option
-with building Intel® DL Streamer Pipeline Framework from the source code
+with building Deep Learning Streamer Pipeline Framework from the source code
 provided in
 [Open Edge Platform repository](https://github.com/open-edge-platform/edge-ai-libraries.git),
 please follow the [instructions](../../dev_guide/advanced_install/advanced_install_guide_prebuilt.md).
@@ -68,7 +67,7 @@ Running DL Streamer on Intel® Data Center GPU (Flex) requires specific
 drivers. In such case, please follow drivers installing instruction on
 [Intel® Data Center GPU website](https://dgpu-docs.intel.com/driver/installation.html#installing-data-center-gpu-lts-releases).
 
-## Option #1: Install Intel® DL Streamer Pipeline Framework from Debian packages using APT repository
+## Option #1: Install Deep Learning Streamer Pipeline Framework from Debian packages using APT repository
 
 This option provides the simplest installation flow using apt-get
 install command.
@@ -108,7 +107,7 @@ sudo apt remove -y openvino* libopenvino-* python3-openvino*
 sudo apt-get autoremove
 ```
 
-### Step 3: Install Intel® DL Streamer Pipeline Framework
+### Step 3: Install Deep Learning Streamer Pipeline Framework
 
 > **NOTE:** This step will also install the required dependencies, including
 > OpenVINO™ Toolkit and GStreamer.
@@ -118,7 +117,7 @@ sudo apt update
 sudo apt-get install intel-dlstreamer
 ```
 
-**Congratulations! Intel® DL Streamer is now installed and ready for
+**Congratulations! Deep Learning Streamer is now installed and ready for
 use!**
 
 To see the full list of installed components check the
@@ -126,7 +125,7 @@ To see the full list of installed components check the
 
 ### [Optional] Step 4: Python dependencies
 
-The Python packages required to run Intel® DL Streamer python elements
+The Python packages required to run Deep Learning Streamer python elements
 or samples are not installed by default. You can install them using
 commands from
 [Advanced Install Guide Compilation / Install Python dependencies](https://dlstreamer.github.io/dev_guide/advanced_install/advanced_install_guide_compilation.html#step-6-install-python-dependencies)
@@ -160,7 +159,7 @@ export MODELS_PATH=/home/${USER}/models
 ```
 
 The `hello_dlstreamer.sh` will set up the required environment
-variables and runs a sample pipeline to confirm that Intel® DL Streamer
+variables and runs a sample pipeline to confirm that Deep Learning Streamer
 is installed correctly. To run the `hello_dlstreamer.sh` script, execute the
 following command:
 
@@ -276,9 +275,9 @@ setfacl -m user:1000:r ~/.Xauthority
 > **NOTE**: If you want to build Docker image from DLStreamer Dockerfiles, please
 > follow [the instructions](../../dev_guide/advanced_install/advanced_build_docker_image.md).
 
-### Step 4: Pull the Intel® DL Streamer Docker image from Docker Hub
+### Step 4: Pull the Deep Learning Streamer Docker image from Docker Hub
 
-Visit [Intel® DL Streamer image docker hub](https://hub.docker.com/r/intel/dlstreamer) to
+Visit [Deep Learning Streamer image docker hub](https://hub.docker.com/r/intel/dlstreamer) to
 select the most appropriate version. By default , the latest docker image points to Ubuntu
 24 version.
 
@@ -298,7 +297,7 @@ For **Ubuntu 24.04** please use **latest** tag or specified version e.g.
   docker pull intel/dlstreamer:latest
   ```
 
-### Step 5: Run Intel® DL Streamer Pipeline Framework container
+### Step 5: Run Deep Learning Streamer Pipeline Framework container
 
 To confirm that your installation is completed successfully, please run
 a container
@@ -316,7 +315,7 @@ a container
   ```
 
 In the container, please run the `gst-inspect-1.0 gvadetect` to confirm
-that GStreamer and Intel® DL Streamer are running
+that GStreamer and Deep Learning Streamer are running
 
 ```bash
 gst-inspect-1.0 gvadetect
@@ -329,7 +328,7 @@ installation process is completed.
 
 ## Next Steps
 
-You are ready to use Intel® DL Streamer. For further instructions to run
+You are ready to use Deep Learning Streamer. For further instructions to run
 sample pipeline(s), please go to the [tutorial](../tutorial.md).
 
 ------------------------------------------------------------------------

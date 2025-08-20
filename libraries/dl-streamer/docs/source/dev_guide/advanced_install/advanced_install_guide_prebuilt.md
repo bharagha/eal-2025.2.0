@@ -1,7 +1,7 @@
 # Ubuntu advanced installation - pre-built packages
 
-The easiest way to install Intel® Deep Learning Streamer (Intel® DL
-Streamer) Pipeline Framework is installing it from pre-built Debian
+The easiest way to install Deep Learning Streamer
+Pipeline Framework is installing it from pre-built Debian
 packages with one-click script. If you would like to follow this way,
 please see [the installation guide](../../get_started/install/install_guide_ubuntu).
 
@@ -49,9 +49,9 @@ B. For **Ubuntu 22.04**:
       jq -r '.assets[] | select(.name | contains ("ubuntu_22.04_amd64.deb")) | .browser_download_url')
     ```
 
-## Step 3: Install Intel® DL Streamer
+## Step 3: Install Deep Learning Streamer
 
-Install Intel® DL Streamer from pre-built Debian packages:
+Install Deep Learning Streamer from pre-built Debian packages:
 
 ```bash
 sudo apt install ./*.deb
@@ -85,29 +85,29 @@ sudo usermod -a -G video <username>
 sudo usermod -a -G render <username>
 ```
 
-## Step 7: Set up the environment for Intel® DL Streamer
+## Step 7: Set up the environment for Deep Learning Streamer
 
-Source required environment variables to run GStreamer and Intel® DL
-Streamer:
+Source required environment variables to run GStreamer and
+Deep Learning Streamer:
 
 ```bash
 # Setup OpenVINO™ Toolkit environment
 source /opt/intel/openvino_2024/setupvars.sh
-# Setup GStreamer and Intel® DL Streamer Pipeline Framework environments
+# Setup GStreamer and Deep Learning Streamer Pipeline Framework environments
 source /opt/intel/dlstreamer/setupvars.sh
 ```
 
 > **NOTE:**
 > The environment variables are removed when you close the shell. Before
-> each run of Intel® DL Streamer you need to setup the environment with
+> each run of Deep Learning Streamer you need to setup the environment with
 > the 2 scripts listed in this step. As an option, you can set the
 > environment variables in file `~/.bashrc` for automatic enabling.
 
-## Step 8: Verify Intel® DL Streamer installation
+## Step 8: Verify Deep Learning Streamer installation
 
-Intel® DL Streamer has been installed. You can run the
-`gst-inspect-1.0 gvadetect` to confirm that GStreamer and Intel® DL
-Streamer are running:
+Deep Learning Streamer has been installed. You can run the
+`gst-inspect-1.0 gvadetect` to confirm that GStreamer and Deep
+Learning Streamer are running:
 
 ```bash
 gst-inspect-1.0 gvadetect
@@ -118,9 +118,9 @@ installation process is completed.
 
 ![image](../../get_started/install/gvadetect_sample_help.png)
 
-## Step 9: Next steps - running sample Intel® DL Streamer pipelines
+## Step 9: Next steps - running sample Deep Learning Streamer pipelines
 
-You are ready to use Intel® DL Streamer. For further instructions to run
+You are ready to use Deep Learning Streamer. For further instructions to run
 sample pipeline(s), please see
 [the installation guide](../../get_started/install/install_guide_ubuntu).
 

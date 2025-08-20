@@ -1,6 +1,6 @@
 # Ubuntu advanced uninstall guide
 
-## Option #1: Uninstall Intel® Deep Learning Streamer (Intel® DL Streamer) Pipeline Framework from APT repository
+## Option #1: Uninstall Deep Learning Streamer Pipeline Framework from APT repository
 
 If you installed via apt package just simple uninstall with apt
 
@@ -8,7 +8,7 @@ If you installed via apt package just simple uninstall with apt
 sudo dpkg-query -l | awk '/^ii/ && /intel-dlstreamer/ {print $2}' | sudo xargs apt-get remove -y --purge
 ```
 
-## Option #2: Intel® DL Streamer Pipeline Framework Docker image
+## Option #2: Deep Learning Streamer Pipeline Framework Docker image
 
 If you used docker, you need just remove container and dlstreamer docker
 image
@@ -22,7 +22,7 @@ docker rmi dlstreamer:devel
 
 If you compiled from sources, follow by this instructions
 
-### Step 1: Uninstall Intel® DL Streamer
+### Step 1: Uninstall Deep Learning Streamer
 
 ```bash
 sudo apt-get remove intel-dlstreamer-gst libpython3-dev python-gi-dev libopencv-dev libva-dev

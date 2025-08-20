@@ -8,7 +8,7 @@
 #include <memory>
 #include <thread>
 
-// Intel® Deep Learning Streamer
+// Deep Learning Streamer
 #include "dlstreamer/base/blocking_queue.h"
 #include "dlstreamer/ffmpeg/context.h"
 #include "dlstreamer/ffmpeg/elements/ffmpeg_multi_source.h"

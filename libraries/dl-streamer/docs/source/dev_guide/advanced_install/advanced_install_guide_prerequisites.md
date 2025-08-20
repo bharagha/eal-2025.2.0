@@ -54,7 +54,7 @@ C. Install the newest Intel® NPU driver. Please follow "Installation
 > version](https://github.com/intel/linux-npu-driver/releases). Please
 > pay attention to access to the device as a non-root user.
 
-Note that the following error can be reported when running Intel® DL Streamer on
+Note that the following error can be reported when running Deep Learning Streamer on
 NPU device:
 
 ```bash
