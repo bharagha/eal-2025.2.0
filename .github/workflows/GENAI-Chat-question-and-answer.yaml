@@ -55,10 +55,9 @@ jobs:
           scan-scope: all
           scan_target: "chatqna-backend:latest"  
           severity: "HIGH,CRITICAL"  
-          format: "template"
+          format: "json"
           report_suffix: "-image-chat-qna-backend-CT248"
-          generate_sbom: "true"
-          sbom_format: "spdx-json"
+
           
 
       - name: Run trivy Scan - chat-qna-frontend
@@ -71,8 +70,7 @@ jobs:
           severity: "HIGH,CRITICAL"  
           format: "json"
           report_suffix: "-image-chat-qna-frontend-CT248"
-          generate_sbom: "true"
-          sbom_format: "spdx-json"
+
       
       - name: Scan Dockerfile with Trivy-backend
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
