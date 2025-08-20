@@ -41,7 +41,6 @@ jobs:
       
       - name: Build Docker images
         run: |
-          cd sample-applications/chat-question-and-answer/
           docker build -f ./sample-applications/chat-question-and-answer/Dockerfile -t chatqna-backend:latest ./sample-applications/chat-question-and-answer/
           docker build -t="chatqna-frontend:latest" ./sample-applications/chat-question-and-answer/ui/react
          
