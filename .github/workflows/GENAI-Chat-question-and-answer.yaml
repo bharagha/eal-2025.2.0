@@ -171,7 +171,7 @@ jobs:
           name: clamav-report-chatqna
           path: security-results/clamav*
 
-GitLeaks scanning job - matching your existing pattern
+#GitLeaks scanning job - matching your existing pattern
   gitleaks-scan:
     runs-on: ubuntu-22.04-32core-128GB
     permissions:
@@ -208,7 +208,7 @@ GitLeaks scanning job - matching your existing pattern
           name: gitleaks-report-chat-qna-${{ steps.timestamp.outputs.time }}
           path: gitleaks-chatqna.json
 
-  Python linting with pylint
+  #Python linting with pylint
   pylint-scan:
     runs-on: ubuntu-22.04-32core-128GB
     permissions:
@@ -263,7 +263,7 @@ GitLeaks scanning job - matching your existing pattern
           name: pylint-report-chat-qna
           path: sample-applications/chat-question-and-answer/security-results/pylint-report-chat-qna.txt
 
-ShellCheck scanning job
+#ShellCheck scanning job
   shellcheck-scan:
     runs-on: ubuntu-22.04-32core-128GB
     permissions:
@@ -299,7 +299,7 @@ ShellCheck scanning job
           path: security-results/shellcheck-report-chat-qna.txt
 
 
-Run Unit test cases
+#Run Unit test cases Frontend
   run-unit-tests-frontend:
     runs-on: ubuntu-22.04-32core-128GB
     permissions:
