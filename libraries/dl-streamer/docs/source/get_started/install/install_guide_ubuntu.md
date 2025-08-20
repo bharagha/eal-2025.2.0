@@ -73,7 +73,7 @@ drivers. In such case, please follow drivers installing instruction on
 This option provides the simplest installation flow using apt-get
 install command.
 
-### Step 1: Install prerequisites
+### Step 1: Installing prerequisites
 
 Run the script DLS_install_prerequisites.sh to install required GPU/NPU
 drivers. For more details see [prerequisites](#prerequisites).
@@ -84,27 +84,23 @@ drivers. For more details see [prerequisites](#prerequisites).
 
 ### Step 2: Setup repositories
 
-#### Ubuntu 22
+#### In Ubuntu 22
 
 ```bash
-sudo -E wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-sudo wget -O- https://eci.intel.com/sed-repos/gpg-keys/GPG-PUB-KEY-INTEL-SED.gpg | sudo tee /usr/share/keyrings/sed-archive-keyring.gpg > /dev/null
-sudo echo "deb [signed-by=/usr/share/keyrings/sed-archive-keyring.gpg] https://eci.intel.com/sed-repos/$(source /etc/os-release && echo $VERSION_CODENAME) sed main" | sudo tee /etc/apt/sources.list.d/sed.list
-sudo bash -c 'echo -e "Package: *\nPin: origin eci.intel.com\nPin-Priority: 1000" > /etc/apt/preferences.d/sed'
+sudo -E wget -O- https://apt.repos.intel.com/edgeai/dlstreamer/GPG-PUB-KEY-INTEL-DLS.gpg | sudo tee /usr/share/keyrings/dls-archive-keyring.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/dls-archive-keyring.gpg] https://apt.repos.intel.com/edgeai/dlstreamer/ubuntu22 ubuntu22 main" | sudo tee /etc/apt/sources.list.d/intel-dlstreamer.list
 sudo bash -c 'echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/openvino/2025 ubuntu22 main" | sudo tee /etc/apt/sources.list.d/intel-openvino-2025.list'
 ```
 
-#### Ubuntu 24
+#### In Ubuntu 24
 
 ```bash
-sudo -E wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-sudo wget -O- https://eci.intel.com/sed-repos/gpg-keys/GPG-PUB-KEY-INTEL-SED.gpg | sudo tee /usr/share/keyrings/sed-archive-keyring.gpg > /dev/null
-sudo echo "deb [signed-by=/usr/share/keyrings/sed-archive-keyring.gpg] https://eci.intel.com/sed-repos/$(source /etc/os-release && echo $VERSION_CODENAME) sed main" | sudo tee /etc/apt/sources.list.d/sed.list
-sudo bash -c 'echo -e "Package: *\nPin: origin eci.intel.com\nPin-Priority: 1000" > /etc/apt/preferences.d/sed'
+sudo -E wget -O- https://apt.repos.intel.com/edgeai/dlstreamer/GPG-PUB-KEY-INTEL-DLS.gpg | sudo tee /usr/share/keyrings/dls-archive-keyring.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/dls-archive-keyring.gpg] https://apt.repos.intel.com/edgeai/dlstreamer/ubuntu24 ubuntu24 main" | sudo tee /etc/apt/sources.list.d/intel-dlstreamer.list
 sudo bash -c 'echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/openvino/2025 ubuntu24 main" | sudo tee /etc/apt/sources.list.d/intel-openvino-2025.list'
 ```
 
-> **NOTE:** If you have OpenVINO™ installed in a version different from 2025.0.0,
+> **NOTE:** If you have OpenVINO™ installed in a version different from 2025.2.0,
 > please uninstall the OpenVINO™ packages using the following commands.
 
 ```bash
@@ -240,7 +236,7 @@ sudo apt install intel-dlstreamer=<VERSION>.<UPDATE>.<PATCH>
 For example
 
 ```bash
-sudo apt install intel-dlstreamer=2025.0.0
+sudo apt install intel-dlstreamer=2025.1.2
 ```
 
 C. List available versions
@@ -251,7 +247,7 @@ sudo apt show -a intel-dlstreamer
 
 ## Option #2: Install Docker image from Docker Hub and run it
 
-### Step 1: Install prerequisites
+### Step 1: Installation of prerequisites
 
 Run the script `DLS_install_prerequisites.sh` to setup your environment.
 For more details see [prerequisites](#prerequisites).
@@ -260,13 +256,13 @@ For more details see [prerequisites](#prerequisites).
 ./DLS_install_prerequisites.sh
 ```
 
-### Step 2: Install Docker
+### Step 2: Installation of Docker
 
 [Get Docker](https://docs.docker.com/get-docker/) for your host OS.
 To prevent file permission issues please follow "Manage Docker as a non-root user" section
 steps described [here](https://docs.docker.com/engine/install/linux-postinstall/)
 
-### Step 3: Allow connection to X server
+### Step 3: Allowing connection to X server
 
 Some Pipeline Framework samples use display. Hence, first run the
 following commands to allow connection from Docker container to X server
