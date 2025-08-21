@@ -2,8 +2,8 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-name: "[GEN-AI] Chat-qna-CI"
-run-name: "[GEN-AI-Chat-qna-CI] PR  workflow (by @${{ github.actor }} via ${{ github.event_name }})"
+name: "[GEN-AI] Chat-qna-core-CI"
+run-name: "[GEN-AI-Chat-qna-core-CI] PR  workflow (by @${{ github.actor }} via ${{ github.event_name }})"
 
 
 # Only run at most 1 workflow concurrently per PR, unlimited for branches
@@ -16,7 +16,7 @@ on:
     branches:
       - chat-qna-workflow
     paths:
-      - 'sample-applications/chat-question-and-answer/**'
+      - 'sample-applications/chat-question-and-answer-core/**'
 
 jobs:
    
@@ -31,8 +31,8 @@ jobs:
       
       - name: Build Docker images
         run: |
-          docker build -f ./sample-applications/chat-question-and-answer/Dockerfile -t chatqna-backend:latest ./sample-applications/chat-question-and-answer/
-          docker build -t="chatqna-frontend:latest" ./sample-applications/chat-question-and-answer/ui/react
+          docker build -f ./sample-applications/chat-question-and-answer-core/Dockerfile -t chatqna-core-backend:latest ./sample-applications/chat-question-and-answer-core/
+          docker build -f ./sample-applications/chat-question-and-answer-core/ui/Dockerfile -t chatqna-core-frontend:latest ./sample-applications/chat-question-and-answer-core/ui/
       
       - name: Run Trivy Filesystem Scan
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
@@ -42,59 +42,59 @@ jobs:
           scan-scope: "all"  
           severity: "HIGH,CRITICAL" 
           format: "json"
-          scan_target: "sample-applications/chat-question-and-answer/"
-          report_suffix: "-fs-chat-qna-CT7"
+          scan_target: "sample-applications/chat-question-and-answer-core/"
+          report_suffix: "-fs-chat-qna-core-CT7"
       
          
-      - name: Run trivy Scan - chat-qna-backend (HTML Report)
+      - name: Run trivy Scan - chat-qna-core-backend (HTML Report)
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
-        id: chat-qna-backend-html
+        id: chat-qna-core-backend-html
         with:
           scan_type: "image"  
           scan-scope: "all"
-          scan_target: "chatqna-backend:latest"  
+          scan_target: "chatqna-core-backend:latest"  
           severity: "HIGH,CRITICAL"  
           format: "table"
-          report_suffix: "-image-chat-qna-backend-html-CT248"
+          report_suffix: "-image-chat-qna-core-backend-html-CT248"
           generate_sbom: "false"
 
-      - name: Run trivy Scan - chat-qna-backend (SPDX SBOM)
+      - name: Run trivy Scan - chat-qna-core-backend (SPDX SBOM)
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
-        id: chat-qna-backend-spdx
+        id: chat-qna-core-backend-spdx
         with:
           scan_type: "image"  
           scan-scope: "all"
-          scan_target: "chatqna-backend:latest"  
+          scan_target: "chatqna-core-backend:latest"  
           severity: "HIGH,CRITICAL"  
           format: "spdx-json"
           scanners: "vuln"
-          report_suffix: "-image-chat-qna-backend-spdx-CT248"
+          report_suffix: "-image-chat-qna-core-backend-spdx-CT248"
           generate_sbom: "false"
           
 
-      - name: Run trivy Scan - chat-qna-frontend (HTML Report)
+      - name: Run trivy Scan - chat-qna-core-frontend (HTML Report)
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
-        id: chat-qna-frontend-html
+        id: chat-qna-core-frontend-html
         with:
           scan_type: "image"  
           scan-scope: "all"
-          scan_target: "chatqna-frontend:latest"  
+          scan_target: "chatqna-core-frontend:latest"  
           severity: "HIGH,CRITICAL"  
           format: "table"
-          report_suffix: "-image-chat-qna-frontend-html-CT248"
+          report_suffix: "-image-chat-qna-core-frontend-html-CT248"
           generate_sbom: "false"
 
-      - name: Run trivy Scan - chat-qna-frontend (SPDX SBOM)
+      - name: Run trivy Scan - chat-qna-core-frontend (SPDX SBOM)
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
-        id: chat-qna-frontend-spdx
+        id: chat-qna-core-frontend-spdx
         with:
           scan_type: "image"  
           scan-scope: "all"
-          scan_target: "chatqna-frontend:latest"  
+          scan_target: "chatqna-core-frontend:latest"  
           severity: "HIGH,CRITICAL"  
           format: "spdx-json"
           scanners: "vuln"
-          report_suffix: "-image-chat-qna-frontend-spdx-CT248"
+          report_suffix: "-image-chat-qna-core-frontend-spdx-CT248"
           generate_sbom: "false"
 
       
@@ -102,26 +102,26 @@ jobs:
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
         with:
           scan_type: "config"
-          scan_target: "sample-applications/chat-question-and-answer/"
+          scan_target: "sample-applications/chat-question-and-answer-core/"
           severity: "HIGH,CRITICAL"
           format: "json"
           misconfig_scanners: "dockerfile"
-          report_suffix: "-config-chat-qna-backend-CT222"
+          report_suffix: "-config-chat-qna-core-backend-CT222"
 
       - name: Scan Dockerfile with Trivy-frontend
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
         with:
           scan_type: "config"
-          scan_target: "sample-applications/chat-question-and-answer/ui/react/"
+          scan_target: "sample-applications/chat-question-and-answer-core/ui/"
           severity: "HIGH,CRITICAL"
           format: "json"
           misconfig_scanners: "dockerfile"
-          report_suffix: "-config-chat-qna-frontend-CT222"
+          report_suffix: "-config-chat-qna-core-frontend-CT222"
            
       - name: Upload Report
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
         with:
-          name: trivy-report-chat-qna
+          name: trivy-report-chat-qna-core
           path: security-results/trivy*
 
   bandit-scan:
@@ -138,13 +138,13 @@ jobs:
           scan-scope: "all"  
           output-format: "txt" 
           fail-on-findings: "false"
-          paths: "sample-applications/chat-question-and-answer/"
-          report_suffix: "-bandit-chat-qna-CT161"
+          paths: "sample-applications/chat-question-and-answer-core/"
+          report_suffix: "-bandit-chat-qna-core-CT161"
           
       - name: Upload Report
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
         with:
-          name: bandit-report
+          name: bandit-report-core
           path: bandit-report-*.txt
         
 
@@ -162,16 +162,16 @@ jobs:
           scan-scope: "all"  
           output-format: "txt" 
           fail-on-findings: "false"
-          paths: "sample-applications/chat-question-and-answer/"
+          paths: "sample-applications/chat-question-and-answer-core/"
           exclude_dirs: ".git,node_modules,venv,ui/test,tests"
           
       - name: Upload Report
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
         with:
-          name: clamav-report-chatqna
+          name: clamav-report-chatqna-core
           path: security-results/clamav*
 
-#GitLeaks scanning job - matching your existing pattern
+  # GitLeaks scanning job
   gitleaks-scan:
     runs-on: ubuntu-22.04-32core-128GB
     permissions:
@@ -200,15 +200,15 @@ jobs:
           
       - name: Scan for secrets
         run: |
-          gitleaks dir "sample-applications/chat-question-and-answer/" -v -c ci/.gitleaks.toml --baseline-path ci/gitleaks_baselines/gitleaks-chatqna.json -r gitleaks-chatqna.json || true
+          gitleaks dir "sample-applications/chat-question-and-answer-core/" -v -c ci/.gitleaks.toml --baseline-path ci/gitleaks_baselines/gitleaks-chatqna-core.json -r gitleaks-chatqna-core.json || true
           
       - name: Upload Gitleaks Report
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
         with:
-          name: gitleaks-report-chat-qna-${{ steps.timestamp.outputs.time }}
-          path: gitleaks-chatqna.json
+          name: gitleaks-report-chat-qna-core-${{ steps.timestamp.outputs.time }}
+          path: gitleaks-chatqna-core.json
 
-  #Python linting with pylint
+  # Python linting with pylint
   pylint-scan:
     runs-on: ubuntu-22.04-32core-128GB
     permissions:
@@ -227,17 +227,17 @@ jobs:
           
       - name: Install dependencies and pylint
         run: |
-          cd sample-applications/chat-question-and-answer/
+          cd sample-applications/chat-question-and-answer-core/
           poetry install
           poetry add --group dev pylint
       
       - name: Run pylint
         run: |
-          cd sample-applications/chat-question-and-answer/
+          cd sample-applications/chat-question-and-answer-core/
           mkdir -p security-results
-          echo "=== Pylint Scan Results ===" > security-results/pylint-report-chat-qna.txt
-          echo "Scan Date: $(date)" >> security-results/pylint-report-chat-qna.txt
-          echo "" >> security-results/pylint-report-chat-qna.txt
+          echo "=== Pylint Scan Results ===" > security-results/pylint-report-chat-qna-core.txt
+          echo "Scan Date: $(date)" >> security-results/pylint-report-chat-qna-core.txt
+          echo "" >> security-results/pylint-report-chat-qna-core.txt
           
           # Create a basic pylint config
           cat > .pylintrc << EOF
@@ -253,17 +253,17 @@ jobs:
           EOF
           
           # Find all Python files and lint them
-          find app/ -type f -name "*.py" -exec poetry run pylint --rcfile=.pylintrc {} + >> security-results/pylint-report-chat-qna.txt 2>&1 || true
+          find app/ -type f -name "*.py" -exec poetry run pylint --rcfile=.pylintrc {} + >> security-results/pylint-report-chat-qna-core.txt 2>&1 || true
           
           echo "Pylint scan completed"
       
       - name: Upload pylint Report
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
         with:
-          name: pylint-report-chat-qna
-          path: sample-applications/chat-question-and-answer/security-results/pylint-report-chat-qna.txt
+          name: pylint-report-chat-qna-core
+          path: sample-applications/chat-question-and-answer-core/security-results/pylint-report-chat-qna-core.txt
 
-#ShellCheck scanning job
+  # ShellCheck scanning job
   shellcheck-scan:
     runs-on: ubuntu-22.04-32core-128GB
     permissions:
@@ -279,15 +279,15 @@ jobs:
       - name: Run ShellCheck
         run: |
           mkdir -p security-results
-          echo "=== ShellCheck Scan Results ===" > security-results/shellcheck-report-chat-qna.txt
-          echo "Scan Date: $(date)" >> security-results/shellcheck-report-chat-qna.txt
-          echo "" >> security-results/shellcheck-report-chat-qna.txt
+          echo "=== ShellCheck Scan Results ===" > security-results/shellcheck-report-chat-qna-core.txt
+          echo "Scan Date: $(date)" >> security-results/shellcheck-report-chat-qna-core.txt
+          echo "" >> security-results/shellcheck-report-chat-qna-core.txt
           
           # Find all shell scripts and check them
-          find sample-applications/chat-question-and-answer/ -type f \( -name "*.sh" -o -name "*.bash" \) -print0 | while IFS= read -r -d '' file; do
-            echo "Checking: $file" >> security-results/shellcheck-report-chat-qna.txt
-            shellcheck "$file" >> security-results/shellcheck-report-chat-qna.txt 2>&1 || true
-            echo "---" >> security-results/shellcheck-report-chat-qna.txt
+          find sample-applications/chat-question-and-answer-core/ -type f \( -name "*.sh" -o -name "*.bash" \) -print0 | while IFS= read -r -d '' file; do
+            echo "Checking: $file" >> security-results/shellcheck-report-chat-qna-core.txt
+            shellcheck "$file" >> security-results/shellcheck-report-chat-qna-core.txt 2>&1 || true
+            echo "---" >> security-results/shellcheck-report-chat-qna-core.txt
           done
           
           echo "ShellCheck scan completed"
@@ -295,42 +295,10 @@ jobs:
       - name: Upload ShellCheck Report
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
         with:
-          name: shellcheck-report-chat-qna
-          path: security-results/shellcheck-report-chat-qna.txt
+          name: shellcheck-report-chat-qna-core
+          path: security-results/shellcheck-report-chat-qna-core.txt
 
-#Run jslinter Frontend
-  run-jslinter-frontend:
-    runs-on: ubuntu-22.04-32core-128GB
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@8edcb1bdb4e267140fa742c62e395cd74f332709
-      
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          
-      - name: Install dependencies
-        run: |
-          cd sample-applications/chat-question-and-answer/ui/react/
-          npm install
-      
-      - name: Run linting with reports
-        run: |
-          cd sample-applications/chat-question-and-answer/ui/react/
-          mkdir -p lint-results
-          
-          # Use project's npm scripts (for project-specific config)
-          npm run lint > lint-results/npm-lint-output.txt 2>&1 || true
-          npm run prettier > lint-results/prettier-check.txt 2>&1 || true
-          
-          # Also generate structured reports with global ESLint
-          eslint . --format json --output-file lint-results/eslint-report.json || true
-          eslint . --format html --output-file lint-results/eslint-report.html || true
-
-
-#Run Unit test cases Frontend
+  # Run Unit test cases Frontend
   run-unit-tests-frontend:
     runs-on: ubuntu-22.04-32core-128GB
     permissions:
@@ -343,19 +311,19 @@ jobs:
         with:
           node-version: '22'
           
-      - name: Install dependencies
+      - name: Install dependencies and run tests
         run: |
-          cd sample-applications/chat-question-and-answer/ui/react/
+          cd sample-applications/chat-question-and-answer-core/ui/
           npm install
           npm run coverage
           
       - name: Upload test results
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
         with:
-          name: chat-qna-frontend-results
-          path: sample-applications/chat-question-and-answer/ui/react/
+          name: chat-qna-core-frontend-results
+          path: sample-applications/chat-question-and-answer-core/ui/coverage/
 
-#Run Unit test cases for Backend
+  # Run Unit test cases for Backend
   run-unit-tests-backend:
     runs-on: ubuntu-22.04-32core-128GB
     permissions:
@@ -370,20 +338,24 @@ jobs:
     
       - name: Run unit tests
         run: |
-          cd sample-applications/chat-question-and-answer/
+          cd sample-applications/chat-question-and-answer-core/
           # Backend Coverage (including all production Python files)
-          python3.12 -m venv chat-qna-venv
-          source chat-qna-venv/bin/activate
+          python3.12 -m venv chat-qna-core-venv
+          source chat-qna-core-venv/bin/activate
           pip install poetry
           poetry install --with dev || true
           poetry add --group dev pytest-cov || true
-          source setup.sh llm=TGI embed=TEI
-          poetry run pytest tests/unit_tests/ \
+          poetry run pytest tests/ \
             --cov=app \
-            --cov=ovms_config \
             --cov-report=html:coverage-backend \
             --cov-report=xml:coverage-backend.xml \
             --cov-report=term-missing \
             --cov-branch || true
           deactivate
-          rm -rf chat-qna-venv
+          rm -rf chat-qna-core-venv
+
+      - name: Upload test results
+        uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
+        with:
+          name: chat-qna-core-backend-test-results
+          path: sample-applications/chat-question-and-answer-core/coverage-backend/
