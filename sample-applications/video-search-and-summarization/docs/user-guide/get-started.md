@@ -27,7 +27,7 @@ This guide shows how to:
 
 The repository is organized as follows:
 
-```plaintext
+```text
 sample-applications/video-search-and-summarization/
 ├── config                     # Configuration files
 │   ├── nginx.conf             # Nginx configuration
@@ -36,7 +36,6 @@ sample-applications/video-search-and-summarization/
 │   ├── compose.base.yaml      # Base services configuration
 │   ├── compose.summary.yaml   # Compose override file for video summarization services
 │   ├── compose.search.yaml    # Compose override file for Video search services 
-│   ├── compose.gpu_vlm.yaml   # GPU configuration for VLM
 │   └── compose.gpu_ovms.yaml  # GPU configuration for OVMS
 ├── docs                       # Documentation
 │   └── user-guide             # User guides and tutorials
