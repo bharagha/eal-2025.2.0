@@ -57,14 +57,14 @@ The Visual Pipeline and Platform Evaluation Tool integrates with AI-based video 
 
 **Data Ingestion**: Provide video streams from live cameras or recorded files. Configure pipeline parameters to match your evaluation needs.
 
-**AI Processing**: Apply AI inference using OpenVINO™ models to detect objects in video streams. 
+**AI Processing**: Apply AI inference using OpenVINO™ models to detect objects in video streams.
 
 **Performance Evaluation**: Collect hardware performance metrics, including CPU/GPU usage, power consumption, and thermal data.
 
 **Visualization & Analysis**: View real-time performance metrics on the dashboard to compare configurations and optimize settings.
 
-
 ## Learn More
+
 - [System Requirements](system-requirements.md)
 - [Get Started](get-started.md)
 - [How to Build Source](how-to-build-source.md)
