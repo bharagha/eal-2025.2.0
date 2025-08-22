@@ -20,7 +20,7 @@ Below, you'll find links to detailed documentation to help you get started, conf
   - [How to Build from Source](docs/user-guide/how-to-build-from-source.md): Instructions for building the microservice from source code.
 
 - **API Reference**
-  - [API Reference](docs/user-guide/api-reference.md): Comprehensive reference for the available REST API endpoints.
+  - [API Reference](docs/user-guide/api-reference.md): Comprehensive reference for the available REST API endpoints...
 
 - **Release Notes**
   - [Release Notes](docs/user-guide/release-notes.md): Information on the latest updates, improvements, and bug fixes.
