@@ -12,12 +12,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 # Build dependencies
 BuildRequires:  cmake gcc gcc-c++ make
-BuildRequires:  opencv-devel >= 4.10.0
-BuildRequires:  gstreamer-devel >= 1.26.1
-BuildRequires:  ffmpeg-devel >= 6.1.1
-BuildRequires:  paho-mqtt-c-devel >= 1.3.4
-BuildRequires:  openvino-devel >= 2025.2.0
-BuildRequires:  libva-devel intel-media-driver
+BuildRequires:  libva-devel libva-intel-media-driver
 BuildRequires:  python3-devel python3-pip
 BuildRequires:  pkgconfig patchelf
 
@@ -51,11 +46,7 @@ and Intel discrete GPUs.
 %package devel
 Summary:        Development files for %{name}
 Requires:       %{name} = %{version}-%{release}
-Requires:       opencv-devel >= 4.10.0
-Requires:       gstreamer-devel >= 1.26.1
-Requires:       ffmpeg-devel >= 6.1.1
-Requires:       paho-mqtt-c-devel >= 1.3.4
-Requires:       openvino-devel >= 2025.2.0
+
 
 %description devel
 Development files and headers for Intel DL Streamer.
@@ -68,17 +59,31 @@ Requires:       %{name} = %{version}-%{release}
 Sample applications, scripts, and models for Intel DL Streamer.
 
 %prep
-%setup -q
+%setup -q -n intel-dlstreamer-%{version}
 
 %build
+cur_dir=`pwd`
+
+# Download OpenVINO 2025.2 prebuilt binary
+sudo rm -rf /opt/intel/openvino*
+wget https://storage.openvinotoolkit.org/repositories/openvino/packages/2025.2/linux/openvino_toolkit_ubuntu24_2025.2.0.19140.c01cd93e24d_x86_64.tgz
+tar -xvzf openvino_toolkit_ubuntu24_2025.2.0.19140.c01cd93e24d_x86_64.tgz 
+sudo mv openvino_toolkit_ubuntu24_2025.2.0.19140.c01cd93e24d_x86_64 /opt/intel/openvino_2025.2.0
+cd /opt/intel/openvino_2025.2.0/
+sudo -E python3 -m pip install -r ./python/requirements.txt
+cd /opt/intel
+sudo ln -s openvino_2025.2.0 openvino_2025
+
+cd $cur_dir
+
 mkdir build
 cd build
 
 # Set up PKG_CONFIG_PATH for packages
-export PKG_CONFIG_PATH="/opt/intel/opencv/lib/pkgconfig:/opt/intel/dlstreamer/gstreamer/lib/pkgconfig:/opt/intel/ffmpeg/lib/pkgconfig:/opt/intel/paho-mqtt-c/lib/pkgconfig:${PKG_CONFIG_PATH}"
+export PKG_CONFIG_PATH="/opt/intel/opencv/lib/pkgconfig:/opt/intel/dlstreamer/gstreamer/lib/pkgconfig:/opt/intel/dlstreamer/gstreamer/lib/gstreamer-1.0/pkgconfig:/opt/intel/ffmpeg/lib/pkgconfig:/opt/intel/paho-mqtt-c/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
 # Set up paths for packages
-export CMAKE_PREFIX_PATH="/opt/intel/opencv:/opt/intel/dlstreamer/gstreamer:/opt/intel/ffmpeg:/opt/intel/paho-mqtt-c"
+# export CMAKE_PREFIX_PATH="/opt/intel/opencv:/opt/intel/dlstreamer/gstreamer:/opt/intel/ffmpeg:/opt/intel/paho-mqtt-c"
 
 # Configure with optimized dependencies
 cmake -DCMAKE_INSTALL_PREFIX=/opt/intel/dlstreamer \
@@ -87,10 +92,6 @@ cmake -DCMAKE_INSTALL_PREFIX=/opt/intel/dlstreamer \
       -DENABLE_RDKAFKA_INSTALLATION=ON \
       -DENABLE_VAAPI=ON \
       -DENABLE_SAMPLES=ON \
-      -DOpenCV_DIR=/opt/intel/opencv/lib64/cmake/opencv4 \
-      -DGSTREAMER_ROOT_DIR=/opt/intel/gstreamer \
-      -DFFMPEG_ROOT_DIR=/opt/intel/ffmpeg \
-      -DPAHO_ROOT_DIR=/opt/intel/paho-mqtt-c \
       ..
 
 make -j "$(nproc)"

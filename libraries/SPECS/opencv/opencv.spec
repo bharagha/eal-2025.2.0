@@ -11,17 +11,11 @@ ExclusiveArch:  x86_64
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildRequires:  cmake ninja-build gcc gcc-c++ make
-BuildRequires:  python3-devel python3-numpy
-BuildRequires:  libjpeg-turbo-devel libpng-devel libtiff-devel
-BuildRequires:  libva-devel intel-media-driver
-BuildRequires:  tbb-devel
-BuildRequires:  openexr-devel
+BuildRequires:  libva-devel libva-intel-media-driver
 BuildRequires:  pkgconfig
 
 Requires:       libjpeg-turbo libpng libtiff
-Requires:       libva intel-media-driver
-Requires:       tbb
-Requires:       openexr
+Requires:       libva2 libva-intel-media-driver
 
 %description
 Intel optimized OpenCV build with VAAPI support for hardware acceleration.
@@ -53,10 +47,18 @@ ninja -j "$(nproc)"
 rm -rf %{buildroot}
 cd build
 env PATH=~/python3venv/bin:$PATH DESTDIR=%{buildroot} ninja install
+cp -r %{_builddir}/%{name}-%{version}/cmake %{buildroot}/
 
-# Create pkgconfig directory symlink for easier discovery
-mkdir -p %{buildroot}/usr/lib64/pkgconfig
-ln -sf /opt/intel/opencv/lib64/pkgconfig/opencv4.pc %{buildroot}/usr/lib64/pkgconfig/intel-opencv.pc
+# Remove RPATH for all binaries/libs
+find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file; do
+    if patchelf --print-rpath "$file" &>/dev/null; then
+        rpath=$(patchelf --print-rpath "$file")
+        if [ -n "$rpath" ]; then
+            echo "Removing RPATH from $file"
+            patchelf --remove-rpath "$file"
+        fi
+    fi
+done
 
 %clean
 rm -rf %{buildroot}
@@ -68,16 +70,19 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %doc README.md
 %license LICENSE
+%cmake cmake/
 /opt/intel/opencv/lib64/*.so.*
+/opt/intel/opencv/lib/
 /opt/intel/opencv/share/
-/usr/lib64/pkgconfig/intel-opencv.pc
+/opt/intel/opencv/bin/
+
 
 %files devel
 %defattr(-,root,root,-)
 /opt/intel/opencv/include/
+/opt/intel/opencv/lib/
 /opt/intel/opencv/lib64/*.so
-/opt/intel/opencv/lib64/pkgconfig/
-/opt/intel/opencv/lib64/cmake/
+/opt/intel/opencv/bin/
 
 %changelog
 * Thu Aug 07 2025 DL Streamer Team <dlstreamer@intel.com> - 4.10.0-1

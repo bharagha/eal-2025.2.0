@@ -56,6 +56,17 @@ rm -rf %{buildroot}
 make install DESTDIR=%{buildroot}
 tree %{buildroot}
 
+# Remove RPATH for all binaries/libs
+find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file; do
+    if patchelf --print-rpath "$file" &>/dev/null; then
+        rpath=$(patchelf --print-rpath "$file")
+        if [ -n "$rpath" ]; then
+            echo "Removing RPATH from $file"
+            patchelf --remove-rpath "$file"
+        fi
+    fi
+done
+
 %clean
 rm -rf %{buildroot}
 

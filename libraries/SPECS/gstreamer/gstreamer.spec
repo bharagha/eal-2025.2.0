@@ -18,7 +18,7 @@ BuildRequires:  libva-devel libva-intel-media-driver
 BuildRequires:  pkgconfig flex bison
 
 Requires:       glib2 gobject-introspection
-Requires:       libva libva-intel-media-driver
+Requires:       libva2 libva-intel-media-driver
 Requires:       ffmpeg >= 6.1.1
 
 %description
@@ -57,6 +57,16 @@ ninja -C build
 rm -rf %{buildroot}
 env PATH=~/python3venv/bin:$PATH DESTDIR=%{buildroot} meson install -C build/
 
+# Remove RPATH for all binaries/libs
+find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file; do
+    if patchelf --print-rpath "$file" &>/dev/null; then
+        rpath=$(patchelf --print-rpath "$file")
+        if [ -n "$rpath" ]; then
+            echo "Removing RPATH from $file"
+            patchelf --remove-rpath "$file"
+        fi
+    fi
+done
 
 %clean
 rm -rf %{buildroot}
@@ -67,19 +77,16 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %doc README.md
-%license COPYING
 /opt/intel/dlstreamer/gstreamer/bin/
-/opt/intel/dlstreamer/gstreamer/lib64/*.so.*
-/opt/intel/dlstreamer/gstreamer/lib64/gstreamer-1.0/
 /opt/intel/dlstreamer/gstreamer/share/
-/opt/intel/dlstreamer/gstreamer/libexec/
-/usr/lib64/pkgconfig/gstreamer*.pc
+/opt/intel/dlstreamer/gstreamer/etc/
+/opt/intel/dlstreamer/gstreamer/lib/
 
 %files devel
 %defattr(-,root,root,-)
 /opt/intel/dlstreamer/gstreamer/include/
-/opt/intel/dlstreamer/gstreamer/lib64/*.so
-/opt/intel/dlstreamer/gstreamer/lib64/pkgconfig/
+/opt/intel/dlstreamer/gstreamer/lib/*.so
+/opt/intel/dlstreamer/gstreamer/lib/pkgconfig/
 
 %changelog
 * Thu Aug 07 2025 DL Streamer Team <dlstreamer@intel.com> - 1.26.1-1

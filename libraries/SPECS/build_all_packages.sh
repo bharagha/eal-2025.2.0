@@ -10,7 +10,7 @@ declare -A PACKAGES=(
     ["ffmpeg"]="ffmpeg/ffmpeg.spec"
     ["opencv"]="opencv/opencv.spec"
     ["gstreamer"]="gstreamer/gstreamer.spec"
-    ["intel-dlstreamer"]="intel-dlstreamer/intel-dlstreamer.spec"
+    # ["intel-dlstreamer"]="intel-dlstreamer/intel-dlstreamer.spec"
 )
 
 # Build order (dependencies first)
@@ -19,7 +19,7 @@ BUILD_ORDER=(
     "ffmpeg"
     "gstreamer"
     "opencv"
-    "intel-dlstreamer"
+    # "intel-dlstreamer"
 )
 
 # Colors for output

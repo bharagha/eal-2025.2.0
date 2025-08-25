@@ -44,24 +44,30 @@ main() {
     log_info "Downloading source files for Intel DL Streamer modular build..."
     log_info "================================================================="
     
-    # Define sources
-    declare -A sources=(
-        ["https://github.com/eclipse/paho.mqtt.c/archive/v1.3.4.tar.gz"]="paho.mqtt.c-1.3.4.tar.gz"
-        ["https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.gz"]="ffmpeg-6.1.1.tar.gz"
-        ["https://github.com/opencv/opencv/archive/4.10.0.tar.gz"]="opencv-4.10.0.tar.gz"
-        ["https://gitlab.freedesktop.org/gstreamer/gstreamer/-/archive/1.26.1/gstreamer-1.26.1.tar.gz"]="gstreamer-1.26.1.tar.gz"
-    )
+    # # Define sources
+    # declare -A sources=(
+    #     ["https://github.com/eclipse/paho.mqtt.c/archive/v1.3.4.tar.gz"]="paho.mqtt.c-1.3.4.tar.gz"
+    #     ["https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.gz"]="ffmpeg-6.1.1.tar.gz"
+    #     ["https://github.com/opencv/opencv/archive/4.10.0.tar.gz"]="opencv-4.10.0.tar.gz"
+    #     ["https://gitlab.freedesktop.org/gstreamer/gstreamer/-/archive/1.26.1/gstreamer-1.26.1.tar.gz"]="gstreamer-1.26.1.tar.gz"
+    # )
     
-    # Download each source
-    for url in "${!sources[@]}"; do
-        download_file "$url" "${sources[$url]}"
-    done
+    # # Download each source
+    # for url in "${!sources[@]}"; do
+    #     download_file "$url" "${sources[$url]}"
+    # done
 
     # Download the DL Streamer src code
     cd ../..
     git submodule update --init libraries/dl-streamer/thirdparty/spdlog
-    tar czf intel-dlstreamer-2025.2.0.tar.gz libraries/dl-streamer
-    mv intel-dlstreamer-2025.2.0.tar.gz libraries/SPECS
+    cd libraries
+    rm -rf ~/intel-dlstreamer-2025.2.0*
+    cp -r dl-streamer ~
+    mv ~/dl-streamer ~/intel-dlstreamer-2025.2.0
+    cd ~
+    tar czf intel-dlstreamer-2025.2.0.tar.gz intel-dlstreamer-2025.2.0
+    cd -
+    mv ~/intel-dlstreamer-2025.2.0.tar.gz SPECS/
     
     # Note about proprietary sources
     log_info ""
