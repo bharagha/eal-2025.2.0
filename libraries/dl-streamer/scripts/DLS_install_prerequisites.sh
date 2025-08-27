@@ -330,8 +330,15 @@ setup_gpu(){
     local ubuntu_version="${1:-$(lsb_release -rs)}"
     case $intel_gpu_state in
         1)
-            configure_repository "$INTEL_CL_GPU_KEY_URL" "$INTEL_GPU_KEYRING_PATH" "$INTEL_CL_GPU_REPO_URL" "$INTEL_GPU_LIST"
-            echo_color "\n Intel® Client GPU repository has been configured.\n" "green"
+            if [ "$ubuntu_version" == "22.04" ]; then
+                configure_repository "$INTEL_CL_GPU_KEY_URL" "$INTEL_GPU_KEYRING_PATH" "$INTEL_CL_GPU_REPO_URL" "$INTEL_GPU_LIST"
+                echo_color "\n Intel® Client GPU repository has been configured.\n" "green"
+            elif [ "$ubuntu_version" == "24.04" ]; then
+                $SUDO_PREFIX add-apt-repository -y ppa:kobuk-team/intel-graphics
+                echo_color "\n Intel® Graphics PPA repository has been added.\n" "green"
+            else
+                echo_color "\n This script support only Ubuntu systems. \n" "bred"
+            fi
             ;;
         2)
             echo_color "\n Your system contains Intel® Data Center GPU. To install proper drivers, please visit: https://dgpu-docs.intel.com/driver/installation.html#ubuntu" "bred"
@@ -339,13 +346,26 @@ setup_gpu(){
             ;;
     esac
     $SUDO_PREFIX apt update
-    # Install common packages for Intel GPU
-    install_packages libze-intel-gpu1 libze1 clinfo intel-media-va-driver-non-free
-    # Additional packages for Ubuntu 22.04/24.04
     if [ "$ubuntu_version" == "24.04" ]; then
-        install_packages intel-gsc intel-opencl-icd=25.05.32567.19-1099~24.04
-    else
-        install_packages intel-opencl-icd
+        install_packages libze-intel-gpu1=25.27.34303.9-1~24.04~ppa1 \
+            libze1=1.22.5-1~24.04~ppa1 \
+            intel-metrics-discovery=1.14.180-0ubuntu1~24.04~ppa1 \
+            intel-opencl-icd=25.27.34303.9-1~24.04~ppa1 \
+            clinfo=3.0.23.01.25-1build1 \
+            intel-gsc=0.9.5-0ubuntu1~24.04~ppa1 \
+            intel-media-va-driver-non-free=25.3.1-0ubuntu1~24.04~ppa1 \
+            libmfx-gen1=25.3.1-0ubuntu1~24.04~ppa1 \
+            libvpl2=1:2.15.0-0ubuntu1~24.04~ppa1 \
+            libvpl-tools=1.4.0-0ubuntu1~24.04~ppa1 \
+            libva-glx2=2.22.0-1ubuntu1~24.04~ppa1 \
+            va-driver-all=2.22.0-1ubuntu1~24.04~ppa1 \
+            vainfo=2.22.0-0ubuntu1~24.04~ppa1
+    if [ "$ubuntu_version" == "22.04" ]; then
+        install_packages libze-intel-gpu1=25.18.33578.15-1146~22.04 \
+            libze1=1.21.9.0-1136~22.04 \
+            intel-opencl-icd=25.18.33578.15-1146~22.04 \
+            clinfo=3.0.21.02.21-1 \
+            intel-media-va-driver-non-free=25.2.4-1146~22.04
     fi
 }
 # Function to get .deb package URLs from the latest release of a GitHub repository
