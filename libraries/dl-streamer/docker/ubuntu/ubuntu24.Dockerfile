@@ -70,13 +70,13 @@ RUN apt-get update && \
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        libze-intel-gpu1=25.27.34303.9-1~24.04~ppa1 \
-        libze1=1.22.5-1~24.04~ppa1 \
+        libze-intel-gpu1=25.31.34666.3-1~24.04~ppa2 \
+        libze1=1.23.1-1~24.04~ppa1 \
         intel-metrics-discovery=1.14.180-0ubuntu1~24.04~ppa1 \
-        intel-opencl-icd=25.27.34303.9-1~24.04~ppa1 \
+        intel-opencl-icd=25.31.34666.3-1~24.04~ppa2 \
         clinfo=3.0.23.01.25-1build1 \
         intel-gsc=0.9.5-0ubuntu1~24.04~ppa1 \
-        intel-media-va-driver-non-free=25.3.1-0ubuntu1~24.04~ppa1 \
+        intel-media-va-driver-non-free=25.3.2-0ubuntu1~24.04~ppa1 \
         libmfx-gen1=25.3.1-0ubuntu1~24.04~ppa1 \
         libvpl2=1:2.15.0-0ubuntu1~24.04~ppa1 \
         libvpl-tools=1.4.0-0ubuntu1~24.04~ppa1 \
@@ -427,13 +427,13 @@ RUN apt-get update && \
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        libze-intel-gpu1=25.27.34303.9-1~24.04~ppa1 \
-        libze1=1.22.5-1~24.04~ppa1 \
+        libze-intel-gpu1=25.31.34666.3-1~24.04~ppa2 \
+        libze1=1.23.1-1~24.04~ppa1 \
         intel-metrics-discovery=1.14.180-0ubuntu1~24.04~ppa1 \
-        intel-opencl-icd=25.27.34303.9-1~24.04~ppa1 \
+        intel-opencl-icd=25.31.34666.3-1~24.04~ppa2 \
         clinfo=3.0.23.01.25-1build1 \
         intel-gsc=0.9.5-0ubuntu1~24.04~ppa1 \
-        intel-media-va-driver-non-free=25.3.1-0ubuntu1~24.04~ppa1 \
+        intel-media-va-driver-non-free=25.3.2-0ubuntu1~24.04~ppa1 \
         libmfx-gen1=25.3.1-0ubuntu1~24.04~ppa1 \
         libvpl2=1:2.15.0-0ubuntu1~24.04~ppa1 \
         libvpl-tools=1.4.0-0ubuntu1~24.04~ppa1 \
