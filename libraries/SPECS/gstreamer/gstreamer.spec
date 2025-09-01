@@ -74,7 +74,6 @@ rm -rf %{buildroot}
 %doc README.md
 /opt/intel/dlstreamer/gstreamer/bin/*
 /opt/intel/dlstreamer/gstreamer/share/*
-/opt/intel/dlstreamer/gstreamer/etc/*
 /opt/intel/dlstreamer/gstreamer/lib/*
 
 %files devel

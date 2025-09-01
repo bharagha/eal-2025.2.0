@@ -18,13 +18,8 @@ This script will:
 - Download all required third-party and DL Streamer sources
 - Place them in the appropriate locations for RPM building
 
-## 2. Building All Packages
+## 2. Building And Installing All Packages
 
-From the same directory, run:
-
-```sh
-./build_all_packages.sh
-```
 
 This script will:
 - Install build dependencies (using `dnf`)
@@ -34,21 +29,19 @@ This script will:
 **Note:**  
 To see all script options, run:
 ```sh
-./build_all_packages.sh --help
+./build_an_install_packages.sh --help
 ```
-
-## 3. Installing the Built RPMs
 
 After building, install the the runtime and devel DL Streamer dependent packages:
 
 ```sh
-./build_all_packages.sh --install-deps
+./build_an_install_packages.sh
 ```
 
 Install the the Intel DL Streamer runtime package:
 
 ```sh
-./build_all_packages.sh --install-dlstreamer
+./build_an_install_packages.sh --install-dlstreamer
 ```
 
 To set up the environment:

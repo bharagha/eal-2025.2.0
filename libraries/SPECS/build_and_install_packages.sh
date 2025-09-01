@@ -126,7 +126,19 @@ build_package() {
             
             # Get the actual package name from the spec file
             local actual_package_name=$(grep "^Name:" "$spec_file" | awk '{print $2}')
-            rpm -Uvh ~/rpmbuild/RPMS/x86_64/${actual_package_name}-*.rpm
+            # sudo rpm -Uvh ~/rpmbuild/RPMS/x86_64/${actual_package_name}-*.rpm
+            rpm_path=~/rpmbuild/RPMS/x86_64/${actual_package_name}-*.rpm
+            if ls $rpm_path 1> /dev/null 2>&1; then
+                log_info "Installing (or re-installing) $actual_package_name RPM(s)..."
+                sudo rpm -Uvh --replacepkgs $rpm_path
+
+                # Also install (or re-install) devel RPMs if present
+                devel_rpm_path=~/rpmbuild/RPMS/x86_64/${actual_package_name}-devel-*.rpm
+                if ls $devel_rpm_path 1> /dev/null 2>&1; then
+                    log_info "Installing (or re-installing) $actual_package_name-devel RPM(s)..."
+                    sudo rpm -Uvh --replacepkgs $devel_rpm_path
+                fi
+            fi
         fi
     else
         log_error "Failed to build $package_name ✗"
@@ -246,7 +258,7 @@ case "${1:-}" in
         ;;
 
     --install-deps)
-        log_info "Installing dependency RPMs in BUILD_ORDER (excluding intel-dlstreamer)"
+        log_info "Installing dependency RPMs (excluding intel-dlstreamer)"
         for package in "paho-mqtt-c" "ffmpeg" "gstreamer" "opencv"; do
             spec_file="$SCRIPT_DIR/${PACKAGES[$package]}"
             actual_package_name=$(grep "^Name:" "$spec_file" | awk '{print $2}')
