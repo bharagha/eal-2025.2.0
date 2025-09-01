@@ -17,24 +17,23 @@ BuildRequires:  openssl-devel
 Eclipse Paho MQTT C client library configured for Intel DL Streamer.
 Provides MQTT connectivity for edge AI applications.
 
+%package devel
+Summary:        Development files for %{name}
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+
+%description devel
+Development headers and libraries for building applications with the Eclipse Paho MQTT C client library.
+
 %prep
 %setup -q -n paho.mqtt.c-%{version}
 
 %build
-mkdir build
-cd build
-cmake -DCMAKE_INSTALL_PREFIX=/opt/intel/paho-mqtt-c \
-      -DCMAKE_BUILD_TYPE=Release \
-      ..
-make -j "$(nproc)"
+%cmake -DPAHO_BUILD_DOCUMENTATION=FALSE -DPAHO_WITH_SSL=TRUE -DCMAKE_INSTALL_PREFIX=/usr/local
+%cmake_build
 
 %install
-rm -rf %{buildroot}
-cd build
-make install DESTDIR=%{buildroot}
-tree %{buildroot}
-echo "install done..."
-
+%cmake_install
+install -D -p -m 755 %{SOURCE0} %{buildroot}%{_datadir}/%{name}/abi/paho-c.abignore
 # Remove RPATH for all binaries/libs
 find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file; do
     if patchelf --print-rpath "$file" &>/dev/null; then
@@ -50,10 +49,20 @@ done
 rm -rf %{buildroot}
 
 %files
-%defattr(-,root,root,-)
-%license LICENSE
-/opt/intel/paho-mqtt-c
+%license LICENSE edl-v10 epl-v20
+/usr/local/bin/MQTT*
+/usr/local/lib/*
+/usr/local/share/doc/*
+/usr/share/paho-mqtt-c/abi/paho-c.abignore
+/usr/local/include/*
+
+%files devel
+/usr/local/bin/MQTT*
+/usr/local/lib/*
+/usr/local/share/doc/*
+/usr/local/include/*
+/usr/share/paho-mqtt-c/abi/paho-c.abignore
 
 %changelog
-* Thu Aug 07 2025 DL Streamer Team <dlstreamer@intel.com> - 1.3.4-1
-- Initial Intel optimized Paho MQTT C build
+* Tue Aug 25 2025 MQTT C build - 1.3.4-1
+- Initial Paho MQTT C build

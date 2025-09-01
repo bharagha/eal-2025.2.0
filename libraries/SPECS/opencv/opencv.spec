@@ -34,9 +34,7 @@ Development files and headers for Intel OpenCV.
 %build
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=/opt/intel/opencv \
-      -DCMAKE_BUILD_TYPE=Release \
-      -DBUILD_TESTS=OFF \
+cmake -DBUILD_TESTS=OFF \
       -DBUILD_PERF_TESTS=OFF \
       -DBUILD_EXAMPLES=OFF \
       -DBUILD_opencv_apps=OFF \
@@ -47,7 +45,8 @@ ninja -j "$(nproc)"
 rm -rf %{buildroot}
 cd build
 env PATH=~/python3venv/bin:$PATH DESTDIR=%{buildroot} ninja install
-cp -r %{_builddir}/%{name}-%{version}/cmake %{buildroot}/
+mkdir -p %{buildroot}/usr/local/lib/cmake/opencv4/
+cp -r %{_builddir}/%{name}-%{version}/cmake/* %{buildroot}/usr/local/lib/cmake/opencv4/
 
 # Remove RPATH for all binaries/libs
 find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file; do
@@ -70,20 +69,18 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %doc README.md
 %license LICENSE
-%cmake cmake/
-/opt/intel/opencv/lib64/*.so.*
-/opt/intel/opencv/lib/
-/opt/intel/opencv/share/
-/opt/intel/opencv/bin/
-
+/usr/local/bin/*
+/usr/local/lib/*
+/usr/local/lib64/*
+/usr/local/share/*
+/usr/local/include
 
 %files devel
 %defattr(-,root,root,-)
-/opt/intel/opencv/include/
-/opt/intel/opencv/lib/
-/opt/intel/opencv/lib64/*.so
-/opt/intel/opencv/bin/
+/usr/local/lib/*
+/usr/local/lib64/*
+/usr/local/include
 
 %changelog
-* Thu Aug 07 2025 DL Streamer Team <dlstreamer@intel.com> - 4.10.0-1
-- Initial Intel optimized OpenCV build
+* Thu Aug 25 2025 OpenCV build - 4.10.0-1
+- Initial OpenCV build

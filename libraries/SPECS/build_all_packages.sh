@@ -6,11 +6,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Define packages with their directory and spec file names
 declare -A PACKAGES=(
-    ["paho-mqtt-c"]="paho-mqtt-c/paho-mqtt-c.spec"
-    ["ffmpeg"]="ffmpeg/ffmpeg.spec"
-    ["opencv"]="opencv/opencv.spec"
-    ["gstreamer"]="gstreamer/gstreamer.spec"
-    # ["intel-dlstreamer"]="intel-dlstreamer/intel-dlstreamer.spec"
+     ["paho-mqtt-c"]="paho-mqtt-c/paho-mqtt-c.spec"
+     ["ffmpeg"]="ffmpeg/ffmpeg.spec"
+     ["opencv"]="opencv/opencv.spec"
+     ["gstreamer"]="gstreamer/gstreamer.spec"
+     ["intel-dlstreamer"]="intel-dlstreamer/intel-dlstreamer.spec"
 )
 
 # Build order (dependencies first)
@@ -19,7 +19,7 @@ BUILD_ORDER=(
     "ffmpeg"
     "gstreamer"
     "opencv"
-    # "intel-dlstreamer"
+    "intel-dlstreamer"
 )
 
 # Colors for output

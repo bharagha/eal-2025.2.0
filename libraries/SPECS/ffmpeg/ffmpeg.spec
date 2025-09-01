@@ -37,8 +37,7 @@ Development files and headers for Intel FFmpeg.
 %setup -q -n ffmpeg-%{version}
 
 %build
-./configure --prefix=/opt/intel/ffmpeg \
-            --enable-pic \
+./configure --enable-pic \
             --enable-shared \
             --enable-static \
             --enable-avfilter \
@@ -54,7 +53,6 @@ make -j "$(nproc)"
 %install
 rm -rf %{buildroot}
 make install DESTDIR=%{buildroot}
-tree %{buildroot}
 
 # Remove RPATH for all binaries/libs
 find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file; do
@@ -77,16 +75,16 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %doc README.md COPYING.LGPLv2.1
 %license LICENSE.md
-/opt/intel/ffmpeg
-/bin/ffmpeg
-/bin/ffprobe
+/bin/*
+/usr/local/lib/*
+/usr/local/share/*
 
 %files devel
 %defattr(-,root,root,-)
-/opt/intel/ffmpeg
-/bin/ffmpeg
-/bin/ffprobe
+/bin/*
+/usr/local/lib/*
+/usr/local/include/*
 
 %changelog
-* Thu Aug 07 2025 DL Streamer Team <dlstreamer@intel.com> - 6.1.1-1
-- Initial Intel optimized FFmpeg build
+* Thu Aug 25 2025 ffmpeg build - 6.1.1-1
+- Initial ffmpeg build

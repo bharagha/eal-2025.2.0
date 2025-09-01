@@ -12,9 +12,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildRequires:  meson ninja-build gcc gcc-c++
 BuildRequires:  python3 python3-pip
-#BuildRequires:  glib2-devel gobject-introspection-devel
 BuildRequires:  libva-devel libva-intel-media-driver
-#BuildRequires:  ffmpeg-devel >= 6.1.1
 BuildRequires:  pkgconfig flex bison
 
 Requires:       glib2 gobject-introspection
@@ -28,7 +26,6 @@ This version is specifically configured for use with Intel DL Streamer.
 %package devel
 Summary:        Development files for %{name}
 Requires:       %{name} = %{version}-%{release}
-Requires:       glib2-devel
 
 %description devel
 Development files and headers for Intel GStreamer.
@@ -37,9 +34,7 @@ Development files and headers for Intel GStreamer.
 %setup -q -n gstreamer-%{version}
 
 %build
-# Add FFmpeg to PKG_CONFIG_PATH
-export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/opt/intel/ffmpeg/lib/pkgconfig:${PKG_CONFIG_PATH}"
-export LD_LIBRARY_PATH="/opt/intel/ffmpeg/lib:${LD_LIBRARY_PATH}"
+export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
 meson setup -Dexamples=disabled \
             -Dtests=disabled \
@@ -77,17 +72,18 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %doc README.md
-/opt/intel/dlstreamer/gstreamer/bin/
-/opt/intel/dlstreamer/gstreamer/share/
-/opt/intel/dlstreamer/gstreamer/etc/
-/opt/intel/dlstreamer/gstreamer/lib/
+/opt/intel/dlstreamer/gstreamer/bin/*
+/opt/intel/dlstreamer/gstreamer/share/*
+/opt/intel/dlstreamer/gstreamer/etc/*
+/opt/intel/dlstreamer/gstreamer/lib/*
+/opt/intel/dlstreamer/gstreamer/include/*
 
 %files devel
 %defattr(-,root,root,-)
-/opt/intel/dlstreamer/gstreamer/include/
+/opt/intel/dlstreamer/gstreamer/include/*
 /opt/intel/dlstreamer/gstreamer/lib/*.so
 /opt/intel/dlstreamer/gstreamer/lib/pkgconfig/
 
 %changelog
-* Thu Aug 07 2025 DL Streamer Team <dlstreamer@intel.com> - 1.26.1-1
-- Initial Intel optimized GStreamer build
+* Thu Aug 25 2025 Gstreamer build - 1.26.1-1
+- Initial GStreamer build
