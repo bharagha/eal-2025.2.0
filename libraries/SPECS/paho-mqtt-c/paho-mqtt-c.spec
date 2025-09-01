@@ -32,7 +32,7 @@ Development headers and libraries for building applications with the Eclipse Pah
 
 %install
 %cmake_install
-install -D -p -m 755 %{SOURCE0}
+install -D -p -m 755 %{SOURCE0} %{buildroot}%{_datadir}/%{name}/abi/paho-c.abignore
 # Remove RPATH for all binaries/libs
 find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file; do
     if patchelf --print-rpath "$file" &>/dev/null; then
@@ -52,6 +52,7 @@ rm -rf %{buildroot}
 /usr/local/bin/MQTT*
 /usr/local/lib/*
 /usr/local/share/doc/*
+/usr/share/paho-mqtt-c/abi/paho-c.abignore
 
 %files devel
 /usr/local/include/*
