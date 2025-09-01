@@ -1,12 +1,22 @@
 #!/bin/bash
-# Source Download Script for Intel DL Streamer Modular Build
+# Source download Script for Intel DL Streamer and it's dependencies RPM package generation
 set -ex
+
 
 # Colors for output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
+
+# Source versions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/versions.env" ]]; then
+    source "$SCRIPT_DIR/versions.env"
+else
+    echo "[ERROR] versions.env not found in $SCRIPT_DIR" >&2
+    exit 1
+fi
 
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
@@ -44,41 +54,31 @@ main() {
     log_info "Downloading source files for Intel DL Streamer modular build..."
     log_info "================================================================="
     
-    # # Define sources
-    # declare -A sources=(
-    #     ["https://github.com/eclipse/paho.mqtt.c/archive/v1.3.4.tar.gz"]="paho.mqtt.c-1.3.4.tar.gz"
-    #     ["https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.gz"]="ffmpeg-6.1.1.tar.gz"
-    #     ["https://github.com/opencv/opencv/archive/4.10.0.tar.gz"]="opencv-4.10.0.tar.gz"
-    #     ["https://gitlab.freedesktop.org/gstreamer/gstreamer/-/archive/1.26.1/gstreamer-1.26.1.tar.gz"]="gstreamer-1.26.1.tar.gz"
-    # )
+    # Define sources
+    declare -A sources=(
+        ["https://github.com/eclipse/paho.mqtt.c/archive/v${PAHO_MQTT_VERSION}.tar.gz"]="paho.mqtt.c-${PAHO_MQTT_VERSION}.tar.gz"
+        ["https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz"]="ffmpeg-${FFMPEG_VERSION}.tar.gz"
+        ["https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.tar.gz"]="opencv-${OPENCV_VERSION}.tar.gz"
+        ["https://gitlab.freedesktop.org/gstreamer/gstreamer/-/archive/${GSTREAMER_VERSION}/gstreamer-${GSTREAMER_VERSION}.tar.gz"]="gstreamer-${GSTREAMER_VERSION}.tar.gz"
+    )
     
-    # # Download each source
-    # for url in "${!sources[@]}"; do
-    #     download_file "$url" "${sources[$url]}"
-    # done
+    # Download each source
+    for url in "${!sources[@]}"; do
+        download_file "$url" "${sources[$url]}"
+    done
 
     # Download the DL Streamer src code
     cd ../..
     git submodule update --init libraries/dl-streamer/thirdparty/spdlog
     cd libraries
-    rm -rf ~/intel-dlstreamer-2025.2.0*
+    rm -rf ~/intel-dlstreamer-${DLSTREAMER_VERSION}*
     cp -r dl-streamer ~
-    mv ~/dl-streamer ~/intel-dlstreamer-2025.2.0
+    mv ~/dl-streamer ~/intel-dlstreamer-${DLSTREAMER_VERSION}
     cd ~
-    tar czf intel-dlstreamer-2025.2.0.tar.gz intel-dlstreamer-2025.2.0
+    tar czf intel-dlstreamer-${DLSTREAMER_VERSION}.tar.gz intel-dlstreamer-${DLSTREAMER_VERSION}
     cd -
-    mv ~/intel-dlstreamer-2025.2.0.tar.gz SPECS/
-    
-    # Note about proprietary sources
+    mv ~/intel-dlstreamer-${DLSTREAMER_VERSION}.tar.gz SPECS/
     log_info ""
-    log_warn "Manual download required for:"
-    log_warn "1. intel-dlstreamer-2025.2.0.tar.gz"
-    log_warn "   - Create this from your DL Streamer source code"
-    log_warn "   - tar czf intel-dlstreamer-2025.2.0.tar.gz dlstreamer-source/"
-    log_warn ""
-    log_info ""
-    log_info "================================================================="
-    log_info "Source download completed!"
     log_info "Next step: ./build_all_packages.sh"
 }
 

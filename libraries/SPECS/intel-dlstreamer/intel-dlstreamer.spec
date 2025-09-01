@@ -70,7 +70,7 @@ sudo mv openvino_toolkit_ubuntu24_2025.2.0.19140.c01cd93e24d_x86_64 /opt/intel/o
 cd /opt/intel/openvino_2025.2.0/
 sudo -E python3 -m pip install -r ./python/requirements.txt
 cd /opt/intel
-sudo ln -s openvino_2025.2.0 openvino_2025
+ln -s openvino_2025.2.0 openvino_2025
 
 cd $cur_dir
 
@@ -143,10 +143,10 @@ rm -rf %{buildroot}
 
 %files devel
 %defattr(-,root,root,-)
-/opt/intel/dlstreamer/*
-/etc/profile.d/intel-dlstreamer.sh
-/usr/share/doc
-/usr/share/licenses
+/opt/intel/dlstreamer/include/*  
+/opt/intel/dlstreamer/lib/*.a  
+/opt/intel/dlstreamer/lib/pkgconfig/*  
+/opt/intel/dlstreamer/lib/cmake/* 
 
 %changelog
 * Thu Aug 07 2025 DL Streamer Team <dlstreamer@intel.com> - 2025.2.0-1

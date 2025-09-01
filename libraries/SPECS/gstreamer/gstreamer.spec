@@ -76,12 +76,10 @@ rm -rf %{buildroot}
 /opt/intel/dlstreamer/gstreamer/share/*
 /opt/intel/dlstreamer/gstreamer/etc/*
 /opt/intel/dlstreamer/gstreamer/lib/*
-/opt/intel/dlstreamer/gstreamer/include/*
 
 %files devel
 %defattr(-,root,root,-)
 /opt/intel/dlstreamer/gstreamer/include/*
-/opt/intel/dlstreamer/gstreamer/lib/*.so
 /opt/intel/dlstreamer/gstreamer/lib/pkgconfig/
 
 %changelog

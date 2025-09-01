@@ -2,7 +2,15 @@
 # Intel DL Streamer Modular Build Script
 set -ex
 
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Source versions
+if [[ -f "$SCRIPT_DIR/versions.env" ]]; then
+    source "$SCRIPT_DIR/versions.env"
+else
+    echo "[ERROR] versions.env not found in $SCRIPT_DIR" >&2
+    exit 1
+fi
 
 # Define packages with their directory and spec file names
 declare -A PACKAGES=(
@@ -44,11 +52,11 @@ check_sources() {
     log_info "Checking source files..."
     
     sources=(
-        "paho.mqtt.c-1.3.4.tar.gz"
-        "ffmpeg-6.1.1.tar.gz"
-        "gstreamer-1.26.1.tar.gz"
-        "opencv-4.10.0.tar.gz"
-        "intel-dlstreamer-2025.2.0.tar.gz"
+        "paho.mqtt.c-${PAHO_MQTT_VERSION}.tar.gz"
+        "ffmpeg-${FFMPEG_VERSION}.tar.gz"
+        "gstreamer-${GSTREAMER_VERSION}.tar.gz"
+        "opencv-${OPENCV_VERSION}.tar.gz"
+        "intel-dlstreamer-${DLSTREAMER_VERSION}.tar.gz"
     )
     
     missing_sources=()
@@ -91,19 +99,19 @@ build_package() {
     # Copy source files based on package
     case "$package_name" in
         "paho-mqtt-c")
-            cp paho.mqtt.c-1.3.4.tar.gz ~/rpmbuild/SOURCES/
+            cp paho.mqtt.c-${PAHO_MQTT_VERSION}.tar.gz ~/rpmbuild/SOURCES/
             ;;
         "ffmpeg")
-            cp ffmpeg-6.1.1.tar.gz ~/rpmbuild/SOURCES/
+            cp ffmpeg-${FFMPEG_VERSION}.tar.gz ~/rpmbuild/SOURCES/
             ;;
         "opencv")
-            cp opencv-4.10.0.tar.gz ~/rpmbuild/SOURCES/
+            cp opencv-${OPENCV_VERSION}.tar.gz ~/rpmbuild/SOURCES/
             ;;
         "gstreamer")
-            cp gstreamer-1.26.1.tar.gz ~/rpmbuild/SOURCES/
+            cp gstreamer-${GSTREAMER_VERSION}.tar.gz ~/rpmbuild/SOURCES/
             ;;
         "intel-dlstreamer")
-            cp intel-dlstreamer-2025.2.0.tar.gz ~/rpmbuild/SOURCES/
+            cp intel-dlstreamer-${DLSTREAMER_VERSION}.tar.gz ~/rpmbuild/SOURCES/
             ;;
     esac
     
@@ -118,7 +126,7 @@ build_package() {
             
             # Get the actual package name from the spec file
             local actual_package_name=$(grep "^Name:" "$spec_file" | awk '{print $2}')
-            sudo rpm -Uvh ~/rpmbuild/RPMS/x86_64/${actual_package_name}-*.rpm || true
+            rpm -Uvh ~/rpmbuild/RPMS/x86_64/${actual_package_name}-*.rpm
         fi
     else
         log_error "Failed to build $package_name ✗"
@@ -138,8 +146,6 @@ install_build_deps() {
     
     if command -v dnf &> /dev/null; then
         sudo dnf install -y "${deps[@]}"
-    elif command -v yum &> /dev/null; then
-        sudo yum install -y "${deps[@]}"
     else
         log_error "Neither dnf nor yum found. Please install build dependencies manually."
         exit 1
@@ -150,11 +156,6 @@ main() {
     log_info "Intel DL Streamer Modular Build Started"
     log_info "========================================"
     
-    # Check if we're in the right directory
-    #if [[ ! -d "SPECS" ]]; then
-    #    log_error "SPECS directory not found. Please run from the directory containing the SPECS folder."
-    #    exit 1
-    #fi
     
     # Validate all spec files exist
     local missing_specs=()
@@ -199,6 +200,7 @@ main() {
 }
 
 # Handle command line arguments
+
 case "${1:-}" in
     --help|-h)
         echo "Intel DL Streamer Modular Build Script"
@@ -206,9 +208,12 @@ case "${1:-}" in
         echo "Usage: $0 [OPTIONS]"
         echo ""
         echo "Options:"
-        echo "  --help, -h     Show this help message"
-        echo "  --check-deps   Only check and install build dependencies"
-        echo "  --check-sources Only check if source files are present"
+        echo "  --help, -h                Show this help message"
+        echo "  --check-deps              Only check and install build dependencies"
+        echo "  --check-sources           Only check if source files are present"
+        echo "  --dlstreamer-deps-only    Build only DL Streamer dependencies (no intel-dlstreamer)"
+        echo "  --install-deps            Install built dependency RPMs in BUILD_ORDER (no intel-dlstreamer)"
+        echo "  --install-dlstreamer      Install built intel-dlstreamer RPM only"
         echo ""
         echo "Build order: ${BUILD_ORDER[*]}"
         echo ""
@@ -226,6 +231,58 @@ case "${1:-}" in
         check_sources
         exit 0
         ;;
+    --dlstreamer-deps-only)
+        log_info "Building only DL Streamer dependencies (no intel-dlstreamer)"
+        install_build_deps
+        check_sources
+        rpmdev-setuptree
+        for package in "paho-mqtt-c" "ffmpeg" "gstreamer" "opencv"; do
+            build_package "$package"
+        done
+        log_info "========================================"
+        log_info "DL Streamer dependencies built successfully! ✓"
+        log_info "RPM packages are in ~/rpmbuild/RPMS/x86_64/"
+        exit 0
+        ;;
+
+    --install-deps)
+        log_info "Installing dependency RPMs in BUILD_ORDER (excluding intel-dlstreamer)"
+        for package in "paho-mqtt-c" "ffmpeg" "gstreamer" "opencv"; do
+            spec_file="$SCRIPT_DIR/${PACKAGES[$package]}"
+            actual_package_name=$(grep "^Name:" "$spec_file" | awk '{print $2}')
+            rpm_path=~/rpmbuild/RPMS/x86_64/${actual_package_name}-*.rpm
+            if ls $rpm_path 1> /dev/null 2>&1; then
+                log_info "Installing (or re-installing) $actual_package_name RPM(s)..."
+                sudo rpm -Uvh --replacepkgs $rpm_path
+
+                # Also install (or re-install) devel RPMs if present
+                devel_rpm_path=~/rpmbuild/RPMS/x86_64/${actual_package_name}-devel-*.rpm
+                if ls $devel_rpm_path 1> /dev/null 2>&1; then
+                    log_info "Installing (or re-installing) $actual_package_name-devel RPM(s)..."
+                    sudo rpm -Uvh --replacepkgs $devel_rpm_path
+                fi
+            else
+                log_warn "RPM for $actual_package_name not found: $rpm_path"
+            fi
+        done
+        log_info "Dependency RPM installation complete."
+        exit 0
+        ;;
+
+    --install-dlstreamer)
+        log_info "Installing intel-dlstreamer RPM..."
+        spec_file="$SCRIPT_DIR/${PACKAGES["intel-dlstreamer"]}"
+        actual_package_name=$(grep "^Name:" "$spec_file" | awk '{print $2}')
+        rpm_path=~/rpmbuild/RPMS/x86_64/${actual_package_name}-*.rpm
+        if ls $rpm_path 1> /dev/null 2>&1; then
+            sudo rpm -Uvh $rpm_path
+            log_info "intel-dlstreamer RPM installation complete."
+        else
+            log_error "intel-dlstreamer RPM not found: $rpm_path"
+        fi
+        exit 0
+        ;;
+
     "")
         main
         ;;

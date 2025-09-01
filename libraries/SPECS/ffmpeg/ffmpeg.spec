@@ -73,16 +73,14 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc README.md COPYING.LGPLv2.1
-%license LICENSE.md
+%doc README.md LICENSE.md
+%license COPYING.LGPLv2.1
 /bin/*
 /usr/local/lib/*
 /usr/local/share/*
 
 %files devel
 %defattr(-,root,root,-)
-/bin/*
-/usr/local/lib/*
 /usr/local/include/*
 
 %changelog

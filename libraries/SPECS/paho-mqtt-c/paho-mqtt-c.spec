@@ -1,7 +1,7 @@
 Name:           paho-mqtt-c
 Version:        1.3.4
 Release:        1%{?dist}
-Summary:        Eclipse Paho MQTT C client library for Intel DL Streamer
+Summary:        Eclipse Paho MQTT C client library
 
 License:        EPL-2.0 OR BSD-3-Clause
 Source0:        paho.mqtt.c-%{version}.tar.gz
@@ -14,7 +14,6 @@ BuildRequires:  cmake gcc gcc-c++ make
 BuildRequires:  openssl-devel
 
 %description
-Eclipse Paho MQTT C client library configured for Intel DL Streamer.
 Provides MQTT connectivity for edge AI applications.
 
 %package devel
@@ -33,7 +32,7 @@ Development headers and libraries for building applications with the Eclipse Pah
 
 %install
 %cmake_install
-install -D -p -m 755 %{SOURCE0} %{buildroot}%{_datadir}/%{name}/abi/paho-c.abignore
+install -D -p -m 755 %{SOURCE0}
 # Remove RPATH for all binaries/libs
 find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file; do
     if patchelf --print-rpath "$file" &>/dev/null; then
@@ -53,15 +52,9 @@ rm -rf %{buildroot}
 /usr/local/bin/MQTT*
 /usr/local/lib/*
 /usr/local/share/doc/*
-/usr/share/paho-mqtt-c/abi/paho-c.abignore
-/usr/local/include/*
 
 %files devel
-/usr/local/bin/MQTT*
-/usr/local/lib/*
-/usr/local/share/doc/*
 /usr/local/include/*
-/usr/share/paho-mqtt-c/abi/paho-c.abignore
 
 %changelog
 * Tue Aug 25 2025 MQTT C build - 1.3.4-1

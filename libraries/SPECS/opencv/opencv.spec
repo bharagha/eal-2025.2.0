@@ -1,7 +1,7 @@
 Name:           opencv
 Version:        4.10.0
 Release:        1%{?dist}
-Summary:        Intel optimized OpenCV build for DL Streamer
+Summary:        OpenCV build
 
 License:        Apache-2.0
 Source0:        opencv-%{version}.tar.gz
@@ -18,8 +18,7 @@ Requires:       libjpeg-turbo libpng libtiff
 Requires:       libva2 libva-intel-media-driver
 
 %description
-Intel optimized OpenCV build with VAAPI support for hardware acceleration.
-This version is specifically configured for use with Intel DL Streamer.
+This package provides a custom build of OpenCV with selected features and optimizations.
 
 %package devel
 Summary:        Development files for %{name}
@@ -44,7 +43,7 @@ ninja -j "$(nproc)"
 %install
 rm -rf %{buildroot}
 cd build
-env PATH=~/python3venv/bin:$PATH DESTDIR=%{buildroot} ninja install
+env DESTDIR=%{buildroot} ninja install
 mkdir -p %{buildroot}/usr/local/lib/cmake/opencv4/
 cp -r %{_builddir}/%{name}-%{version}/cmake/* %{buildroot}/usr/local/lib/cmake/opencv4/
 
@@ -77,9 +76,11 @@ rm -rf %{buildroot}
 
 %files devel
 %defattr(-,root,root,-)
-/usr/local/lib/*
-/usr/local/lib64/*
-/usr/local/include
+/usr/local/include  
+/usr/local/lib/*.a  
+/usr/local/lib/cmake/opencv4/*  
+/usr/local/lib64/*.a  
+/usr/local/lib64/cmake/opencv4/*
 
 %changelog
 * Thu Aug 25 2025 OpenCV build - 4.10.0-1
