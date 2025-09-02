@@ -216,28 +216,5 @@ main() {
     log_info "Check out the libraries/dl-streamer/docs to try out the getting started and performance guides"
 }
 
-
-    --help|-h)
-        echo "Intel DL Streamer Modular Build Script"
-        echo ""
-        echo "Usage: $0 [OPTIONS]"
-        echo ""
-        echo "Options:"
-        echo "  --help, -h                Show this help message"
-        echo "  --check-deps              Only check and install build dependencies"
-        echo "  --check-sources           Only check if source files are present"
-        echo "  --dlstreamer-deps-only    Build only DL Streamer dependencies (no intel-dlstreamer)"
-        echo "  --install-deps            Install built dependency RPMs in BUILD_ORDER (no intel-dlstreamer)"
-        echo "  --install-dlstreamer      Install built intel-dlstreamer RPM only"
-        echo ""
-        echo "Build order: ${BUILD_ORDER[*]}"
-        echo ""
-        echo "Spec file locations:"
-        for package in "${BUILD_ORDER[@]}"; do
-            echo "  $package -> ${PACKAGES[$package]}"
-        done
-        exit 0
-        ;;
-
 # Entrypoint
 main
