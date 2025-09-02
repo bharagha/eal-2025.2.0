@@ -121,7 +121,7 @@ jobs:
         env:
           output_report_path: ${{ inputs.output-report-path }}
         run: |
-          FAILURE_COUNT=$(jq '.Results[].MisconfSummary.Failures' "${output_report_path}")
+          FAILURE_COUNT=$(jq '[.Results[].MisconfSummary.Failures] | add' "${output_report_path}")
           echo "Failures found: $FAILURE_COUNT"
 
           if [ "$FAILURE_COUNT" -gt 0 ]; then
