@@ -209,15 +209,14 @@ main() {
     log_info "RPM packages are in ~/rpmbuild/RPMS/x86_64/"
     log_info ""
     log_info "To install Intel DL Streamer:"
-    log_info "sudo rpm -Uvh ~/rpmbuild/RPMS/x86_64/intel-dlstreamer-*.rpm"
+    log_info "sudo dnf install -y  --setopt=install_weak_deps=False ~/rpmbuild/RPMS/x86_64/intel-dlstreamer-*.rpm"
     log_info ""
     log_info "To setup environment:"
-    log_info "source /etc/profile.d/intel-dlstreamer.sh"
+    log_info "source /opt/intel/dlstreamer/setupvars.sh"
+    log_info "Check out the libraries/dl-streamer/docs to try out the getting started and performance guides"
 }
 
-# Handle command line arguments
 
-case "${1:-}" in
     --help|-h)
         echo "Intel DL Streamer Modular Build Script"
         echo ""
@@ -239,72 +238,6 @@ case "${1:-}" in
         done
         exit 0
         ;;
-    --check-deps)
-        install_build_deps
-        exit 0
-        ;;
-    --check-sources)
-        check_sources
-        exit 0
-        ;;
-    --dlstreamer-deps-only)
-        log_info "Building only DL Streamer dependencies (no intel-dlstreamer)"
-        install_build_deps
-        check_sources
-        rpmdev-setuptree
-        for package in "paho-mqtt-c" "ffmpeg" "gstreamer" "opencv"; do
-            build_package "$package"
-        done
-        log_info "========================================"
-        log_info "DL Streamer dependencies built successfully! ✓"
-        log_info "RPM packages are in ~/rpmbuild/RPMS/x86_64/"
-        exit 0
-        ;;
 
-    --install-deps)
-        log_info "Installing dependency RPMs (excluding intel-dlstreamer)"
-        for package in "paho-mqtt-c" "ffmpeg" "gstreamer" "opencv"; do
-            spec_file="$SCRIPT_DIR/${PACKAGES[$package]}"
-            actual_package_name=$(grep "^Name:" "$spec_file" | awk '{print $2}')
-            rpm_path=~/rpmbuild/RPMS/x86_64/${actual_package_name}-*.rpm
-            if ls $rpm_path 1> /dev/null 2>&1; then
-                log_info "Installing (or re-installing) $actual_package_name RPM(s)..."
-                sudo rpm -Uvh --replacepkgs $rpm_path
-
-                # Also install (or re-install) devel RPMs if present
-                devel_rpm_path=~/rpmbuild/RPMS/x86_64/${actual_package_name}-devel-*.rpm
-                if ls $devel_rpm_path 1> /dev/null 2>&1; then
-                    log_info "Installing (or re-installing) $actual_package_name-devel RPM(s)..."
-                    sudo rpm -Uvh --replacepkgs $devel_rpm_path
-                fi
-            else
-                log_warn "RPM for $actual_package_name not found: $rpm_path"
-            fi
-        done
-        log_info "Dependency RPM installation complete."
-        exit 0
-        ;;
-
-    --install-dlstreamer)
-        log_info "Installing intel-dlstreamer RPM..."
-        spec_file="$SCRIPT_DIR/${PACKAGES["intel-dlstreamer"]}"
-        actual_package_name=$(grep "^Name:" "$spec_file" | awk '{print $2}')
-        rpm_path=~/rpmbuild/RPMS/x86_64/${actual_package_name}-*.rpm
-        if ls $rpm_path 1> /dev/null 2>&1; then
-            sudo rpm -Uvh $rpm_path
-            log_info "intel-dlstreamer RPM installation complete."
-        else
-            log_error "intel-dlstreamer RPM not found: $rpm_path"
-        fi
-        exit 0
-        ;;
-
-    "")
-        main
-        ;;
-    *)
-        log_error "Unknown option: $1"
-        echo "Use --help for usage information"
-        exit 1
-        ;;
-esac
+# Entrypoint
+main

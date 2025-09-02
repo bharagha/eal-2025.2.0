@@ -127,7 +127,7 @@ rm -rf %{buildroot}
 %doc README.md
 %license LICENSE
 /opt/intel/dlstreamer/*
-opt/intel/dlstreamer/setupvars.sh
+/opt/intel/dlstreamer/setupvars.sh
 
 %files devel
 %defattr(-,root,root,-)

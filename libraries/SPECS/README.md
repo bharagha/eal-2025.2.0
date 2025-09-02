@@ -35,7 +35,7 @@ cd /opt/intel
 sudo ln -s openvino_2025.2.0 openvino_2025
 ```
 
-### Building and installation
+### Building and Installation of few DL Streamer Dependent RPM packages
 
 After building, install the the runtime and devel DL Streamer dependent packages:
 
@@ -48,10 +48,12 @@ This script will:
 - Set up the RPM build environment (`~/rpmbuild`)
 - Build and install all packages in dependency order, producing both `.rpm` and `.src.rpm` files in `~/rpmbuild/RPMS/x86_64/` and `~/rpmbuild/SRPMS/`
 
-To set up the environment:
+### Installation of DL Streamer RPM package
 
 ```sh
-source /etc/profile.d/intel-dlstreamer.sh
+sudo dnf install -y  --setopt=install_weak_deps=False ~/rpmbuild/RPMS/x86_64/intel-dlstreamer-*.rpm
+# setup environment
+source /opt/intel/dlstreamer/setupvars.sh
 ```
 
 ## 4. Creating a Signed RPM Repository
