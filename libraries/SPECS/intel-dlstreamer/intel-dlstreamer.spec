@@ -19,15 +19,19 @@ BuildRequires:  cmake gcc gcc-c++ make
 BuildRequires:  libva-devel libva-intel-media-driver
 BuildRequires:  python3-devel python3-pip
 BuildRequires:  pkgconfig patchelf
+BuildRequires:  opencv-devel >= 4.10.0
+BuildRequires:  gstreamer-devel >= 1.26.1
+BuildRequires:  paho-mqtt-c-devel >= 1.3.4
+BuildRequires:  glib2-devel
 
 # Runtime dependencies
-Requires:       opencv-devel >= 4.10.0
-Requires:       gstreamer-devel >= 1.26.1
-Requires:       ffmpeg >= 6.1.1
 Requires:       paho-mqtt-c-devel >= 1.3.4
+Requires:       ffmpeg >= 6.1.1
+Requires:       gstreamer >= 1.26.1
+Requires:       opencv >= 4.10.0
 Requires:       libva2 libva-intel-media-driver
 Requires:       python3 python3-pip python3-gobject
-Requires:       glib2-devel
+Requires:       glib2
 Requires:       libjpeg-turbo libpng libdrm
 Requires:       wayland-devel libX11 libXext
 Requires:       mesa-libGL mesa-libGLU
@@ -35,6 +39,7 @@ Requires:       libgudev cairo cairo-gobject
 Requires:       gobject-introspection
 Requires:       libXv libX11 libXext
 Requires:       libva-utils libusb1
+Requires:       librdkafka
 
 %description
 Intel Deep Learning Streamer (DL Streamer) is a streaming media analytics 

@@ -37,6 +37,11 @@ sudo ln -s openvino_2025.2.0 openvino_2025
 
 ### Building and Installation of few DL Streamer Dependent RPM packages
 
+> **Note**: Please uninstall intel dlstreamer package if already installed by running following command:
+> ```sh
+> sudo dnf remove -y intel-dlstreamer-2025.2.0-1.emt3.x86_64
+> ```
+
 After building, install the the runtime and devel DL Streamer dependent packages:
 
 ```sh

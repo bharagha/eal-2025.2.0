@@ -158,6 +158,14 @@ install_build_deps() {
         "gcc" "gcc-c++" "make" "git" "python3" "python3-pip"
         "yasm" "nasm" "meson" "pkgconfig" "openssl-devel"
         "patchelf" "flex" "bison"
+        "uuid" "libuuid-devel" "curl" "ca-certificates"
+        "librdkafka-devel" "libva-devel" "alsa-lib-devel" 
+        "unzip" "glibc" "libstdc++" "libgcc" 
+        "cmake" "sudo" "pkgconf" "pkgconf-pkg-config" 
+        "ocl-icd-devel" "libva-intel-media-driver" 
+        "python3-devel" "libXaw-devel" "ncurses-devel" 
+        "libva2" "intel-compute-runtime" "intel-opencl" 
+        "intel-level-zero-gpu" "intel-ocloc-devel"
     )
     
     if command -v dnf &> /dev/null; then
