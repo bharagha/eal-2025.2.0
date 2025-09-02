@@ -68,7 +68,7 @@ fi
 # Inference parameters
 PARAMS=''
 if [ "$DECODE_DEVICE" == "GPU" ] && [ "$INFERENCE_DEVICE" == "GPU" ]; then
-    PARAMS+="batch-size=64 nireq=4 pre-process-backend=va-surface-sharing" # scale-method=fast
+    PARAMS+="pre-process-backend=va-surface-sharing"
 fi
 if [ "$DECODE_DEVICE" == "GPU" ] && [ "$INFERENCE_DEVICE" == "CPU" ]; then
     PARAMS+="pre-process-backend=va"
