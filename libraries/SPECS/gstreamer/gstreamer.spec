@@ -38,6 +38,7 @@ Development files and headers for Intel GStreamer.
 
 %build
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH}"
+export LDFLAGS=-lstdc++
 
 meson setup -Dexamples=disabled \
             -Dtests=disabled \

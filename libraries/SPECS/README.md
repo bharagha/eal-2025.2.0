@@ -20,29 +20,33 @@ This script will:
 
 ## 2. Building And Installing All Packages
 
+### Prerequisite
 
-This script will:
-- Install build dependencies (using `dnf`)
-- Set up the RPM build environment (`~/rpmbuild`)
-- Build all packages in dependency order, producing both `.rpm` and `.src.rpm` files in `~/rpmbuild/RPMS/x86_64/` and `~/rpmbuild/SRPMS/`
+Download OpenVINO 2025.2 prebuilt binary:
 
-**Note:**  
-To see all script options, run:
-```sh
-./build_an_install_packages.sh --help
 ```
+sudo rm -rf /opt/intel/openvino*
+wget https://storage.openvinotoolkit.org/repositories/openvino/packages/2025.2/linux/openvino_toolkit_ubuntu24_2025.2.0.19140.c01cd93e24d_x86_64.tgz
+tar -xvzf openvino_toolkit_ubuntu24_2025.2.0.19140.c01cd93e24d_x86_64.tgz 
+sudo mv openvino_toolkit_ubuntu24_2025.2.0.19140.c01cd93e24d_x86_64 /opt/intel/openvino_2025.2.0
+cd /opt/intel/openvino_2025.2.0/
+sudo -E python3 -m pip install -r ./python/requirements.txt
+cd /opt/intel
+sudo ln -s openvino_2025.2.0 openvino_2025
+```
+
+### Building and installation
 
 After building, install the the runtime and devel DL Streamer dependent packages:
 
 ```sh
-./build_an_install_packages.sh
+./build_and_install_packages.sh
 ```
 
-Install the the Intel DL Streamer runtime package:
-
-```sh
-./build_an_install_packages.sh --install-dlstreamer
-```
+This script will:
+- Install build dependencies (using `dnf`)
+- Set up the RPM build environment (`~/rpmbuild`)
+- Build and install all packages in dependency order, producing both `.rpm` and `.src.rpm` files in `~/rpmbuild/RPMS/x86_64/` and `~/rpmbuild/SRPMS/`
 
 To set up the environment:
 

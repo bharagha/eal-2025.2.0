@@ -78,9 +78,7 @@ rm -rf %{buildroot}
 %files devel
 %defattr(-,root,root,-)
 /usr/local/include  
-/usr/local/lib/*.a  
 /usr/local/lib/cmake/opencv4/*  
-/usr/local/lib64/*.a  
 /usr/local/lib64/cmake/opencv4/*
 
 %changelog
