@@ -1,3 +1,4 @@
+%define debug_package %{nil}
 Name:           opencv
 Version:        4.10.0
 Release:        1%{?dist}

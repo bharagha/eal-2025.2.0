@@ -1,3 +1,4 @@
+%define debug_package %{nil}
 Name:           paho-mqtt-c
 Version:        1.3.4
 Release:        1%{?dist}

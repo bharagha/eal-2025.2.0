@@ -1,3 +1,4 @@
+%define debug_package %{nil}
 Name:           gstreamer
 Version:        1.26.1
 Release:        1%{?dist}
@@ -10,6 +11,8 @@ Packager:       DL Streamer Team <dlstreamer@intel.com>
 ExclusiveArch:  x86_64
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
+# Turns off all auto-dependency generation
+AutoReq: no
 BuildRequires:  meson ninja-build gcc gcc-c++
 BuildRequires:  python3 python3-pip
 BuildRequires:  libva-devel libva-intel-media-driver
@@ -50,7 +53,7 @@ ninja -C build
 
 %install
 rm -rf %{buildroot}
-env PATH=~/python3venv/bin:$PATH DESTDIR=%{buildroot} meson install -C build/
+env DESTDIR=%{buildroot} meson install -C build/
 
 # Remove RPATH for all binaries/libs
 find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file; do
@@ -75,6 +78,7 @@ rm -rf %{buildroot}
 /opt/intel/dlstreamer/gstreamer/bin/*
 /opt/intel/dlstreamer/gstreamer/share/*
 /opt/intel/dlstreamer/gstreamer/lib/*
+/opt/intel/dlstreamer/gstreamer/etc/*
 
 %files devel
 %defattr(-,root,root,-)

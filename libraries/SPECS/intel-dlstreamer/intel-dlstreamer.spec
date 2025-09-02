@@ -1,3 +1,4 @@
+%define debug_package %{nil}
 Name:           intel-dlstreamer
 Version:        2025.2.0
 Release:        1%{?dist}

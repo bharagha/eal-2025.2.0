@@ -117,6 +117,17 @@ build_package() {
     
     # Build the package
     local spec_basename=$(basename "$spec_file")
+    # Check if package is already installed
+    local actual_package_name=$(grep "^Name:" "$spec_file" | awk '{print $2}')
+    if rpm -q "$actual_package_name" &> /dev/null; then
+        log_warn "$actual_package_name is already installed."
+        read -p "Do you want to proceed with building and reinstalling $actual_package_name? [y/N]: " confirm
+        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+            log_info "Skipping build and installation of $actual_package_name."
+            return 0
+        fi
+    fi
+
     if rpmbuild -ba ~/rpmbuild/SPECS/$spec_basename; then
         log_info "Successfully built $package_name ✓"
         
@@ -131,13 +142,6 @@ build_package() {
             if ls $rpm_path 1> /dev/null 2>&1; then
                 log_info "Installing (or re-installing) $actual_package_name RPM(s)..."
                 sudo rpm -Uvh --replacepkgs $rpm_path
-
-                # Also install (or re-install) devel RPMs if present
-                devel_rpm_path=~/rpmbuild/RPMS/x86_64/${actual_package_name}-devel-*.rpm
-                if ls $devel_rpm_path 1> /dev/null 2>&1; then
-                    log_info "Installing (or re-installing) $actual_package_name-devel RPM(s)..."
-                    sudo rpm -Uvh --replacepkgs $devel_rpm_path
-                fi
             fi
         fi
     else
