@@ -105,20 +105,6 @@ find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file
     fi
 done
 
-# Create environment setup script
-mkdir -p %{buildroot}/etc/profile.d
-cat > %{buildroot}/etc/profile.d/intel-dlstreamer.sh << 'EOF'
-# Intel DL Streamer environment setup
-export LIBVA_DRIVER_NAME=iHD
-export GST_PLUGIN_PATH="/opt/intel/dlstreamer/lib:/opt/intel/dlstreamer/gstreamer/lib/gstreamer-1.0"
-export LD_LIBRARY_PATH="/opt/intel/dlstreamer/gstreamer/lib:/opt/intel/dlstreamer/lib:/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH"
-export LIBVA_DRIVERS_PATH="/usr/lib/dri"
-export GST_VA_ALL_DRIVERS="1"
-export PATH="/opt/intel/dlstreamer/gstreamer/bin:/opt/intel/dlstreamer/lib:/opt/intel/dlstreamer/bin:$HOME/.local/bin:$HOME/python3venv/bin:$PATH"
-export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/opt/intel/dlstreamer/lib/pkgconfig:/opt/intel/dlstreamer/gstreamer/lib/pkgconfig:$PKG_CONFIG_PATH"
-export GST_PLUGIN_FEATURE_RANK=${GST_PLUGIN_FEATURE_RANK},ximagesink:MAX
-EOF
-
 %clean
 rm -rf %{buildroot}
 
@@ -127,7 +113,6 @@ rm -rf %{buildroot}
 %doc README.md
 %license LICENSE
 /opt/intel/dlstreamer/*
-/etc/profile.d/intel-dlstreamer.sh
 
 %files devel
 %defattr(-,root,root,-)
