@@ -22,7 +22,6 @@ BuildRequires:  pkgconfig patchelf
 BuildRequires:  opencv-devel >= 4.10.0
 BuildRequires:  gstreamer-devel >= 1.26.1
 BuildRequires:  paho-mqtt-c-devel >= 1.3.4
-BuildRequires:  glib2-devel
 
 # Runtime dependencies
 Requires:       paho-mqtt-c-devel >= 1.3.4
@@ -31,7 +30,7 @@ Requires:       gstreamer >= 1.26.1
 Requires:       opencv >= 4.10.0
 Requires:       libva2 libva-intel-media-driver
 Requires:       python3 python3-pip python3-gobject
-Requires:       glib2
+Requires:       glib2-devel
 Requires:       libjpeg-turbo libpng libdrm
 Requires:       wayland-devel libX11 libXext
 Requires:       mesa-libGL mesa-libGLU
@@ -94,10 +93,6 @@ make install DESTDIR=%{buildroot}
 
 # Explicitly copying the .so and .a files
 cp -r intel64/Release/* %{buildroot}/opt/intel/dlstreamer
-
-#cp -r samples/  %{buildroot}/opt/intel/dlstreamer/
-#cp -r python/  %{buildroot}/opt/intel/dlstreamer/
-#cp -r include/  %{buildroot}/opt/intel/dlstreamer/
 
 # Remove RPATH for all binaries/libs
 find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file; do

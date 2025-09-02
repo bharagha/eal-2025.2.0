@@ -58,6 +58,7 @@ This script will:
 ```sh
 sudo dnf install -y  --setopt=install_weak_deps=False ~/rpmbuild/RPMS/x86_64/intel-dlstreamer-*.rpm
 # setup environment
+source /opt/intel/openvino_2025/setupvars.sh
 source /opt/intel/dlstreamer/setupvars.sh
 ```
 
