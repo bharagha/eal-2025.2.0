@@ -42,6 +42,11 @@ on:
         required: false
         default: 'json'
         type: string
+      trivy-config-path:
+        description: 'Path to custom Trivy config file'
+        required: false
+        default: ''
+        type: string
       severity-levels:
         description: 'Severity levels to check (comma-separated, e.g. LOW,MEDIUM,HIGH,CRITICAL)'
         required: false
