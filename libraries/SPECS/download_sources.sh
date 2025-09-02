@@ -79,7 +79,6 @@ main() {
     cd -
     mv ~/intel-dlstreamer-${DLSTREAMER_VERSION}.tar.gz SPECS/
     log_info ""
-    log_info "Next step: ./build_all_packages.sh"
 }
 
 main "$@"

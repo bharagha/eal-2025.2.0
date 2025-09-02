@@ -22,6 +22,7 @@ BuildRequires:  pkgconfig patchelf
 BuildRequires:  opencv-devel >= 4.10.0
 BuildRequires:  gstreamer-devel >= 1.26.1
 BuildRequires:  paho-mqtt-c-devel >= 1.3.4
+BuildRequires:  librdkafka-devel
 
 # Runtime dependencies
 Requires:       paho-mqtt-c-devel >= 1.3.4
@@ -38,7 +39,6 @@ Requires:       libgudev cairo cairo-gobject
 Requires:       gobject-introspection
 Requires:       libXv libX11 libXext
 Requires:       libva-utils libusb1
-Requires:       librdkafka
 
 %description
 Intel Deep Learning Streamer (DL Streamer) is a streaming media analytics 
@@ -93,6 +93,8 @@ make install DESTDIR=%{buildroot}
 
 # Explicitly copying the .so and .a files
 cp -r intel64/Release/* %{buildroot}/opt/intel/dlstreamer
+rm -rf %{buildroot}/opt/intel/dlstreamer/gst-video-analytics
+rm -rf %{buildroot}/opt/intel/dlstreamer/gstreamer-1.0
 
 # Remove RPATH for all binaries/libs
 find %{buildroot} -type f \( -name "*.so*" -o -perm -111 \) | while read -r file; do

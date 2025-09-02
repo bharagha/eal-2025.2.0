@@ -8,6 +8,10 @@ This guide explains how to use the provided scripts to:
 
 ## 1. Downloading Sources
 
+> **Note**: If any of the package versions needs to be updated,
+> it needs to be done in `versions.env` file and in the respective
+> package .spec files.
+
 Navigate to the [libraries/SPECS](libraries/SPECS/) directory and run:
 
 ```sh
@@ -34,7 +38,6 @@ sudo -E python3 -m pip install -r ./python/requirements.txt
 cd /opt/intel
 sudo ln -s openvino_2025.2.0 openvino_2025
 ```
-
 ### Building and Installation of few DL Streamer Dependent RPM packages
 
 > **Note**: Please uninstall intel dlstreamer package if already installed by running following command:
