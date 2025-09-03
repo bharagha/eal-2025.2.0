@@ -4,6 +4,8 @@ Performs inference with Vision Language Models using OpenVINO™ GenAI,
 accepts video and text prompt as an input, and outputs text description.
 It can be used to generate text summarization from video.
 
+[Prerequisites steps](https://docs.openedgeplatform.intel.com/oep/edge-ai-libraries/dl-streamer/get_started/install/install_guide_ubuntu.html#optional-step-7-openvino-gen-ai-installation)
+
 ## Configuration
 
 ### Generation Config

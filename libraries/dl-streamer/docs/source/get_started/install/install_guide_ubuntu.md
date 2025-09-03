@@ -246,22 +246,22 @@ sudo apt show -a intel-dlstreamer
 
 ### [Optional] Step 7: OpenVINO Gen AI installation
 
-To use gvagenai plugin there is need to:
+To use [gvagenai element](https://docs.openedgeplatform.intel.com/oep/edge-ai-libraries/dl-streamer/elements/gvagenai.html) there is need to:
 
 A. Follow instructions to download [OpenVINO Gen AI archive](https://docs.openvino.ai/2025/get-started/install-openvino/install-openvino-genai.html)
 
-B. Move the extracted directory to /opt/openvino_genai
+B. Move the extracted directory to /opt/intel/openvino_genai
 
 For example:
 
 ```bash
-mv ./openvino_genai_2025.2.0.0 /opt/openvino_genai
+mv ./openvino_genai_2025.2.0.0 /opt/intel/openvino_genai
 ```
 
 C. Run command:
 
 ```bash
-source /opt/openvino_genai/setupvars.sh
+source /opt/intel/openvino_genai/setupvars.sh
 ```
 
 

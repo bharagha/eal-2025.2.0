@@ -330,7 +330,7 @@ ARG OPENVINO_GENAI_VER=openvino_genai_ubuntu22_2025.2.0.0_x86_64
 ARG OPENVINO_GENAI_PKG=https://storage.openvinotoolkit.org/repositories/openvino_genai/packages/2025.2/linux/${OPENVINO_GENAI_VER}.tar.gz
 
 RUN curl -L ${OPENVINO_GENAI_PKG} | tar -xz && \
-    mv ${OPENVINO_GENAI_VER} /opt/openvino_genai
+    mv ${OPENVINO_GENAI_VER} /opt/intel/openvino_genai
 
 WORKDIR "$DLSTREAMER_DIR"
 
@@ -359,7 +359,7 @@ ENV PYTHONPATH=${GSTREAMER_DIR}/lib/python3/dist-packages:${DLSTREAMER_DIR}/pyth
 
 # Build DLStreamer
 RUN \
-    source /opt/openvino_genai/setupvars.sh && \
+    source /opt/intel/openvino_genai/setupvars.sh && \
     cmake \
     -DCMAKE_BUILD_TYPE="${BUILD_ARG}" \
     -DENABLE_PAHO_INSTALLATION=ON \
@@ -392,7 +392,7 @@ RUN \
     mkdir -p /deb-pkg/opt/intel/ && \
     mkdir -p /deb-pkg/opt/opencv/include && \
     mkdir -p /deb-pkg/opt/rdkafka && \
-    find /opt/openvino_genai -regex '.*\/lib.*\(genai\|token\).*$' -exec cp -a {} /deb-pkg/usr/lib/ \; && \
+    find /opt/intel/openvino_genai -regex '.*\/lib.*\(genai\|token\).*$' -exec cp -a {} /deb-pkg/usr/lib/ \; && \
     cp -r "${DLSTREAMER_DIR}/build/intel64/${BUILD_ARG}" /deb-pkg/opt/intel/dlstreamer && \
     cp -r "${DLSTREAMER_DIR}/samples/" /deb-pkg/opt/intel/dlstreamer/ && \
     cp -r "${DLSTREAMER_DIR}/python/" /deb-pkg/opt/intel/dlstreamer/ && \
