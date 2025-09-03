@@ -1,34 +1,65 @@
-# DL Streamer RPM generation
+# DL Streamer RPM Generation Guide
 
-This guide explains how to use the provided scripts to:
+A comprehensive guide to downloading, building, installing, and distributing DL Streamer RPM packages.
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Prerequisites](#prerequisites)
+3. [Downloading Sources](#downloading-sources)
+4. [Building and Installing Packages (Developer Testing)](#building-and-installing-packages-developer-testing)
+    - [Uninstall Existing DL Streamer](#uninstall-existing-dl-streamer)
+    - [Build and Install Dependent Packages](#build-and-install-dependent-packages)
+    - [Install DL Streamer RPM Package](#install-dl-streamer-rpm-package)
+5. [Installing Pre-built RPM Packages](#installing-pre-built-rpm-packages)
+    - [Configure EdgeAI Repository](#configure-edgeai-repository)
+    - [Install Dependencies](#install-dependencies)
+    - [Install DL Streamer](#install-dl-streamer)
+6. [Validating Installation](#validating-installation)
+
+---
+
+## Overview
+
+This guide details the steps to:
+
 - Download all required sources
-- Build all RPM and SRPM packages
+- Build RPM and SRPM packages
 - Install the resulting RPMs
-- Generate and sign a YUM/DNF repository for distribution
+- Set up and use a YUM/DNF repository for distribution
 
-## 1. Downloading Sources
+---
 
-> **Note**: If any of the package versions needs to be updated,
-> it needs to be done in `versions.env` file and in the respective
-> package .spec files.
+## Prerequisites
 
-Navigate to the [libraries/SPECS](libraries/SPECS/) directory and run:
+- Linux system with `dnf` package manager
+- Sudo privileges
+- [OpenVINO 2025.2](https://storage.openvinotoolkit.org/repositories/openvino/packages/2025.2/linux/openvino_toolkit_ubuntu24_2025.2.0.19140.c01cd93e24d_x86_64.tgz) prebuilt binary
+
+---
+
+## Downloading Sources
+
+If you need to update package versions, edit both the `versions.env` file and the relevant `.spec` files.
+
+To download all required sources, run:
 
 ```sh
 ./download_sources.sh
 ```
 
 This script will:
-- Download all required third-party and DL Streamer sources
-- Place them in the appropriate locations for RPM building
 
-## 2. Building And Installing All Packages
+- Download major dependencies and DL Streamer sources
+- Place them in the correct locations for RPM building
 
-### Prerequisite
+---
 
-Download OpenVINO 2025.2 prebuilt binary:
+## Building and Installing Packages (Developer Testing)
 
-```
+### 1. Install OpenVINO 2025.2
+
+```sh
 sudo rm -rf /opt/intel/openvino*
 wget https://storage.openvinotoolkit.org/repositories/openvino/packages/2025.2/linux/openvino_toolkit_ubuntu24_2025.2.0.19140.c01cd93e24d_x86_64.tgz
 tar -xvzf openvino_toolkit_ubuntu24_2025.2.0.19140.c01cd93e24d_x86_64.tgz 
@@ -38,142 +69,115 @@ sudo -E python3 -m pip install -r ./python/requirements.txt
 cd /opt/intel
 sudo ln -s openvino_2025.2.0 openvino_2025
 ```
-### Building and Installation of few DL Streamer Dependent RPM packages
 
-> **Note**: Please uninstall intel dlstreamer package if already installed by running following command:
-> ```sh
-> sudo dnf remove -y intel-dlstreamer-2025.2.0-1.emt3.x86_64
-> ```
+### 2. Uninstall Existing DL Streamer
 
-After building, install the the runtime and devel DL Streamer dependent packages:
+If you have an existing DL Streamer installation, remove it:
+
+```sh
+sudo dnf remove -y intel-dlstreamer
+```
+
+### 3. Build and Install Dependent Packages
+
+Run the following script to build and install all dependent packages:
 
 ```sh
 ./build_and_install_packages.sh
 ```
 
 This script will:
-- Install build dependencies (using `dnf`)
-- Set up the RPM build environment (`~/rpmbuild`)
-- Build and install all packages in dependency order, producing both `.rpm` and `.src.rpm` files in `~/rpmbuild/RPMS/x86_64/` and `~/rpmbuild/SRPMS/`
 
-### Installation of DL Streamer RPM package
+- Install build dependencies
+- Set up the RPM build environment (`~/rpmbuild`)
+- Build and install all packages in dependency order
+- Output `.rpm` and `.src.rpm` files to `~/rpmbuild/RPMS/x86_64/` and `~/rpmbuild/SRPMS/`
+
+### 4. Install DL Streamer RPM Package
+
+> **Note**: The flag `--setopt=install_weak_deps=False` is used
+> to avoid installation of weaker dependencies which still show up
+> even after having `AutoReq: no` in the DL Streamer spec file
+
+To install the DL Streamer RPM, use the following command to avoid installing weak dependencies:
 
 ```sh
-sudo dnf install -y  --setopt=install_weak_deps=False ~/rpmbuild/RPMS/x86_64/intel-dlstreamer-*.rpm
-# setup environment
+sudo dnf install -y --setopt=install_weak_deps=False ~/rpmbuild/RPMS/x86_64/intel-dlstreamer-*.rpm
+```
+
+Set up the environment:
+
+```sh
 source /opt/intel/openvino_2025/setupvars.sh
 source /opt/intel/dlstreamer/setupvars.sh
 ```
 
-## 4. Creating a Signed RPM Repository
+---
 
-### 4.1. Collect RPMs
+## Installing Pre-built RPM Packages
 
-Copy all `.rpm` and `.src.rpm` files to a directory for your repository, e.g.:
+### 1. Configure EdgeAI Repository
 
-```sh
-mkdir -p ~/dlstreamer-repo
-cp ~/rpmbuild/RPMS/x86_64/*.rpm ~/dlstreamer-repo/
-cp ~/rpmbuild/SRPMS/*.src.rpm ~/dlstreamer-repo/
-```
-
-### 4.2. Initialize the Repository
-
-Install `createrepo` if not already present:
+Create a DNF repo file as a normal user:
 
 ```sh
-sudo dnf install createrepo
+tee > /tmp/edgeai.repo << EOF
+[EdgeAI]
+name=Edge AI repository
+baseurl=https://yum.repos.intel.com/edgeai/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://yum.repos.intel.com/edgeai/GPG-PUB-KEY-INTEL-DLS.gpg
+EOF
 ```
 
-Create repository metadata:
+Move the repo file to the configuration directory:
 
 ```sh
-createrepo ~/dlstreamer-repo
+sudo mv /tmp/edgeai.repo /etc/yum.repos.d
 ```
 
-### 4.3. Signing RPMs
-
-#### 4.3.1. Generate a GPG Key (if needed)
+Verify the repository:
 
 ```sh
-gpg --full-generate-key
+dnf repolist | grep -i EdgeAI
 ```
-- Choose RSA and a key size (e.g., 4096)
-- Remember the email and passphrase
 
-#### 4.3.2. Export the Public Key
+### 2. Install Dependencies
 
 ```sh
-gpg --armor --export 'Your Name or Email' > RPM-GPG-KEY-dlstreamer
+sudo dnf install -y paho-mqtt-c ffmpeg gstreamer opencv
 ```
 
-#### 4.3.3. Configure RPM to Use Your Key
+### 3. Install DL Streamer
 
-Edit `~/.rpmmacros` and add:
+> **Note**: The flag `--setopt=install_weak_deps=False` is used
+> to avoid installation of weaker dependencies which still show up
+> even after having `AutoReq: no` in the DL Streamer spec file
 
-```
-%_gpg_name Your Name or Email
-```
-
-#### 4.3.4. Sign All RPMs
+To install DL Streamer and avoid weak dependencies:
 
 ```sh
-rpm --addsign ~/dlstreamer-repo/*.rpm
+sudo dnf install --setopt=install_weak_deps=False intel-dlstreamer
 ```
 
-You will be prompted for your GPG passphrase.
-
-### 4.4. Sign the Repository Metadata
+Set up the environment:
 
 ```sh
-gpg --detach-sign --armor ~/dlstreamer-repo/repodata/repomd.xml
+source /opt/intel/openvino_2025/setupvars.sh
+source /opt/intel/dlstreamer/setupvars.sh
 ```
-
-### 4.5. Distribute the Repository
-
-- Place the contents of `~/dlstreamer-repo` on a web server or shared location.
-- Make sure to include the `RPM-GPG-KEY-dlstreamer` file.
-
-### 4.6. Using the Repository on Client Machines
-
-1. Import the GPG key:
-
-    ```sh
-    sudo rpm --import https://your.server/path/RPM-GPG-KEY-dlstreamer
-    ```
-
-2. Create a repo file `/etc/yum.repos.d/dlstreamer.repo`:
-
-    ```
-    [dlstreamer]
-    name=DL Streamer Custom Repo
-    baseurl=https://your.server/path/
-    enabled=1
-    gpgcheck=1
-    gpgkey=https://your.server/path/RPM-GPG-KEY-dlstreamer
-    ```
-
-3. Install packages:
-
-    ```sh
-    sudo dnf install intel-dlstreamer
-    ```
 
 ---
 
-## Troubleshooting
+## Validating Installation
 
-- If you encounter GPG errors, ensure your key is trusted and imported on the client.
-- For build errors, check that all dependencies are installed and sources are downloaded.
+After installation, you can try DL Streamer pipelines as described in:
 
----
+- [Tutorial](../docs/source/get_started/tutorial.rst)
+- [Performance Guide](../docs/source/dev_guide/performance_guide.rst)
 
-## References
-
-- [RPM Packaging Guide](https://rpm-packaging-guide.github.io/)
-- [createrepo Documentation](https://github.com/rpm-software-management/createrepo)
-- [Fedora GPG Guide](https://docs.fedoraproject.org/en-US/quick-docs/creating-gpg-keys/)
+These resources provide sample pipelines and performance validation steps for DL Streamer GStreamer elements.
 
 ---
-
-For more details, see the scripts in [libraries/SPECS](libraries/SPECS/)
