@@ -81,6 +81,7 @@ drivers. For more details see [prerequisites](#prerequisites).
 
 ### Step 2: Setup repositories
 
+<!--
 - **In Ubuntu 22**
 
   ```bash
@@ -106,6 +107,35 @@ drivers. For more details see [prerequisites](#prerequisites).
   sudo apt remove -y openvino* libopenvino-* python3-openvino*
   sudo apt-get autoremove
   ```
+-->
+::::{tab-set}
+:::{tab-item} Ubuntu 22
+:sync: tab1
+  ```bash
+  sudo -E wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+  sudo -E wget -O- https://apt.repos.intel.com/edgeai/dlstreamer/GPG-PUB-KEY-INTEL-DLS.gpg | sudo tee /usr/share/keyrings/dls-archive-keyring.gpg > /dev/null
+  echo "deb [signed-by=/usr/share/keyrings/dls-archive-keyring.gpg] https://apt.repos.intel.com/edgeai/dlstreamer/ubuntu22 ubuntu22 main" | sudo tee /etc/apt/sources.list.d/intel-dlstreamer.list
+  sudo bash -c 'echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/openvino/2025 ubuntu22 main" | sudo tee /etc/apt/sources.list.d/intel-openvino-2025.list'
+  ```
+:::
+:::{tab-item} Ubuntu 24
+:sync: tab2
+  ```bash
+  sudo -E wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+  sudo -E wget -O- https://apt.repos.intel.com/edgeai/dlstreamer/GPG-PUB-KEY-INTEL-DLS.gpg | sudo tee /usr/share/keyrings/dls-archive-keyring.gpg > /dev/null
+  echo "deb [signed-by=/usr/share/keyrings/dls-archive-keyring.gpg] https://apt.repos.intel.com/edgeai/dlstreamer/ubuntu24 ubuntu24 main" | sudo tee /etc/apt/sources.list.d/intel-dlstreamer.list
+  sudo bash -c 'echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/openvino/2025 ubuntu24 main" | sudo tee /etc/apt/sources.list.d/intel-openvino-2025.list'
+  ```
+
+  > **NOTE:** If you have OpenVINO™ installed in a version different from 2025.2.0,
+  > please uninstall the OpenVINO™ packages using the following commands.
+
+  ```bash
+  sudo apt remove -y openvino* libopenvino-* python3-openvino*
+  sudo apt-get autoremove
+  ```
+:::
+::::
 
 ### Step 3: Install Deep Learning Streamer Pipeline Framework
 
@@ -170,6 +200,7 @@ following command:
 > **NOTE:** To set up Linux with the relevant environment variables every time a new
 > terminal is opened, open `~/.bashrc` and add the following lines:
 
+<!--
 - **Ubuntu 24**
 
   ```bash
@@ -217,6 +248,58 @@ following command:
   ```
 
   to configure environment variables for the current terminal session.
+-->
+
+::::{tab-set}
+:::{tab-item} Ubuntu 24
+:sync: tab1
+  ```bash
+  export LIBVA_DRIVER_NAME=iHD
+  export GST_PLUGIN_PATH=/opt/intel/dlstreamer/lib:/opt/intel/dlstreamer/gstreamer/lib/gstreamer-1.0:/opt/intel/dlstreamer/streamer/lib/
+  export LD_LIBRARY_PATH=/opt/intel/dlstreamer/gstreamer/lib:/opt/intel/dlstreamer/lib:/opt/intel/dlstreamer/lib/gstreamer-1.0:/sr/lib:/opt/intel/dlstreamer/lib:/usr/local/lib/gstreamer-1.0:/usr/local/lib
+  export LIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+  export GST_VA_ALL_DRIVERS=1
+  export PATH=/opt/intel/dlstreamer/gstreamer/bin:/opt/intel/dlstreamer/bin:$PATH
+  export GST_PLUGIN_FEATURE_RANK=${GST_PLUGIN_FEATURE_RANK},ximagesink:MAX
+  export GI_TYPELIB_PATH=/opt/intel/dlstreamer/gstreamer/lib/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0
+  ```
+:::
+:::{tab-item} Ubuntu 22
+:sync: tab2
+  ```bash
+
+  export LIBVA_DRIVER_NAME=iHD
+  export GST_PLUGIN_PATH=/opt/intel/dlstreamer/lib:/opt/intel/dlstreamer/gstreamer/lib/gstreamer-1.0:/opt/intel/dlstreamer/streamer/lib/
+  export LD_LIBRARY_PATH=/opt/intel/dlstreamer/gstreamer/lib:/opt/intel/dlstreamer/lib:/opt/intel/dlstreamer/lib/gstreamer-1.0:/sr/lib:/opt/intel/dlstreamer/lib:/usr/local/lib/gstreamer-1.0:/usr/local/lib:/opt/opencv:/opt/rdkafka
+  export LIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+  export GST_VA_ALL_DRIVERS=1
+  export PATH=/opt/intel/dlstreamer/gstreamer/bin:/opt/intel/dlstreamer/bin:$PATH
+  export GST_PLUGIN_FEATURE_RANK=${GST_PLUGIN_FEATURE_RANK},ximagesink:MAX
+  export GI_TYPELIB_PATH=/opt/intel/dlstreamer/gstreamer/lib/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0
+  ```
+:::
+:::{tab-item} Fedora 41
+:sync: tab2
+  ```bash
+  export LIBVA_DRIVER_NAME=iHD
+  export GST_PLUGIN_PATH=/opt/intel/dlstreamer/lib:/opt/intel/dlstreamer/gstreamer/lib/gstreamer-1.0:/opt/intel/dlstreamer/gstreamer/lib/
+  export LD_LIBRARY_PATH=/opt/intel/dlstreamer/gstreamer/lib:/opt/intel/dlstreamer/lib:/opt/intel/dlstreamer/lib/gstreamer-1.0:/usr/lib:/opt/intel/dlstreamer/lib:/usr/local/lib/gstreamer-1.0:/usr/local/lib:/opt/opencv:/opt/rdkafka:/opt/ffmpeg
+  export LIBVA_DRIVERS_PATH=/usr/lib64/dri-nonfree
+  export GST_VA_ALL_DRIVERS=1
+  export PATH=/opt/intel/dlstreamer/gstreamer/bin:/opt/intel/dlstreamer/bin:$PATH
+  export GST_PLUGIN_FEATURE_RANK=${GST_PLUGIN_FEATURE_RANK},ximagesink:MAX
+  export GI_TYPELIB_PATH=/opt/intel/dlstreamer/gstreamer/lib/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0
+  ```
+
+  or run:
+
+  ```bash
+  source /opt/intel/dlstreamer/scripts/setup_dls_env.sh
+  ```
+
+  to configure environment variables for the current terminal session.
+:::
+::::
 
 ### [Optional] Step 6: Auxiliary installation steps
 
@@ -285,6 +368,7 @@ For **Ubuntu 22.04** please specify tag e.g. **2025.1.2-ubuntu22**.
 For **Ubuntu 24.04** please use **latest** tag or specified version e.g.
 **2025.1.2-ubuntu24**.
 
+<!--
 - **Ubuntu 22**
 
   ```bash
@@ -296,12 +380,28 @@ For **Ubuntu 24.04** please use **latest** tag or specified version e.g.
   ```bash
   docker pull intel/dlstreamer:latest
   ```
+-->
+::::{tab-set}
+:::{tab-item} Ubuntu 22
+:sync: tab1
+  ```bash
+  docker pull intel/dlstreamer:2025.1.2-ubuntu22
+  ```
+:::
+:::{tab-item} Ubuntu 24
+:sync: tab2
+  ```bash
+  docker pull intel/dlstreamer:latest
+  ```
+:::
+::::
 
 ### Step 5: Run Deep Learning Streamer Pipeline Framework container
 
 To confirm that your installation is completed successfully, please run
 a container
 
+<!--
 - **Ubuntu 22**
 
   ```bash
@@ -313,6 +413,21 @@ a container
   ```bash
   docker run -it intel/dlstreamer:latest
   ```
+-->
+::::{tab-set}
+:::{tab-item} Ubuntu 22
+:sync: tab1
+  ```bash
+  docker run -it intel/dlstreamer:2025.1.2-ubuntu22
+  ```
+:::
+:::{tab-item} Ubuntu 24
+:sync: tab2
+  ```bash
+  docker run -it intel/dlstreamer:latest
+  ```
+:::
+::::
 
 In the container, please run the `gst-inspect-1.0 gvadetect` to confirm
 that GStreamer and Deep Learning Streamer are running
