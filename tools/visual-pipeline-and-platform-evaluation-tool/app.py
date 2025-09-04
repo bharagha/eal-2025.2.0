@@ -15,6 +15,8 @@ from explore import GstInspector
 from optimize import PipelineOptimizer
 from gstpipeline import PipelineLoader, GstPipeline
 from utils import prepare_video_and_constants
+from pipeline_page import PipelinePageTemplate
+from home_page import HomePage
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
@@ -1017,10 +1019,10 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
     components.add(pipeline_image)
     components.add(best_config_textbox)
     components.add(inferencing_channels)
-    components.add(recording_channels)
+    # components.add(recording_channels)
     components.add(tracking_type)
     components.add(fps_floor)
-    components.add(ai_stream_rate)
+    # components.add(ai_stream_rate)
     components.add(object_detection_model)
     components.add(object_detection_device)
     components.add(object_detection_batch_size)
@@ -1033,469 +1035,488 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
     components.add(object_classification_nireq)
     components.add(object_classification_reclassify_interval)
     components.add(pipeline_watermark_enabled)
-    components.add(pipeline_video_enabled)
+    # components.add(pipeline_video_enabled)
     components.add(live_preview_enabled)
 
+    # ====================== MULTIPAGE DEFINITION ==========================================================
+    home_page = HomePage()
+
     # Interface layout
-    with gr.Blocks(theme=theme, css=css_code, title=title) as demo:
-        """
-        Components events handlers and interactions are defined here.
-        """
+    with gr.Blocks(theme=theme, css=css_code, title=title) as vippet:
+        home_page.render()
 
-        # Handle click on the pipeline image
-        pipeline_image.select(
-            detect_click,
-            None,
-            [inference_accordion],
-        )
+    # Dynamically create a route for each pipeline
+    for pipeline in PipelineLoader.list():
+        pipeline_info = PipelineLoader.config(pipeline)
+        pipeline_page = PipelinePageTemplate(pipeline)
 
-        # Handle changes on the input video player
-        input_video_player.change(
-            lambda v: (
-                (
-                    gr.update(interactive=bool(v)),
-                    gr.update(value=None),
-                    gr.update(value=None),
-                )  # Disable Run button  if input is empty, clears output
-                if v is None or v == ""
-                else (
-                    gr.update(interactive=True),
-                    gr.update(label="Input Video"),
-                    gr.update(value=None),
-                )
-            ),
-            inputs=input_video_player,
-            outputs=[run_button, input_video_player, output_video_player],
-            queue=False,
-        )
+        with vippet.route(pipeline_info["name"], f"/{pipeline_info["metadata"]["classname"].lower()}"):
+            pipeline_page.render()
 
-        # Handle timer ticks
-        timer.tick(
-            lambda: [generate_stream_data(i) for i in range(len(chart_titles))],
-            outputs=plots,
-        )
+    return vippet
 
-        # Handle run button clicks
-        run_button.click(
-            # Update the state of the buttons
-            lambda: [
-                gr.update(visible=False),
-                gr.update(visible=False),
-                gr.update(visible=True),
-            ],
-            outputs=[run_button, benchmark_button, stop_button],
-            queue=True,
-        ).then(
-            # Reset the telemetry plots
-            lambda: (
-                globals().update(
-                    stream_dfs=[
-                        pd.DataFrame(columns=pd.Index(["x", "y"]))
-                        for _ in range(len(chart_titles))
-                    ]
-                )
-                or [
-                    plots[i].value.update(data=[])
-                    for i in range(len(plots))
-                    if hasattr(plots[i], "value") and plots[i].value is not None
-                ]
-                or plots
-            ),
-            outputs=plots,
-        ).then(
-            # Start the telemetry timer
-            lambda: gr.update(active=True),
-            inputs=None,
-            outputs=timer,
-        ).then(
-            # Execute the pipeline and stream live preview (if enabled)
-            on_run,
-            inputs=components,
-            outputs=[output_live_image, output_video_player, best_config_textbox],
-        ).then(
-            # Stop the telemetry timer
-            lambda: gr.update(active=False),
-            inputs=None,
-            outputs=timer,
-        ).then(
-            # Generate the persistent telemetry data
-            lambda: [generate_stream_data(i) for i in range(len(chart_titles))],
-            inputs=None,
-            outputs=plots,
-        ).then(
-            # Update the visibility of the buttons
-            lambda: [
-                gr.update(visible=True),
-                gr.update(visible=True),
-                gr.update(visible=False),
-            ],
-            outputs=[run_button, benchmark_button, stop_button],
-        )
+    # =====================================================================================================
 
-        # Handle benchmark button clicks
-        benchmark_button.click(
-            # Update the state of the buttons
-            lambda: [
-                gr.update(visible=False),
-                gr.update(visible=False),
-                gr.update(visible=True),
-            ],
-            outputs=[run_button, benchmark_button, stop_button],
-            queue=False,
-        ).then(
-            # Clear output components here
-            lambda: [
-                gr.update(value=""),
-                gr.update(value=None),
-            ],
-            None,
-            [best_config_textbox, output_video_player],
-        ).then(
-            # Reset the telemetry plots
-            lambda: (
-                globals().update(
-                    stream_dfs=[
-                        pd.DataFrame(columns=pd.Index(["x", "y"]))
-                        for _ in range(len(chart_titles))
-                    ]
-                )
-                or [
-                    plots[i].value.update(data=[])
-                    for i in range(len(plots))
-                    if hasattr(plots[i], "value") and plots[i].value is not None
-                ]
-                or plots
-            ),
-            outputs=plots,
-        ).then(
-            # Start the telemetry timer
-            lambda: gr.update(active=True),
-            inputs=None,
-            outputs=timer,
-        ).then(
-            # Execute the benchmark
-            on_benchmark,
-            inputs=components,
-            outputs=[best_config_textbox],
-        ).then(
-            # Stop the telemetry timer
-            lambda: gr.update(active=False),
-            inputs=None,
-            outputs=timer,
-        ).then(
-            # Generate the persistent telemetry data
-            lambda: [generate_stream_data(i) for i in range(len(chart_titles))],
-            inputs=None,
-            outputs=plots,
-        ).then(
-            # Reset the state of the buttons
-            lambda: [
-                gr.update(visible=True),
-                gr.update(visible=True),
-                gr.update(visible=False),
-            ],
-            outputs=[run_button, benchmark_button, stop_button],
-        )
-
-        # Handle stop button clicks
-        stop_button.click(
-            # Execute the stop function
-            on_stop,
-        ).then(
-            # Reset the state of the buttons
-            lambda: [
-                gr.update(visible=True),
-                gr.update(visible=True),
-                gr.update(visible=False),
-            ],
-            outputs=[run_button, benchmark_button, stop_button],
-            queue=False,
-        )
-
-        """
-        Components rendering starts here.
-        """
-
-        # Header
-        gr.HTML(
-            "<div class='spark-header'>"
-            "  <div class='spark-header-line'></div>"
-            "  <img src='https://www.intel.com/content/dam/logos/intel-header-logo.svg' class='spark-logo'></img>"
-            "  <div class='spark-title'>Visual Pipeline and Platform Evaluation Tool</div>"
-            "</div>"
-        )
-
-        # Tab Interface
-        with gr.Tabs() as tabs:
-            # Home Tab
-            with gr.Tab("Home", id=0):
-                gr.Markdown(
-                    """
-                    ## Recommended Pipelines
-
-                    Below is a list of recommended pipelines you can use to evaluate video analytics performance.
-                    Click on "Configure and Run" to get started with customizing and benchmarking a pipeline for your
-                    use case.
-                    """
-                )
-
-                with gr.Row():
-                    for pipeline in PipelineLoader.list():
-                        pipeline_info = PipelineLoader.config(pipeline)
-
-                        with gr.Column(scale=1, min_width=100):
-                            gr.Image(
-                                value=lambda x=pipeline: f"./pipelines/{x}/thumbnail.png",
-                                show_label=False,
-                                show_download_button=False,
-                                show_fullscreen_button=False,
-                                interactive=False,
-                                width=710,
-                            )
-
-                            gr.Markdown(
-                                f"### {pipeline_info['name']}\n"
-                                f"{pipeline_info['definition']}"
-                            )
-
-                            is_enabled = pipeline_info.get("metadata", {}).get(
-                                "enabled", False
-                            )
-
-                            gr.Button(
-                                value=(
-                                    "Configure and Run" if is_enabled else "Coming Soon"
-                                ),
-                                elem_classes="configure-and-run-button",
-                                interactive=is_enabled,
-                            ).click(
-                                lambda x=pipeline: globals().__setitem__(
-                                    "current_pipeline", PipelineLoader.load(x)
-                                ),
-                                None,
-                                None,
-                            ).then(
-                                lambda: (
-                                    f"### {current_pipeline[1]['name']}\n"
-                                    f"{current_pipeline[1]['definition']}"
-                                ),
-                                None,
-                                pipeline_information,
-                            ).then(
-                                lambda: current_pipeline[0].diagram(),
-                                None,
-                                pipeline_image,
-                            ).then(
-                                lambda: update_inferencing_channels_label(),
-                                None,
-                                inferencing_channels,
-                            ).then(
-                                lambda: [
-                                    gr.Dropdown(
-                                        choices=current_pipeline[1]["parameters"][
-                                            "inference"
-                                        ]["detection_models"],
-                                        value=current_pipeline[1]["parameters"][
-                                            "inference"
-                                        ]["detection_model_default"],
-                                    ),
-                                    gr.Dropdown(
-                                        choices=current_pipeline[1]["parameters"][
-                                            "inference"
-                                        ]["classification_models"],
-                                        value=current_pipeline[1]["parameters"][
-                                            "inference"
-                                        ]["classification_model_default"],
-                                    ),
-                                ],
-                                outputs=[
-                                    object_detection_model,
-                                    object_classification_model,
-                                ],
-                            ).then(
-                                lambda: set_video_path(
-                                    current_pipeline[1]["recording"]["filename"]
-                                ),
-                                None,
-                                input_video_player,
-                            ).then(
-                                # Clear output components here
-                                lambda: [
-                                    gr.update(value=""),
-                                    gr.update(value=None),
-                                ],
-                                None,
-                                [best_config_textbox, output_video_player],
-                            ).then(
-                                # Reset the telemetry plots
-                                lambda: (
-                                    globals().update(
-                                        stream_dfs=[
-                                            pd.DataFrame(columns=pd.Index(["x", "y"]))
-                                            for _ in range(len(chart_titles))
-                                        ]
-                                    )
-                                    or [
-                                        plots[i].value.update(data=[])
-                                        for i in range(len(plots))
-                                        if hasattr(plots[i], "value")
-                                        and plots[i].value is not None
-                                    ]
-                                    or plots
-                                ),
-                                outputs=plots,
-                            ).then(
-                                lambda: gr.Tabs(selected=1),
-                                None,
-                                tabs,
-                            )
-
-                gr.Markdown(
-                    """
-                    ## Your System
-
-                    This section provides information about your system's hardware and software configuration.
-                    """
-                )
-
-                devices = device_discovery.list_devices()
-                if devices:
-                    device_table_md = "| Name | Description |\n|------|-------------|\n"
-                    for device in devices:
-                        device_table_md += (
-                            f"| {device.device_name} | {device.full_device_name} |\n"
-                        )
-                else:
-                    device_table_md = "No devices found."
-                gr.Markdown(
-                    value=device_table_md,
-                    elem_id="device_table",
-                )
-
-            # Run Tab
-            with gr.Tab("Run", id=1) as run_tab:
-                # Main content
-                with gr.Row():
-                    # Left column
-                    with gr.Column(scale=2, min_width=300):
-                        # Render the pipeline information
-                        pipeline_information.render()
-
-                        # Render pipeline image
-                        pipeline_image.render()
-
-                        # Render the run button
-                        run_button.render()
-
-                        # Render the benchmark button
-                        benchmark_button.render()
-
-                        # Render the stop button
-                        stop_button.render()
-
-                        # Render the best configuration textbox
-                        best_config_textbox.render()
-
-                        # Metrics plots
-                        with gr.Row():
-                            # Render plots
-                            for i in range(len(plots)):
-                                plots[i].render()
-
-                            # Render the timer
-                            timer.render()
-
-                    # Right column
-                    with gr.Column(scale=1, min_width=150):
-                        # Video Player Accordion
-                        with gr.Accordion("Video Player", open=True):
-                            # Input Video Player
-                            input_video_player.render()
-
-                            # Output Video Player (file)
-                            output_video_player.render()
-
-                            # Output Live Image (for live preview)
-                            output_live_image.render()
-
-                        # Pipeline Parameters Accordion
-                        with gr.Accordion("Pipeline Parameters", open=True):
-                            # Inference Channels
-                            inferencing_channels.render()
-
-                            # Recording Channels
-                            @gr.render(triggers=[run_tab.select])
-                            def _():
-                                show_hide_component(
-                                    recording_channels,
-                                    current_pipeline[1]["parameters"]["run"][
-                                        "recording_channels"
-                                    ],
-                                )
-
-                            # Render tracking_type dropdown
-                            tracking_type.render()
-                            # Whether to overlay result with watermarks
-                            pipeline_watermark_enabled.render()
-                            # Render live_preview_enabled checkbox
-                            live_preview_enabled.render()
-
-                            # Enable video output checkbox
-                            @gr.render(triggers=[run_tab.select])
-                            def _():
-                                show_hide_component(
-                                    pipeline_video_enabled,
-                                    current_pipeline[1]["parameters"]["run"][
-                                        "video_output_checkbox"
-                                    ],
-                                )
-
-                        # Benchmark Parameters Accordion
-                        with gr.Accordion(
-                            "Platform Ceiling Analysis Parameters", open=False
-                        ):
-                            # FPS Floor
-                            fps_floor.render()
-
-                            # AI Stream Rate
-                            @gr.render(triggers=[run_tab.select])
-                            def _():
-                                show_hide_component(
-                                    ai_stream_rate,
-                                    current_pipeline[1]["parameters"]["benchmark"][
-                                        "ai_stream_rate"
-                                    ],
-                                )
-
-                        # Inference Parameters Accordion
-                        inference_accordion.render()
-                        with inference_accordion:
-                            # Object Detection Parameters
-                            object_detection_model.render()
-                            object_detection_device.render()
-                            object_detection_batch_size.render()
-                            object_detection_inference_interval.render()
-                            object_detection_nireq.render()
-
-                            # Object Classification Parameters
-                            object_classification_model.render()
-                            object_classification_device.render()
-                            object_classification_batch_size.render()
-                            object_classification_inference_interval.render()
-                            object_classification_nireq.render()
-                            object_classification_reclassify_interval.render()
-
-        # Footer
-        gr.HTML(
-            "<div class='spark-footer'>"
-            "  <div class='spark-footer-info'>"
-            "    ©2025 Intel Corporation  |  Terms of Use  |  Cookies  |  Privacy"
-            "  </div>"
-            "</div>"
-        )
-
-    gr.close_all()
-    return demo
+    # # Interface layout
+    # with gr.Blocks(theme=theme, css=css_code, title=title) as demo:
+    #     """
+    #     Components events handlers and interactions are defined here.
+    #     """
+    #
+    #     # Handle click on the pipeline image
+    #     pipeline_image.select(
+    #         detect_click,
+    #         None,
+    #         [inference_accordion],
+    #     )
+    #
+    #     # Handle changes on the input video player
+    #     input_video_player.change(
+    #         lambda v: (
+    #             (
+    #                 gr.update(interactive=bool(v)),
+    #                 gr.update(value=None),
+    #                 gr.update(value=None),
+    #             )  # Disable Run button  if input is empty, clears output
+    #             if v is None or v == ""
+    #             else (
+    #                 gr.update(interactive=True),
+    #                 gr.update(label="Input Video"),
+    #                 gr.update(value=None),
+    #             )
+    #         ),
+    #         inputs=input_video_player,
+    #         outputs=[run_button, input_video_player, output_video_player],
+    #         queue=False,
+    #     )
+    #
+    #     # Handle timer ticks
+    #     timer.tick(
+    #         lambda: [generate_stream_data(i) for i in range(len(chart_titles))],
+    #         outputs=plots,
+    #     )
+    #
+    #     # Handle run button clicks
+    #     run_button.click(
+    #         # Update the state of the buttons
+    #         lambda: [
+    #             gr.update(visible=False),
+    #             gr.update(visible=False),
+    #             gr.update(visible=True),
+    #         ],
+    #         outputs=[run_button, benchmark_button, stop_button],
+    #         queue=True,
+    #     ).then(
+    #         # Reset the telemetry plots
+    #         lambda: (
+    #             globals().update(
+    #                 stream_dfs=[
+    #                     pd.DataFrame(columns=pd.Index(["x", "y"]))
+    #                     for _ in range(len(chart_titles))
+    #                 ]
+    #             )
+    #             or [
+    #                 plots[i].value.update(data=[])
+    #                 for i in range(len(plots))
+    #                 if hasattr(plots[i], "value") and plots[i].value is not None
+    #             ]
+    #             or plots
+    #         ),
+    #         outputs=plots,
+    #     ).then(
+    #         # Start the telemetry timer
+    #         lambda: gr.update(active=True),
+    #         inputs=None,
+    #         outputs=timer,
+    #     ).then(
+    #         # Execute the pipeline and stream live preview (if enabled)
+    #         on_run,
+    #         inputs=components,
+    #         outputs=[output_live_image, output_video_player, best_config_textbox],
+    #     ).then(
+    #         # Stop the telemetry timer
+    #         lambda: gr.update(active=False),
+    #         inputs=None,
+    #         outputs=timer,
+    #     ).then(
+    #         # Generate the persistent telemetry data
+    #         lambda: [generate_stream_data(i) for i in range(len(chart_titles))],
+    #         inputs=None,
+    #         outputs=plots,
+    #     ).then(
+    #         # Update the visibility of the buttons
+    #         lambda: [
+    #             gr.update(visible=True),
+    #             gr.update(visible=True),
+    #             gr.update(visible=False),
+    #         ],
+    #         outputs=[run_button, benchmark_button, stop_button],
+    #     )
+    #
+    #     # Handle benchmark button clicks
+    #     benchmark_button.click(
+    #         # Update the state of the buttons
+    #         lambda: [
+    #             gr.update(visible=False),
+    #             gr.update(visible=False),
+    #             gr.update(visible=True),
+    #         ],
+    #         outputs=[run_button, benchmark_button, stop_button],
+    #         queue=False,
+    #     ).then(
+    #         # Clear output components here
+    #         lambda: [
+    #             gr.update(value=""),
+    #             gr.update(value=None),
+    #         ],
+    #         None,
+    #         [best_config_textbox, output_video_player],
+    #     ).then(
+    #         # Reset the telemetry plots
+    #         lambda: (
+    #             globals().update(
+    #                 stream_dfs=[
+    #                     pd.DataFrame(columns=pd.Index(["x", "y"]))
+    #                     for _ in range(len(chart_titles))
+    #                 ]
+    #             )
+    #             or [
+    #                 plots[i].value.update(data=[])
+    #                 for i in range(len(plots))
+    #                 if hasattr(plots[i], "value") and plots[i].value is not None
+    #             ]
+    #             or plots
+    #         ),
+    #         outputs=plots,
+    #     ).then(
+    #         # Start the telemetry timer
+    #         lambda: gr.update(active=True),
+    #         inputs=None,
+    #         outputs=timer,
+    #     ).then(
+    #         # Execute the benchmark
+    #         on_benchmark,
+    #         inputs=components,
+    #         outputs=[best_config_textbox],
+    #     ).then(
+    #         # Stop the telemetry timer
+    #         lambda: gr.update(active=False),
+    #         inputs=None,
+    #         outputs=timer,
+    #     ).then(
+    #         # Generate the persistent telemetry data
+    #         lambda: [generate_stream_data(i) for i in range(len(chart_titles))],
+    #         inputs=None,
+    #         outputs=plots,
+    #     ).then(
+    #         # Reset the state of the buttons
+    #         lambda: [
+    #             gr.update(visible=True),
+    #             gr.update(visible=True),
+    #             gr.update(visible=False),
+    #         ],
+    #         outputs=[run_button, benchmark_button, stop_button],
+    #     )
+    #
+    #     # Handle stop button clicks
+    #     stop_button.click(
+    #         # Execute the stop function
+    #         on_stop,
+    #     ).then(
+    #         # Reset the state of the buttons
+    #         lambda: [
+    #             gr.update(visible=True),
+    #             gr.update(visible=True),
+    #             gr.update(visible=False),
+    #         ],
+    #         outputs=[run_button, benchmark_button, stop_button],
+    #         queue=False,
+    #     )
+    #
+    #     """
+    #     Components rendering starts here.
+    #     """
+    #
+    #     # Header
+    #     gr.HTML(
+    #         "<div class='spark-header'>"
+    #         "  <div class='spark-header-line'></div>"
+    #         "  <img src='https://www.intel.com/content/dam/logos/intel-header-logo.svg' class='spark-logo'></img>"
+    #         "  <div class='spark-title'>Visual Pipeline and Platform Evaluation Tool</div>"
+    #         "</div>"
+    #     )
+    #
+    #     # Tab Interface
+    #     with gr.Tabs() as tabs:
+    #         # Home Tab
+    #         with gr.Tab("Home", id=0):
+    #             gr.Markdown(
+    #                 """
+    #                 ## Recommended Pipelines
+    #
+    #                 Below is a list of recommended pipelines you can use to evaluate video analytics performance.
+    #                 Click on "Configure and Run" to get started with customizing and benchmarking a pipeline for your
+    #                 use case.
+    #                 """
+    #             )
+    #
+    #             with gr.Row():
+    #                 for pipeline in PipelineLoader.list():
+    #                     pipeline_info = PipelineLoader.config(pipeline)
+    #
+    #                     with gr.Column(scale=1, min_width=100):
+    #                         gr.Image(
+    #                             value=lambda x=pipeline: f"./pipelines/{x}/thumbnail.png",
+    #                             show_label=False,
+    #                             show_download_button=False,
+    #                             show_fullscreen_button=False,
+    #                             interactive=False,
+    #                             width=710,
+    #                         )
+    #
+    #                         gr.Markdown(
+    #                             f"### {pipeline_info['name']}\n"
+    #                             f"{pipeline_info['definition']}"
+    #                         )
+    #
+    #                         is_enabled = pipeline_info.get("metadata", {}).get(
+    #                             "enabled", False
+    #                         )
+    #
+    #                         gr.Button(
+    #                             value=(
+    #                                 "Configure and Run" if is_enabled else "Coming Soon"
+    #                             ),
+    #                             elem_classes="configure-and-run-button",
+    #                             interactive=is_enabled,
+    #                         ).click(
+    #                             lambda x=pipeline: globals().__setitem__(
+    #                                 "current_pipeline", PipelineLoader.load(x)
+    #                             ),
+    #                             None,
+    #                             None,
+    #                         ).then(
+    #                             lambda: (
+    #                                 f"### {current_pipeline[1]['name']}\n"
+    #                                 f"{current_pipeline[1]['definition']}"
+    #                             ),
+    #                             None,
+    #                             pipeline_information,
+    #                         ).then(
+    #                             lambda: current_pipeline[0].diagram(),
+    #                             None,
+    #                             pipeline_image,
+    #                         ).then(
+    #                             lambda: update_inferencing_channels_label(),
+    #                             None,
+    #                             inferencing_channels,
+    #                         ).then(
+    #                             lambda: [
+    #                                 gr.Dropdown(
+    #                                     choices=current_pipeline[1]["parameters"][
+    #                                         "inference"
+    #                                     ]["detection_models"],
+    #                                     value=current_pipeline[1]["parameters"][
+    #                                         "inference"
+    #                                     ]["detection_model_default"],
+    #                                 ),
+    #                                 gr.Dropdown(
+    #                                     choices=current_pipeline[1]["parameters"][
+    #                                         "inference"
+    #                                     ]["classification_models"],
+    #                                     value=current_pipeline[1]["parameters"][
+    #                                         "inference"
+    #                                     ]["classification_model_default"],
+    #                                 ),
+    #                             ],
+    #                             outputs=[
+    #                                 object_detection_model,
+    #                                 object_classification_model,
+    #                             ],
+    #                         ).then(
+    #                             lambda: set_video_path(
+    #                                 current_pipeline[1]["recording"]["filename"]
+    #                             ),
+    #                             None,
+    #                             input_video_player,
+    #                         ).then(
+    #                             # Clear output components here
+    #                             lambda: [
+    #                                 gr.update(value=""),
+    #                                 gr.update(value=None),
+    #                             ],
+    #                             None,
+    #                             [best_config_textbox, output_video_player],
+    #                         ).then(
+    #                             # Reset the telemetry plots
+    #                             lambda: (
+    #                                 globals().update(
+    #                                     stream_dfs=[
+    #                                         pd.DataFrame(columns=pd.Index(["x", "y"]))
+    #                                         for _ in range(len(chart_titles))
+    #                                     ]
+    #                                 )
+    #                                 or [
+    #                                     plots[i].value.update(data=[])
+    #                                     for i in range(len(plots))
+    #                                     if hasattr(plots[i], "value")
+    #                                     and plots[i].value is not None
+    #                                 ]
+    #                                 or plots
+    #                             ),
+    #                             outputs=plots,
+    #                         ).then(
+    #                             lambda: gr.Tabs(selected=1),
+    #                             None,
+    #                             tabs,
+    #                         )
+    #
+    #             gr.Markdown(
+    #                 """
+    #                 ## Your System
+    #
+    #                 This section provides information about your system's hardware and software configuration.
+    #                 """
+    #             )
+    #
+    #             devices = device_discovery.list_devices()
+    #             if devices:
+    #                 device_table_md = "| Name | Description |\n|------|-------------|\n"
+    #                 for device in devices:
+    #                     device_table_md += (
+    #                         f"| {device.device_name} | {device.full_device_name} |\n"
+    #                     )
+    #             else:
+    #                 device_table_md = "No devices found."
+    #             gr.Markdown(
+    #                 value=device_table_md,
+    #                 elem_id="device_table",
+    #             )
+    #
+    #         # Run Tab
+    #         with gr.Tab("Run", id=1) as run_tab:
+    #             # Main content
+    #             with gr.Row():
+    #                 # Left column
+    #                 with gr.Column(scale=2, min_width=300):
+    #                     # Render the pipeline information
+    #                     pipeline_information.render()
+    #
+    #                     # Render pipeline image
+    #                     pipeline_image.render()
+    #
+    #                     # Render the run button
+    #                     run_button.render()
+    #
+    #                     # Render the benchmark button
+    #                     benchmark_button.render()
+    #
+    #                     # Render the stop button
+    #                     stop_button.render()
+    #
+    #                     # Render the best configuration textbox
+    #                     best_config_textbox.render()
+    #
+    #                     # Metrics plots
+    #                     with gr.Row():
+    #                         # Render plots
+    #                         for i in range(len(plots)):
+    #                             plots[i].render()
+    #
+    #                         # Render the timer
+    #                         timer.render()
+    #
+    #                 # Right column
+    #                 with gr.Column(scale=1, min_width=150):
+    #                     # Video Player Accordion
+    #                     with gr.Accordion("Video Player", open=True):
+    #                         # Input Video Player
+    #                         input_video_player.render()
+    #
+    #                         # Output Video Player (file)
+    #                         output_video_player.render()
+    #
+    #                         # Output Live Image (for live preview)
+    #                         output_live_image.render()
+    #
+    #                     # Pipeline Parameters Accordion
+    #                     with gr.Accordion("Pipeline Parameters", open=True):
+    #                         # Inference Channels
+    #                         inferencing_channels.render()
+    #
+    #                         # Recording Channels
+    #                         # @gr.render(triggers=[run_tab.select])
+    #                         # def _():
+    #                         #     show_hide_component(
+    #                         #         recording_channels,
+    #                         #         current_pipeline[1]["parameters"]["run"][
+    #                         #             "recording_channels"
+    #                         #         ],
+    #                         #     )
+    #
+    #                         # Render tracking_type dropdown
+    #                         tracking_type.render()
+    #                         # Whether to overlay result with watermarks
+    #                         pipeline_watermark_enabled.render()
+    #                         # Render live_preview_enabled checkbox
+    #                         live_preview_enabled.render()
+    #
+    #                         # Enable video output checkbox
+    #                         # @gr.render(triggers=[run_tab.select])
+    #                         # def _():
+    #                         #     show_hide_component(
+    #                         #         pipeline_video_enabled,
+    #                         #         current_pipeline[1]["parameters"]["run"][
+    #                         #             "video_output_checkbox"
+    #                         #         ],
+    #                         #     )
+    #
+    #                     # Benchmark Parameters Accordion
+    #                     with gr.Accordion(
+    #                         "Platform Ceiling Analysis Parameters", open=False
+    #                     ):
+    #                         # FPS Floor
+    #                         fps_floor.render()
+    #
+    #                         # AI Stream Rate
+    #                         # @gr.render(triggers=[run_tab.select])
+    #                         # def _():
+    #                         #     show_hide_component(
+    #                         #         ai_stream_rate,
+    #                         #         current_pipeline[1]["parameters"]["benchmark"][
+    #                         #             "ai_stream_rate"
+    #                         #         ],
+    #                         #     )
+    #
+    #                     # Inference Parameters Accordion
+    #                     inference_accordion.render()
+    #                     with inference_accordion:
+    #                         # Object Detection Parameters
+    #                         object_detection_model.render()
+    #                         object_detection_device.render()
+    #                         object_detection_batch_size.render()
+    #                         object_detection_inference_interval.render()
+    #                         object_detection_nireq.render()
+    #
+    #                         # Object Classification Parameters
+    #                         object_classification_model.render()
+    #                         object_classification_device.render()
+    #                         object_classification_batch_size.render()
+    #                         object_classification_inference_interval.render()
+    #                         object_classification_nireq.render()
+    #                         object_classification_reclassify_interval.render()
+    #
+    #     # Footer
+    #     gr.HTML(
+    #         "<div class='spark-footer'>"
+    #         "  <div class='spark-footer-info'>"
+    #         "    ©2025 Intel Corporation  |  Terms of Use  |  Cookies  |  Privacy"
+    #         "  </div>"
+    #         "</div>"
+    #     )
+    #
+    # gr.close_all()
+    # return demo
 
 
 if __name__ == "__main__":
