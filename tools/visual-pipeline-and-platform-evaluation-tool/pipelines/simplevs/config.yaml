@@ -25,7 +25,6 @@ parameters:
       - "YOLO v10s 640x640 (FP16)"
       - "YOLO v10m 640x640 (FP16)"
       - "YOLO v8 License Plate Detector (FP32)"
-      - "Human Pose Estimation 0001 (FP16)"
     detection_model_default: "YOLO v8 License Plate Detector (FP32)"
     classification_models:
       - "Disabled"
@@ -34,4 +33,5 @@ parameters:
       - "ResNet-50 TF (INT8)"
       - "PaddleOCR (FP32)"
       - "Vehicle Attributes Recognition Barrier 0039 (FP16)"
+      - "Human Pose Estimation 0001 (FP16)"
     classification_model_default: "PaddleOCR (FP32)"
