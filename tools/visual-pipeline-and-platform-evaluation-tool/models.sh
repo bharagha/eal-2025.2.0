@@ -79,7 +79,8 @@ download_public_models() {
 
 download_open_model_zoo() {
     if [ ! -d /output/public/mobilenet-v2-pytorch ] || \
-       [ ! -d /output/intel/vehicle-attributes-recognition-barrier-0039 ]; then
+       [ ! -d /output/intel/vehicle-attributes-recognition-barrier-0039 ] || \
+       [ ! -d /output/intel/human-pose-estimation-0001 ]; then
         VENV_DIR="$HOME/.venv"
         python3 -m venv "$VENV_DIR"
         source "$VENV_DIR/bin/activate"
@@ -130,6 +131,18 @@ with open(json_path, 'w') as f:
             /output/intel/vehicle-attributes-recognition-barrier-0039/vehicle-attributes-recognition-barrier-0039.json
     else
         echo "Model vehicle-attributes-recognition-barrier-0039 already exists. Skipping download."
+    fi
+
+    # TEMPORARY: download human-pose-estimation-0001 until the download script supports it
+    if [ ! -d /output/intel/human-pose-estimation-0001 ]; then
+        omz_downloader --name human-pose-estimation-0001 --output_dir /output
+        omz_converter --name human-pose-estimation-0001 --output_dir /output \
+            --download_dir /output
+        cp \
+            /opt/intel/dlstreamer/samples/gstreamer/model_proc/intel/human-pose-estimation-0001.json \
+            /output/intel/human-pose-estimation-0001/human-pose-estimation-0001.json
+    else
+        echo "Model human-pose-estimation-0001 already exists. Skipping download."
     fi
 }
 
