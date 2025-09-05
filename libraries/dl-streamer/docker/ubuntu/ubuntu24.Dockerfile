@@ -75,8 +75,9 @@ RUN \
     rm -rf /var/lib/apt/lists/*
 
 # Intel NPU drivers and prerequisites installation
-RUN mkdir -p /tmp/npu_deps && cd /tmp/npu_deps && \
-    curl -LO https://github.com/oneapi-src/level-zero/releases/download/v1.22.4/level-zero_1.22.4+u24.04_amd64.deb && \
+WORKDIR /tmp/npu_deps
+
+RUN curl -LO https://github.com/oneapi-src/level-zero/releases/download/v1.22.4/level-zero_1.22.4+u24.04_amd64.deb && \
     dpkg -i level-zero_1.22.4+u24.04_amd64.deb && \
     curl -LO https://github.com/intel/linux-npu-driver/releases/download/v1.23.0/linux-npu-driver-v1.23.0.20250827-17270089246-ubuntu2404.tar.gz && \
     tar -xf linux-npu-driver-v1.23.0.20250827-17270089246-ubuntu2404.tar.gz && \
@@ -418,8 +419,9 @@ RUN \
     rm -rf /var/lib/apt/lists/*
 
 # Intel NPU drivers and prerequisites installation
-RUN mkdir -p /tmp/npu_deps && cd /tmp/npu_deps && \
-    curl -LO https://github.com/oneapi-src/level-zero/releases/download/v1.22.4/level-zero_1.22.4+u24.04_amd64.deb && \
+WORKDIR /tmp/npu_deps
+
+RUN curl -LO https://github.com/oneapi-src/level-zero/releases/download/v1.22.4/level-zero_1.22.4+u24.04_amd64.deb && \
     dpkg -i level-zero_1.22.4+u24.04_amd64.deb && \
     curl -LO https://github.com/intel/linux-npu-driver/releases/download/v1.23.0/linux-npu-driver-v1.23.0.20250827-17270089246-ubuntu2404.tar.gz && \
     tar -xf linux-npu-driver-v1.23.0.20250827-17270089246-ubuntu2404.tar.gz && \
