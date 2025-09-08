@@ -51,8 +51,10 @@ struct RegionOfInterestTest : public ::testing::Test {
 
         GstAnalyticsODMtd od_mtd;
         gboolean ret = gst_analytics_relation_meta_add_oriented_od_mtd(relation_meta, label_quark, 0.0, 0.0, 0.3, 0.6,
-                                                                       0.0, 0.0, &od_mtd);
+                                                                       0.0, 0.77, &od_mtd);
         ASSERT_TRUE(ret);
+
+        meta->id = od_mtd.id;
 
         region_of_interest = new GVA::RegionOfInterest(od_mtd, meta);
     }
