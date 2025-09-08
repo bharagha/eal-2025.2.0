@@ -26,6 +26,9 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
         # Check that input is set
         self.assertIn("location=input.mp4", result)
 
+        # Check that tracking is set to short-term-imageless
+        self.assertIn("tracking-type=short-term-imageless", result)
+
         # Check that the number of inference channels is correct
         self.assertEqual(result.count("gvadetect"), self.inference_channels)
         self.assertEqual(result.count("gvaclassify"), self.inference_channels)
@@ -51,8 +54,10 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
                 "object_classification_inference_interval": 1,
                 "object_classification_nireq": 0,
                 "object_classification_reclassify_interval": 1,
+                "tracking_type": "short-term-imageless",
                 "pipeline_watermark_enabled": True,
                 "pipeline_video_enabled": True,
+                "live_preview_enabled": False,
             },
             regular_channels=0,
             inference_channels=self.inference_channels,
@@ -77,6 +82,10 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
         # Check that opencv is used for pre-processing
         self.assertIn("pre-process-backend=opencv", result)
 
+        # Check that gvametaconvert and gvametapublish are used for metadata processing
+        self.assertIn("gvametaconvert", result)
+        self.assertIn("gvametapublish", result)
+
         # Check that output is set
         self.output_present_check(result)
 
@@ -93,8 +102,10 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
                 "object_classification_inference_interval": 1,
                 "object_classification_nireq": 0,
                 "object_classification_reclassify_interval": 1,
+                "tracking_type": "short-term-imageless",
                 "pipeline_watermark_enabled": True,
                 "pipeline_video_enabled": True,
+                "live_preview_enabled": False,
             },
             regular_channels=0,
             inference_channels=self.inference_channels,
@@ -114,7 +125,9 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
         self.assertIn("model-proc=classification_model_proc.json", result)
 
         # Check that the decoder element is correctly used
-        self.assertIn("decodebin3 ! vapostproc ! video/x-raw\\(memory:VAMemory\\)", result)
+        self.assertIn(
+            "decodebin3 ! vapostproc ! video/x-raw\\(memory:VAMemory\\)", result
+        )
 
         # Check that va-surface-sharing is used for pre-processing
         self.assertIn("pre-process-backend=va-surface-sharing", result)
@@ -142,8 +155,10 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
                 "object_classification_inference_interval": 1,
                 "object_classification_nireq": 0,
                 "object_classification_reclassify_interval": 1,
+                "tracking_type": "short-term-imageless",
                 "pipeline_watermark_enabled": True,
                 "pipeline_video_enabled": True,
+                "live_preview_enabled": False,
             },
             regular_channels=0,
             inference_channels=self.inference_channels,
@@ -177,8 +192,10 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
                 "object_classification_inference_interval": 1,
                 "object_classification_nireq": 0,
                 "object_classification_reclassify_interval": 1,
+                "tracking_type": "short-term-imageless",
                 "pipeline_watermark_enabled": False,
                 "pipeline_video_enabled": True,
+                "live_preview_enabled": False,
             },
             regular_channels=0,
             inference_channels=self.inference_channels,
@@ -210,8 +227,10 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
                 "object_classification_inference_interval": 1,
                 "object_classification_nireq": 0,
                 "object_classification_reclassify_interval": 1,
+                "tracking_type": "short-term-imageless",
                 "pipeline_watermark_enabled": False,
                 "pipeline_video_enabled": False,
+                "live_preview_enabled": False,
             },
             regular_channels=0,
             inference_channels=self.inference_channels,
@@ -243,8 +262,10 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
                 "object_classification_inference_interval": 1,
                 "object_classification_nireq": 0,
                 "object_classification_reclassify_interval": 1,
+                "tracking_type": "short-term-imageless",
                 "pipeline_watermark_enabled": True,
                 "pipeline_video_enabled": False,
+                "live_preview_enabled": False,
             },
             regular_channels=0,
             inference_channels=self.inference_channels,
@@ -263,6 +284,7 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
 
         # Check that output is not set
         self.output_absent_check(result)
+
 
 if __name__ == "__main__":
     unittest.main()

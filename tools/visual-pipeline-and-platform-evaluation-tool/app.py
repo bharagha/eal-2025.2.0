@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime
+from typing import Dict, Tuple
 
 import gradio as gr
 import pandas as pd
@@ -11,10 +12,9 @@ import utils
 from benchmark import Benchmark
 from device import DeviceDiscovery
 from explore import GstInspector
-from optimize import OptimizationResult, PipelineOptimizer
-from pipeline import PipelineLoader, GstPipeline
+from optimize import PipelineOptimizer
+from gstpipeline import PipelineLoader, GstPipeline
 from utils import prepare_video_and_constants
-from typing import Tuple, Dict
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
@@ -26,9 +26,9 @@ RECORDING_AND_INFERENCING_CHANNELS_LABEL = "Number of Recording + Inferencing ch
 with open(os.path.join(os.path.dirname(__file__), "app.css")) as f:
     css_code = f.read()
 
-theme = gr.themes.Default(
+theme = gr.themes.Default(  # pyright: ignore[reportPrivateImportUsage]
     primary_hue="blue",
-    font=[gr.themes.GoogleFont("Montserrat"), "ui-sans-serif", "sans-serif"],
+    font=[gr.themes.GoogleFont("Montserrat"), "ui-sans-serif", "sans-serif"],  # pyright: ignore[reportPrivateImportUsage]
 )
 
 # Initialize the pipeline based on the PIPELINE environment variable
@@ -91,7 +91,9 @@ chart_titles = [t for i, t in enumerate(all_chart_titles) if i not in indices_to
 y_labels = [y for i, y in enumerate(all_y_labels) if i not in indices_to_remove]
 
 # Create a dataframe for each chart
-stream_dfs = [pd.DataFrame(columns=["x", "y"]) for _ in range(len(chart_titles))]
+stream_dfs = [
+    pd.DataFrame(columns=pd.Index(["x", "y"])) for _ in range(len(chart_titles))
+]
 figs = [
     go.Figure().update_layout(
         title=chart_titles[i], xaxis_title="Time", yaxis_title=y_labels[i]
@@ -111,11 +113,16 @@ def download_file(url, local_filename):
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)  # Write each chunk to the local file
 
+
 # Set video path for the input video player
 def set_video_path(filename):
     if not os.path.exists(os.path.join(TEMP_DIR, filename)):
-        return gr.update(label="Error: Video file not found. Verify the recording URL or proxy settings.", value=None)
+        return gr.update(
+            label="Error: Video file not found. Verify the recording URL or proxy settings.",
+            value=None,
+        )
     return gr.update(label="Input Video", value=os.path.join(TEMP_DIR, filename))
+
 
 # Function to check if a click is inside any bounding box
 def detect_click(evt: gr.SelectData):
@@ -130,7 +137,6 @@ def detect_click(evt: gr.SelectData):
         description,
     ) in current_pipeline[0].bounding_boxes():
         if x_min <= x <= x_max and y_min <= y <= y_max:
-
             match label:
                 case "Inference":
                     return gr.update(open=True)
@@ -138,7 +144,7 @@ def detect_click(evt: gr.SelectData):
     return gr.update(open=False)
 
 
-def read_latest_metrics(target_ns: int = None):
+def read_latest_metrics(target_ns: int | None = None):
     try:
         with open("/home/dlstreamer/vippet/.collector-signals/metrics.txt", "r") as f:
             lines = [line.strip() for line in f.readlines()[-500:]]
@@ -175,7 +181,7 @@ def read_latest_metrics(target_ns: int = None):
                     if field.startswith("usage_user="):
                         try:
                             cpu_user = float(field.split("=")[1])
-                        except:
+                        except (ValueError, IndexError):
                             pass
 
         if mem_used_percent is None and "mem" in line:
@@ -185,7 +191,7 @@ def read_latest_metrics(target_ns: int = None):
                     if field.startswith("used_percent="):
                         try:
                             mem_used_percent = float(field.split("=")[1])
-                        except:
+                        except (ValueError, IndexError):
                             pass
 
         # Only consider GPU-related metrics for gpu_id=1
@@ -193,14 +199,14 @@ def read_latest_metrics(target_ns: int = None):
             parts = line.split()
             try:
                 gpu_package_power = float(parts[1].split("=")[1])
-            except:
+            except (ValueError, IndexError):
                 pass
 
         if gpu_power is None and "gpu_cur_power" in line and "gpu_id=1" in line:
             parts = line.split()
             try:
                 gpu_power = float(parts[1].split("=")[1])
-            except:
+            except (ValueError, IndexError):
                 pass
 
         if core_temp is None and "temp" in line:
@@ -210,7 +216,7 @@ def read_latest_metrics(target_ns: int = None):
                     if "temp" in field:
                         try:
                             core_temp = float(field.split("=")[1])
-                        except:
+                        except (ValueError, IndexError):
                             pass
 
         if gpu_freq is None and "gpu_frequency" in line and "gpu_id=1" in line:
@@ -218,7 +224,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("value="):
                     try:
                         gpu_freq = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         if cpu_freq is None and "cpu_frequency_avg" in line:
@@ -226,7 +232,7 @@ def read_latest_metrics(target_ns: int = None):
                 parts = [part for part in line.split() if "frequency=" in part]
                 if parts:
                     cpu_freq = float(parts[0].split("=")[1])
-            except:
+            except (ValueError, IndexError):
                 pass
 
         if gpu_render is None and "engine=render" in line and "gpu_id=1" in line:
@@ -234,7 +240,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("usage="):
                     try:
                         gpu_render = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         if gpu_copy is None and "engine=copy" in line and "gpu_id=1" in line:
@@ -242,7 +248,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("usage="):
                     try:
                         gpu_copy = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         if gpu_ve is None and "engine=video-enhance" in line and "gpu_id=1" in line:
@@ -250,7 +256,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("usage="):
                     try:
                         gpu_ve = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         if (
@@ -263,7 +269,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("usage="):
                     try:
                         gpu_video = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         if gpu_compute is None and "engine=compute" in line and "gpu_id=1" in line:
@@ -271,7 +277,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("usage="):
                     try:
                         gpu_compute = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         # GPU 0 metrics (new variables)
@@ -283,14 +289,14 @@ def read_latest_metrics(target_ns: int = None):
             parts = line.split()
             try:
                 gpu_package_power_0 = float(parts[1].split("=")[1])
-            except:
+            except (ValueError, IndexError):
                 pass
 
         if gpu_power_0 is None and "gpu_cur_power" in line and "gpu_id=0" in line:
             parts = line.split()
             try:
                 gpu_power_0 = float(parts[1].split("=")[1])
-            except:
+            except (ValueError, IndexError):
                 pass
 
         if gpu_freq_0 is None and "gpu_frequency" in line and "gpu_id=0" in line:
@@ -298,7 +304,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("value="):
                     try:
                         gpu_freq_0 = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         if gpu_render_0 is None and "engine=render" in line and "gpu_id=0" in line:
@@ -306,7 +312,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("usage="):
                     try:
                         gpu_render_0 = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         if gpu_copy_0 is None and "engine=copy" in line and "gpu_id=0" in line:
@@ -314,7 +320,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("usage="):
                     try:
                         gpu_copy_0 = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         if gpu_ve_0 is None and "engine=video-enhance" in line and "gpu_id=0" in line:
@@ -322,7 +328,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("usage="):
                     try:
                         gpu_ve_0 = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         if (
@@ -335,7 +341,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("usage="):
                     try:
                         gpu_video_0 = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         if gpu_compute_0 is None and "engine=compute" in line and "gpu_id=0" in line:
@@ -343,7 +349,7 @@ def read_latest_metrics(target_ns: int = None):
                 if part.startswith("usage="):
                     try:
                         gpu_compute_0 = float(part.split("=")[1])
-                    except:
+                    except (ValueError, IndexError):
                         pass
 
         if all(
@@ -470,14 +476,9 @@ def generate_stream_data(i, timestamp_ns=None):
             "Total Power": gpu_power,
         }
         if stream_dfs[i].empty:
-            stream_dfs[i] = pd.DataFrame(columns=["x"] + list(metrics.keys()))
-        new_row = {"x": new_x}
-        new_row.update(metrics)
+            stream_dfs[i] = pd.DataFrame(columns=pd.Index(["x"] + list(metrics.keys())))
         stream_dfs[i] = pd.concat(
-            [
-                stream_dfs[i] if not stream_dfs[i].empty else None,
-                pd.DataFrame([new_row]),
-            ],
+            [stream_dfs[i], pd.DataFrame([{"x": new_x, **metrics}])],
             ignore_index=True,
         ).tail(50)
         fig = figs[i]
@@ -501,14 +502,9 @@ def generate_stream_data(i, timestamp_ns=None):
         }
         # Prepare or update the DataFrame for this chart
         if stream_dfs[i].empty:
-            stream_dfs[i] = pd.DataFrame(columns=["x"] + list(metrics.keys()))
-        new_row = {"x": new_x}
-        new_row.update(metrics)
+            stream_dfs[i] = pd.DataFrame(columns=pd.Index(["x"] + list(metrics.keys())))
         stream_dfs[i] = pd.concat(
-            [
-                stream_dfs[i] if not stream_dfs[i].empty else None,
-                pd.DataFrame([new_row]),
-            ],
+            [stream_dfs[i], pd.DataFrame([{"x": new_x, **metrics}])],
             ignore_index=True,
         ).tail(50)
         fig = figs[i]
@@ -526,14 +522,9 @@ def generate_stream_data(i, timestamp_ns=None):
             "Total Power": gpu_power_0,
         }
         if stream_dfs[i].empty:
-            stream_dfs[i] = pd.DataFrame(columns=["x"] + list(metrics.keys()))
-        new_row = {"x": new_x}
-        new_row.update(metrics)
+            stream_dfs[i] = pd.DataFrame(columns=pd.Index(["x"] + list(metrics.keys())))
         stream_dfs[i] = pd.concat(
-            [
-                stream_dfs[i] if not stream_dfs[i].empty else None,
-                pd.DataFrame([new_row]),
-            ],
+            [stream_dfs[i], pd.DataFrame([{"x": new_x, **metrics}])],
             ignore_index=True,
         ).tail(50)
         fig = figs[i]
@@ -560,14 +551,9 @@ def generate_stream_data(i, timestamp_ns=None):
         }
         # Prepare or update the DataFrame for this chart
         if stream_dfs[i].empty:
-            stream_dfs[i] = pd.DataFrame(columns=["x"] + list(metrics.keys()))
-        new_row = {"x": new_x}
-        new_row.update(metrics)
+            stream_dfs[i] = pd.DataFrame(columns=pd.Index(["x"] + list(metrics.keys())))
         stream_dfs[i] = pd.concat(
-            [
-                stream_dfs[i] if not stream_dfs[i].empty else None,
-                pd.DataFrame([new_row]),
-            ],
+            [stream_dfs[i], pd.DataFrame([{"x": new_x, **metrics}])],
             ignore_index=True,
         ).tail(50)
         fig = figs[i]
@@ -580,10 +566,10 @@ def generate_stream_data(i, timestamp_ns=None):
             )
         return fig
 
-    new_row = pd.DataFrame([[new_x, new_y]], columns=["x", "y"])
-    stream_dfs[i] = pd.concat(
-        [stream_dfs[i] if not stream_dfs[i].empty else None, new_row], ignore_index=True
-    ).tail(50)
+    new_row = pd.DataFrame({"x": [new_x], "y": [new_y]})
+    base = stream_dfs[i] if not stream_dfs[i].empty else None
+    objs = [df for df in [base, new_row] if df is not None]
+    stream_dfs[i] = pd.concat(objs, ignore_index=True).tail(50)
 
     fig = figs[i]
     fig.data = []  # clear previous trace
@@ -593,7 +579,6 @@ def generate_stream_data(i, timestamp_ns=None):
 
 
 def on_run(data):
-
     arguments = {}
 
     for component in data:
@@ -602,15 +587,18 @@ def on_run(data):
             arguments[component_id] = data[component]
 
     try:
-        video_output_path, constants, param_grid = prepare_video_and_constants(**arguments)
+        video_output_path, constants, param_grid = prepare_video_and_constants(
+            **arguments
+        )
     except ValueError as e:
         raise gr.Error(
             f"Error: {str(e)}",
             duration=10,
         )
 
-    recording_channels = arguments.get('recording_channels', 0) or 0
-    inferencing_channels = arguments.get('inferencing_channels', 0) or 0
+    recording_channels = arguments.get("recording_channels", 0) or 0
+    inferencing_channels = arguments.get("inferencing_channels", 0) or 0
+    live_preview_enabled = arguments.get("live_preview_enabled", False)
     # Validate channels
     if recording_channels + inferencing_channels == 0:
         raise gr.Error(
@@ -625,7 +613,21 @@ def on_run(data):
         channels=(recording_channels, inferencing_channels),
         elements=gst_inspector.get_elements(),
     )
-    optimizer.optimize()
+
+    # If live preview is enabled, stream frames using a generator.
+    # Otherwise, just run optimization (not a generator).
+    if live_preview_enabled:
+        # Show live preview, hide video player while streaming frames
+        for live_frame in optimizer.run_with_live_preview():
+            yield [
+                gr.update(value=live_frame, visible=True),
+                gr.update(visible=False),
+                None,
+            ]
+    else:
+        # Only show video player, never show live preview
+        optimizer.run_without_live_preview()
+
     best_result = optimizer.evaluate()
     if best_result is None:
         best_result_message = "No valid result was returned by the optimizer."
@@ -635,11 +637,15 @@ def on_run(data):
             f"Per Stream FPS: {best_result.per_stream_fps:.2f}"
         )
 
-    return [video_output_path, best_result_message]
+    # Hide live preview and show video player and best result message
+    yield [
+        gr.update(visible=False),
+        gr.update(value=video_output_path, visible=True),
+        best_result_message,
+    ]
 
 
 def on_benchmark(data):
-
     arguments = {}
 
     for component in data:
@@ -654,6 +660,9 @@ def on_benchmark(data):
             f"Error: {str(e)}",
             duration=10,
         )
+
+    # Enable Live Preview checkbox must not be taken into account for benchmarking
+    param_grid["live_preview_enabled"] = [False]
 
     # Initialize the benchmark class
     bm = Benchmark(
@@ -671,7 +680,7 @@ def on_benchmark(data):
 
     # Return results
     try:
-        result = current_pipeline[1]['parameters']['benchmark']['result_format']
+        result = current_pipeline[1]["parameters"]["benchmark"]["result_format"]
     except KeyError:
         result = "Best Config: {s} streams ({ai} AI, {non_ai} non_AI) -> {fps:.2f} FPS"
 
@@ -691,10 +700,14 @@ def show_hide_component(component, config_key):
     except KeyError:
         pass
 
+
 def update_inferencing_channels_label():
     if current_pipeline[1]["parameters"]["run"]["recording_channels"]:
-        return gr.update(minimum=0, value=8, label=RECORDING_AND_INFERENCING_CHANNELS_LABEL)
+        return gr.update(
+            minimum=0, value=8, label=RECORDING_AND_INFERENCING_CHANNELS_LABEL
+        )
     return gr.update(minimum=1, value=8, label=INFERENCING_CHANNELS_LABEL)
+
 
 # Create the interface
 def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"):
@@ -709,24 +722,42 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
         for pipeline in PipelineLoader.list():
             pipeline_info = PipelineLoader.config(pipeline)
             download_file(
-                pipeline_info['recording']['url'],
-                pipeline_info['recording']['filename'],
+                pipeline_info["recording"]["url"],
+                pipeline_info["recording"]["filename"],
             )
     except Exception as e:
         print(f"Error downloading pipeline recordings: {e}")
 
     # Video Player
     input_video_player = gr.Video(
-        label="Input Video", interactive=True, show_download_button=True, sources="upload", elem_id="input_video_player",
+        label="Input Video",
+        interactive=True,
+        show_download_button=True,
+        sources="upload",
+        elem_id="input_video_player",
     )
 
     output_video_player = gr.Video(
-        label="Output Video", interactive=False, show_download_button=True
+        label="Output Video (File)",
+        interactive=False,
+        show_download_button=True,
+        elem_id="output_video_player",
+        visible=True,
+    )
+
+    # Output Live Image (for live preview)
+    output_live_image = gr.Image(
+        label="Output Video (Live Preview)",
+        interactive=False,
+        show_download_button=False,
+        elem_id="output_live_image",
+        visible=False,
+        type="numpy",
     )
 
     # Pipeline diagram image
     pipeline_image = gr.Image(
-        value=current_pipeline[0].diagram(),
+        value=str(current_pipeline[0].diagram()),
         label="Pipeline Diagram",
         elem_id="pipeline_image",
         interactive=False,
@@ -746,7 +777,7 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
     # Inferencing channels
     inferencing_channels = gr.Slider(
         minimum=0,
-        maximum=30,
+        maximum=64,
         value=8,
         step=1,
         label="Number of Recording + Inferencing channels",
@@ -757,12 +788,20 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
     # Recording channels
     recording_channels = gr.Slider(
         minimum=0,
-        maximum=30,
+        maximum=64,
         value=8,
         step=1,
         label="Number of Recording only channels",
         interactive=True,
         elem_id="recording_channels",
+    )
+
+    # Tracking type
+    tracking_type = gr.Dropdown(
+        label="Object Tracking Type",
+        choices=["short-term-imageless", "zero-term", "zero-term-imageless"],
+        value="short-term-imageless",
+        elem_id="tracking_type",
     )
 
     # FPS floor
@@ -810,7 +849,7 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
             "YOLO v5m 640x640 (INT8)",
             "YOLO v10s 640x640 (FP16)",
             "YOLO v10m 640x640 (FP16)",
-            "YOLO v8 License Plate Detector (FP16)",
+            "YOLO v8 License Plate Detector (FP32)",
         ],
         value="YOLO v5s 416x416 (INT8)",
         elem_id="object_detection_model",
@@ -866,7 +905,7 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
             "EfficientNet B0 (INT8)",
             "MobileNet V2 PyTorch (FP16)",
             "ResNet-50 TF (INT8)",
-            "PaddleOCR (FP16)",
+            "PaddleOCR (FP32)",
             "Vehicle Attributes Recognition Barrier 0039 (FP16)",
         ],
         value="ResNet-50 TF (INT8)",
@@ -937,6 +976,12 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
         elem_id="pipeline_video_enabled",
     )
 
+    live_preview_enabled = gr.Checkbox(
+        label="Enable Live Preview",
+        value=False,
+        elem_id="live_preview_enabled",
+    )
+
     # Run button
     run_button = gr.Button("Run")
 
@@ -961,18 +1006,19 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
     timer = gr.Timer(1, active=False)
 
     pipeline_information = gr.Markdown(
-        f"### {current_pipeline[1]['name']}\n"
-        f"{current_pipeline[1]['definition']}"
+        f"### {current_pipeline[1]['name']}\n{current_pipeline[1]['definition']}"
     )
 
     # Components Set
     components = set()
     components.add(input_video_player)
     components.add(output_video_player)
+    components.add(output_live_image)
     components.add(pipeline_image)
     components.add(best_config_textbox)
     components.add(inferencing_channels)
     components.add(recording_channels)
+    components.add(tracking_type)
     components.add(fps_floor)
     components.add(ai_stream_rate)
     components.add(object_detection_model)
@@ -988,10 +1034,10 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
     components.add(object_classification_reclassify_interval)
     components.add(pipeline_watermark_enabled)
     components.add(pipeline_video_enabled)
+    components.add(live_preview_enabled)
 
     # Interface layout
     with gr.Blocks(theme=theme, css=css_code, title=title) as demo:
-
         """
         Components events handlers and interactions are defined here.
         """
@@ -1012,7 +1058,11 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
                     gr.update(value=None),
                 )  # Disable Run button  if input is empty, clears output
                 if v is None or v == ""
-                else (gr.update(interactive=True), gr.update(label="Input Video"), gr.update(value=None))
+                else (
+                    gr.update(interactive=True),
+                    gr.update(label="Input Video"),
+                    gr.update(value=None),
+                )
             ),
             inputs=input_video_player,
             outputs=[run_button, input_video_player, output_video_player],
@@ -1040,7 +1090,7 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
             lambda: (
                 globals().update(
                     stream_dfs=[
-                        pd.DataFrame(columns=["x", "y"])
+                        pd.DataFrame(columns=pd.Index(["x", "y"]))
                         for _ in range(len(chart_titles))
                     ]
                 )
@@ -1058,10 +1108,10 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
             inputs=None,
             outputs=timer,
         ).then(
-            # Execute the pipeline
+            # Execute the pipeline and stream live preview (if enabled)
             on_run,
             inputs=components,
-            outputs=[output_video_player, best_config_textbox],
+            outputs=[output_live_image, output_video_player, best_config_textbox],
         ).then(
             # Stop the telemetry timer
             lambda: gr.update(active=False),
@@ -1105,7 +1155,7 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
             lambda: (
                 globals().update(
                     stream_dfs=[
-                        pd.DataFrame(columns=["x", "y"])
+                        pd.DataFrame(columns=pd.Index(["x", "y"]))
                         for _ in range(len(chart_titles))
                     ]
                 )
@@ -1177,10 +1227,8 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
 
         # Tab Interface
         with gr.Tabs() as tabs:
-
             # Home Tab
             with gr.Tab("Home", id=0):
-
                 gr.Markdown(
                     """
                     ## Recommended Pipelines
@@ -1192,13 +1240,10 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
                 )
 
                 with gr.Row():
-
                     for pipeline in PipelineLoader.list():
-
                         pipeline_info = PipelineLoader.config(pipeline)
 
                         with gr.Column(scale=1, min_width=100):
-
                             gr.Image(
                                 value=lambda x=pipeline: f"./pipelines/{x}/thumbnail.png",
                                 show_label=False,
@@ -1230,8 +1275,10 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
                                 None,
                                 None,
                             ).then(
-                                lambda: (f"### {current_pipeline[1]['name']}\n"
-                                         f"{current_pipeline[1]['definition']}"),
+                                lambda: (
+                                    f"### {current_pipeline[1]['name']}\n"
+                                    f"{current_pipeline[1]['definition']}"
+                                ),
                                 None,
                                 pipeline_information,
                             ).then(
@@ -1245,20 +1292,30 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
                             ).then(
                                 lambda: [
                                     gr.Dropdown(
-                                        choices=current_pipeline[1]["parameters"]["inference"]["detection_models"],
-                                        value=current_pipeline[1]["parameters"]["inference"]["detection_model_default"],
+                                        choices=current_pipeline[1]["parameters"][
+                                            "inference"
+                                        ]["detection_models"],
+                                        value=current_pipeline[1]["parameters"][
+                                            "inference"
+                                        ]["detection_model_default"],
                                     ),
                                     gr.Dropdown(
-                                        choices=current_pipeline[1]["parameters"]["inference"]["classification_models"],
-                                        value=current_pipeline[1]["parameters"]["inference"]["classification_model_default"],
-                                    )
+                                        choices=current_pipeline[1]["parameters"][
+                                            "inference"
+                                        ]["classification_models"],
+                                        value=current_pipeline[1]["parameters"][
+                                            "inference"
+                                        ]["classification_model_default"],
+                                    ),
                                 ],
                                 outputs=[
                                     object_detection_model,
                                     object_classification_model,
-                                ]
+                                ],
                             ).then(
-                                lambda: set_video_path(current_pipeline[1]['recording']['filename']),
+                                lambda: set_video_path(
+                                    current_pipeline[1]["recording"]["filename"]
+                                ),
                                 None,
                                 input_video_player,
                             ).then(
@@ -1274,7 +1331,7 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
                                 lambda: (
                                     globals().update(
                                         stream_dfs=[
-                                            pd.DataFrame(columns=["x", "y"])
+                                            pd.DataFrame(columns=pd.Index(["x", "y"]))
                                             for _ in range(len(chart_titles))
                                         ]
                                     )
@@ -1317,13 +1374,10 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
 
             # Run Tab
             with gr.Tab("Run", id=1) as run_tab:
-
                 # Main content
                 with gr.Row():
-
                     # Left column
                     with gr.Column(scale=2, min_width=300):
-
                         # Render the pipeline information
                         pipeline_information.render()
 
@@ -1344,7 +1398,6 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
 
                         # Metrics plots
                         with gr.Row():
-
                             # Render plots
                             for i in range(len(plots)):
                                 plots[i].render()
@@ -1354,19 +1407,19 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
 
                     # Right column
                     with gr.Column(scale=1, min_width=150):
-
                         # Video Player Accordion
                         with gr.Accordion("Video Player", open=True):
-
                             # Input Video Player
                             input_video_player.render()
 
-                            # Output Video Player
+                            # Output Video Player (file)
                             output_video_player.render()
+
+                            # Output Live Image (for live preview)
+                            output_live_image.render()
 
                         # Pipeline Parameters Accordion
                         with gr.Accordion("Pipeline Parameters", open=True):
-
                             # Inference Channels
                             inferencing_channels.render()
 
@@ -1375,23 +1428,32 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
                             def _():
                                 show_hide_component(
                                     recording_channels,
-                                    current_pipeline[1]["parameters"]["run"]["recording_channels"],
+                                    current_pipeline[1]["parameters"]["run"][
+                                        "recording_channels"
+                                    ],
                                 )
 
+                            # Render tracking_type dropdown
+                            tracking_type.render()
                             # Whether to overlay result with watermarks
                             pipeline_watermark_enabled.render()
+                            # Render live_preview_enabled checkbox
+                            live_preview_enabled.render()
 
                             # Enable video output checkbox
                             @gr.render(triggers=[run_tab.select])
                             def _():
                                 show_hide_component(
                                     pipeline_video_enabled,
-                                    current_pipeline[1]["parameters"]["run"]["video_output_checkbox"],
+                                    current_pipeline[1]["parameters"]["run"][
+                                        "video_output_checkbox"
+                                    ],
                                 )
 
                         # Benchmark Parameters Accordion
-                        with gr.Accordion("Platform Ceiling Analysis Parameters", open=False):
-
+                        with gr.Accordion(
+                            "Platform Ceiling Analysis Parameters", open=False
+                        ):
                             # FPS Floor
                             fps_floor.render()
 
@@ -1400,12 +1462,14 @@ def create_interface(title: str = "Visual Pipeline and Platform Evaluation Tool"
                             def _():
                                 show_hide_component(
                                     ai_stream_rate,
-                                    current_pipeline[1]["parameters"]["benchmark"]["ai_stream_rate"],
+                                    current_pipeline[1]["parameters"]["benchmark"][
+                                        "ai_stream_rate"
+                                    ],
                                 )
 
                         # Inference Parameters Accordion
-                        with inference_accordion.render():
-
+                        inference_accordion.render()
+                        with inference_accordion:
                             # Object Detection Parameters
                             object_detection_model.render()
                             object_detection_device.render()
