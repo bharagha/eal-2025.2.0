@@ -56,9 +56,6 @@ jobs:
   trivy-scans:
     runs-on: ubuntu-22.04-32core-128GB
     needs: build # This job runs after the 'build' job is complete
-    defaults:
-      run:
-        working-directory: sample-applications/chat-question-and-answer-core
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build.outputs.matrix) }}
@@ -73,6 +70,7 @@ jobs:
           path: sample-applications/chat-question-and-answer-core/
 
       - name: Load Docker image for ${{ matrix.name }}
+        working-directory: sample-applications/chat-question-and-answer-core
         run: |
           filename=$(echo "${{ matrix.image }}" | tr ':' '-')
           docker load -i "${filename}.tar"
