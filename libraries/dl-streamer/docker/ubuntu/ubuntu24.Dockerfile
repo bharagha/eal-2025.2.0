@@ -405,24 +405,6 @@ RUN apt-get update && apt-get install -y wget gnupg && \
     apt-get update && apt-get install -y intel-opencl-icd=* libze-intel-gpu1=* libze1=* intel-media-va-driver-non-free=* libmfx-gen1=* libvpl2=* libegl-mesa0=* libegl1-mesa-dev=* libgbm1=* libgl1-mesa-dev=* libgl1-mesa-dri=* libglapi-mesa=* libgles2-mesa-dev=* libglx-mesa0=* libigdgmm12=* libxatracker2=* mesa-va-drivers=* mesa-vdpau-drivers=* mesa-vulkan-drivers=* va-driver-all=* vainfo=* hwinfo=* clinfo=* && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        libze-intel-gpu1=25.31.34666.3-1~24.04~ppa2 \
-        libze1=1.23.1-1~24.04~ppa1 \
-        intel-metrics-discovery=1.14.180-0ubuntu1~24.04~ppa1 \
-        intel-opencl-icd=25.31.34666.3-1~24.04~ppa2 \
-        clinfo=3.0.23.01.25-1build1 \
-        intel-gsc=0.9.5-0ubuntu1~24.04~ppa1 \
-        intel-media-va-driver-non-free=25.3.2-0ubuntu1~24.04~ppa1 \
-        libmfx-gen1=25.3.1-0ubuntu1~24.04~ppa1 \
-        libvpl2=1:2.15.0-0ubuntu1~24.04~ppa1 \
-        libvpl-tools=1.4.0-0ubuntu1~24.04~ppa1 \
-        libva-glx2=2.22.0-1ubuntu1~24.04~ppa1 \
-        va-driver-all=2.22.0-1ubuntu1~24.04~ppa1 \
-        vainfo=2.22.0-0ubuntu1~24.04~ppa1 && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
 # Intel NPU drivers and prerequisites installation
 WORKDIR /tmp/npu_deps
 
