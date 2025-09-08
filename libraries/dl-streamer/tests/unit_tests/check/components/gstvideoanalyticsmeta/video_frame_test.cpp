@@ -230,7 +230,7 @@ TEST_F(VideoFrameTest, VideoFrameTestRegionIDs) {
     std::map<int, int> ids_entry;
     for (int i = 0; i < ROIS_NUMBER; i++) {
         int roi_id = regions[i].region_id();
-        ASSERT_NE(roi_id, 0) << "Region ID shouldn't be 0";
+        ASSERT_GT(roi_id, -1) << "Region ID should be non-negative";
         ids_entry[roi_id]++;
     }
 
