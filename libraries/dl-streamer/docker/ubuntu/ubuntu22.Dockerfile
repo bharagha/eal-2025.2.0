@@ -82,6 +82,8 @@ RUN curl -LO https://github.com/oneapi-src/level-zero/releases/download/v1.22.4/
     dpkg -i ./*.deb && \
     rm -rf /var/lib/apt/lists/* /tmp/npu_deps
 
+WORKDIR /
+
 RUN \
     apt-get update && \
     apt-get install -y -q --no-install-recommends xz-utils=\* python3-pip=\* python3-gi=\* gcc-multilib=\* libglib2.0-dev=\* \
@@ -460,6 +462,8 @@ RUN curl -LO https://github.com/oneapi-src/level-zero/releases/download/v1.22.4/
     tar -xf linux-npu-driver-v1.23.0.20250827-17270089246-ubuntu2204.tar.gz && \
     dpkg -i ./*.deb && \
     rm -rf /var/lib/apt/lists/* /tmp/npu_deps
+
+WORKDIR /
 
 RUN curl -fsSL https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | \
     gpg --dearmor -o /usr/share/keyrings/intel-sw-products.gpg && \
