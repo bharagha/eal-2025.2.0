@@ -62,10 +62,10 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
             regular_channels=0,
             inference_channels=self.inference_channels,
             elements=[
-                ("va", "decodebin3", "..."),
-                ("va", "vah264enc", "..."),
-                ("va", "vah264dec", "..."),
-                ("va", "vapostproc", "..."),
+                ("va", "compositor", "..."),
+                ("va", "x264enc", "..."),
+                ("va", "decodebin", "..."),
+                ("va", "videoscale", "..."),
             ],
         )
 
@@ -77,7 +77,7 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
         self.assertIn("model-proc=classification_model_proc.json", result)
 
         # Check that the decoder element is correctly used
-        self.assertIn("decodebin3", result)
+        self.assertIn("decodebin", result)
 
         # Check that opencv is used for pre-processing
         self.assertIn("pre-process-backend=opencv", result)
@@ -110,7 +110,7 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
             regular_channels=0,
             inference_channels=self.inference_channels,
             elements=[
-                ("va", "decodebin3", "..."),
+                ("va", "vacompositor", "..."),
                 ("va", "vah264enc", "..."),
                 ("va", "vah264dec", "..."),
                 ("va", "vapostproc", "..."),
@@ -125,9 +125,7 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
         self.assertIn("model-proc=classification_model_proc.json", result)
 
         # Check that the decoder element is correctly used
-        self.assertIn(
-            "decodebin3 ! vapostproc ! video/x-raw\\(memory:VAMemory\\)", result
-        )
+        self.assertIn("vah264dec", result)
 
         # Check that va-surface-sharing is used for pre-processing
         self.assertIn("pre-process-backend=va-surface-sharing", result)
@@ -163,7 +161,7 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
             regular_channels=0,
             inference_channels=self.inference_channels,
             elements=[
-                ("va", "decodebin3", "..."),
+                ("va", "vacompositor", "..."),
                 ("va", "vah264enc", "..."),
                 ("va", "vah264dec", "..."),
                 ("va", "vapostproc", "..."),
@@ -200,7 +198,7 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
             regular_channels=0,
             inference_channels=self.inference_channels,
             elements=[
-                ("va", "decodebin3", "..."),
+                ("va", "vah264dec", "..."),
                 ("va", "vah264enc", "..."),
             ],
         )
@@ -235,8 +233,8 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
             regular_channels=0,
             inference_channels=self.inference_channels,
             elements=[
-                ("va", "decodebin3", "..."),
                 ("va", "vah264enc", "..."),
+                ("va", "vah264dec", "..."),
             ],
         )
 
@@ -270,8 +268,8 @@ class TestSimpleVideoStructurizationPipeline(unittest.TestCase):
             regular_channels=0,
             inference_channels=self.inference_channels,
             elements=[
-                ("va", "decodebin3", "..."),
                 ("va", "vah264enc", "..."),
+                ("va", "vah264dec", "..."),
             ],
         )
 

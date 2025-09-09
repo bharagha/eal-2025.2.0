@@ -4,12 +4,15 @@ from pathlib import Path
 import struct
 
 from gstpipeline import GstPipeline
+from pipelines._common.common import PipelineElementsSelector
 from utils import (
     get_video_resolution,
     UINT8_DTYPE_SIZE,
     VIDEO_STREAM_META_PATH,
     is_yolov10_model,
 )
+
+logger = logging.getLogger("simplevs")
 
 
 class SimpleVideoStructurizationPipeline(GstPipeline):
@@ -22,39 +25,55 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
             (330, 110, 445, 170, "Inference", "Object Detection"),
         ]
 
+        # Add shmsink for live-streaming (shared memory)
+        self._shmsink = (
+            "shmsink socket-path=/tmp/shared_memory/video_stream "
+            "wait-for-connection=false "
+            "sync=true "
+            "name=shmsink0 "
+        )
+
+        # shmsink branch for live preview (BGR format), width/height will be formatted in evaluate
+        self._shmsink_branch = (
+            "tee name=livetee "
+            "livetee. ! queue2 ! {encoder} ! h264parse ! mp4mux ! filesink location={VIDEO_OUTPUT_PATH} async=false "
+            "livetee. ! queue2 ! videoconvert ! video/x-raw,format=BGR,width={output_width},height={output_height} ! {shmsink} "
+        )
+
         self._inference_stream_decode_detect_track = (
             # Input
-            "filesrc location={VIDEO_PATH} ! "
+            "filesrc "
+            "  location={VIDEO_PATH} ! "
             # Decoder
             "{decoder} ! "
             # Detection
             "gvafpscounter starting-frame=500 ! "
             "gvadetect "
-            "   {detection_model_config} "
-            "   model-instance-id=detect0 "
-            "   device={object_detection_device} "
-            "   pre-process-backend={object_detection_pre_process_backend} "
-            "   batch-size={object_detection_batch_size} "
-            "   inference-interval={object_detection_inference_interval} "
-            "   {ie_config_parameter} "
-            "   nireq={object_detection_nireq} ! "
-            "queue ! "
+            "  {detection_model_config} "
+            "  model-instance-id=detect0 "
+            "  pre-process-backend={object_detection_pre_process_backend} "
+            "  device={object_detection_device} "
+            "  batch-size={object_detection_batch_size} "
+            "  inference-interval={object_detection_inference_interval} "
+            "  {ie_config_parameter} "
+            "  nireq={object_detection_nireq} ! "
+            "queue2 ! "
             "gvatrack "
             "  tracking-type={tracking_type} ! "
-            "queue ! "
+            "queue2 ! "
         )
 
         self._inference_stream_classify = (
             "gvaclassify "
-            "   {classification_model_config} "
-            "   model-instance-id=classify0 "
-            "   device={object_classification_device} "
-            "   pre-process-backend={object_classification_pre_process_backend} "
-            "   batch-size={object_classification_batch_size} "
-            "   inference-interval={object_classification_inference_interval} "
-            "   nireq={object_classification_nireq} "
-            "   reclassify-interval={object_classification_reclassify_interval} ! "
-            "queue ! "
+            "  {classification_model_config} "
+            "  model-instance-id=classify0 "
+            "  pre-process-backend={object_classification_pre_process_backend} "
+            "  device={object_classification_device} "
+            "  batch-size={object_classification_batch_size} "
+            "  inference-interval={object_classification_inference_interval} "
+            "  nireq={object_classification_nireq} "
+            "  reclassify-interval={object_classification_reclassify_interval} ! "
+            "queue2 ! "
         )
 
         self._inference_stream_metadata_processing = (
@@ -68,22 +87,7 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
         )
 
         self._inference_output_stream = (
-            "{encoder} ! h264parse ! mp4mux ! filesink location={VIDEO_OUTPUT_PATH} "
-        )
-
-        # Add shmsink for live preview (shared memory)
-        self._shmsink = (
-            "shmsink socket-path=/tmp/shared_memory/video_stream "
-            "wait-for-connection=false "
-            "sync=true "
-            "name=shmsink0 "
-        )
-
-        # shmsink branch for live preview (BGR format), width/height will be formatted in evaluate
-        self._shmsink_branch = (
-            "tee name=livetee "
-            "livetee. ! queue2 ! {encoder} ! h264parse ! mp4mux ! filesink location={VIDEO_OUTPUT_PATH} async=false "
-            "livetee. ! queue2 ! videoconvert ! video/x-raw,format=BGR,width={width},height={height} ! {shmsink} "
+            "{encoder} ! h264parse ! mp4mux ! filesink   location={VIDEO_OUTPUT_PATH} "
         )
 
     def evaluate(
@@ -97,44 +101,43 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
         if elements is None:
             elements = []
 
-        # Set decoder element based on device
-        _decoder_element = (
-            "decodebin3 "
-            if parameters["object_detection_device"] in ["CPU", "NPU"]
-            else "decodebin3 ! vapostproc ! video/x-raw\\(memory:VAMemory\\)"
-        )
-
-        # Set encoder element based on device
-        _encoder_element = next(
-            ("vah264enc" for element in elements if element[1] == "vah264enc"),
-            next(
-                ("vah264lpenc" for element in elements if element[1] == "vah264lpenc"),
-                next(
-                    (
-                        "x264enc bitrate=16000 speed-preset=superfast"
-                        for element in elements
-                        if element[1] == "x264enc"
-                    ),
-                    None,  # Fallback to None if no encoder is found
-                ),
-            ),
-        )
-
-        # Set pre process backed for object detection
+        # Set pre-process backend for object detection
         parameters["object_detection_pre_process_backend"] = (
             "opencv"
             if parameters["object_detection_device"] in ["CPU", "NPU"]
             else "va-surface-sharing"
         )
 
-        # Set pre process backed for object classification
+        # Set pre-process backend for object classification
         parameters["object_classification_pre_process_backend"] = (
             "opencv"
             if parameters["object_classification_device"] in ["CPU", "NPU"]
             else "va-surface-sharing"
         )
 
-        # Set model config for object detection
+        # Use PipelineElementsSelector for element selection
+        selector = PipelineElementsSelector(parameters, elements)
+        _compositor_element = selector.compositor_element()
+        _encoder_element = selector.encoder_element()
+        _decoder_element = selector.decoder_element()
+        _postprocessing_element = selector.postprocessing_element()
+
+        # If any of the essential elements is not found, log an error and return an empty string
+        if not all(
+            [
+                _encoder_element,
+                _decoder_element,
+            ]
+        ):
+            logger.error("Could not find all necessary elements for the pipeline.")
+            logger.error(f"Encoder: {_encoder_element}, Decoder: {_decoder_element}")
+            return ""
+        else:
+            logger.info(
+                f"Using pipeline elements - Encoder: {_encoder_element}, Decoder: {_decoder_element}"
+            )
+
+        # Handle object detection parameters and constants
         detection_model_config = (
             f"model={constants['OBJECT_DETECTION_MODEL_PATH']} "
             f"model-proc={constants['OBJECT_DETECTION_MODEL_PROC']} "
@@ -147,29 +150,36 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
 
         # Set inference config parameter for GPU if using YOLOv10
         ie_config_parameter = ""
-        if parameters["object_detection_device"] == "GPU" and is_yolov10_model(
-            constants["OBJECT_DETECTION_MODEL_PATH"]
-        ):
+        if parameters.get("object_detection_device", "").startswith(
+            "GPU"
+        ) and is_yolov10_model(constants["OBJECT_DETECTION_MODEL_PATH"]):
             ie_config_parameter = "ie-config=GPU_DISABLE_WINOGRAD_CONVOLUTION=YES"
 
-        streams = ""
-
         # Prepare shmsink and meta if live_preview_enabled
-        width = 0
-        height = 0
+        output_width = 0
+        output_height = 0
         if parameters["live_preview_enabled"]:
             # Get resolution using get_video_resolution
             video_path = constants.get("VIDEO_PATH", "")
-            width, height = get_video_resolution(video_path)
+            output_width, output_height = get_video_resolution(video_path)
+
             # Write meta file for live preview
             try:
                 os.makedirs("/tmp/shared_memory", exist_ok=True)
                 with open(VIDEO_STREAM_META_PATH, "wb") as f:
-                    # height, width, dtype_size=UINT8_DTYPE_SIZE (uint8)
-                    f.write(struct.pack("III", height, width, UINT8_DTYPE_SIZE))
+                    # height=output_height, width=output_width, dtype_size=UINT8_DTYPE_SIZE (uint8)
+                    f.write(
+                        struct.pack(
+                            "III", output_height, output_width, UINT8_DTYPE_SIZE
+                        )
+                    )
             except Exception as e:
-                logging.warning(f"Could not write shared memory meta file: {e}")
+                logger.warning(f"Could not write shared memory meta file: {e}")
 
+        # Create the streams
+        streams = ""
+
+        # Handle inference channels
         for i in range(inference_channels):
             streams += self._inference_stream_decode_detect_track.format(
                 **parameters,
@@ -225,8 +235,8 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
                     streams += self._shmsink_branch.format(
                         **constants,
                         encoder=_encoder_element,
-                        width=width,
-                        height=height,
+                        output_width=output_width,
+                        output_height=output_height,
                         shmsink=self._shmsink,
                     )
                 else:
@@ -236,4 +246,5 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
             else:
                 streams += "fakesink "
 
+        # Evaluate the pipeline
         return "gst-launch-1.0 -q " + streams

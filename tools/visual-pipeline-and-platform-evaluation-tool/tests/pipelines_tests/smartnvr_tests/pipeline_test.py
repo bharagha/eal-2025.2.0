@@ -73,10 +73,10 @@ class TestSmartNVRPipeline(unittest.TestCase):
             regular_channels=self.regular_channels,
             inference_channels=self.inference_channels,
             elements=[
-                ("va", "vacompositor", "..."),
-                ("va", "vah264enc", "..."),
-                ("va", "vah264dec", "..."),
-                ("va", "vapostproc", "..."),
+                ("va", "compositor", "..."),
+                ("va", "x264enc", "..."),
+                ("va", "decodebin", "..."),
+                ("va", "videoscale", "..."),
             ],
         )
 
@@ -109,10 +109,10 @@ class TestSmartNVRPipeline(unittest.TestCase):
             regular_channels=self.regular_channels,
             inference_channels=self.inference_channels,
             elements=[
-                ("va", "vacompositor", "..."),
-                ("va", "vah264enc", "..."),
-                ("va", "vah264dec", "..."),
-                ("va", "vapostproc", "..."),
+                ("va", "compositor", "..."),
+                ("va", "x264enc", "..."),
+                ("va", "decodebin", "..."),
+                ("va", "videoscale", "..."),
             ],
         )
 
@@ -149,10 +149,10 @@ class TestSmartNVRPipeline(unittest.TestCase):
             regular_channels=self.regular_channels,
             inference_channels=self.inference_channels,
             elements=[
-                ("va", "vacompositor", "..."),
-                ("va", "vah264enc", "..."),
-                ("va", "vah264dec", "..."),
-                ("va", "vapostproc", "..."),
+                ("va", "compositor", "..."),
+                ("va", "x264enc", "..."),
+                ("va", "decodebin", "..."),
+                ("va", "videoscale", "..."),
             ],
         )
 
@@ -182,6 +182,46 @@ class TestSmartNVRPipeline(unittest.TestCase):
             regular_channels=self.regular_channels,
             inference_channels=self.inference_channels,
             elements=[
+                ("va", "compositor", "..."),
+                ("va", "x264enc", "..."),
+                ("va", "decodebin", "..."),
+                ("va", "videoscale", "..."),
+            ],
+        )
+
+        # Common checks
+        self.common_checks(result)
+        self.output_present_check(result)
+        self.sink_count_check(result)
+        self.gvaclassify_count_check(result, self.inference_channels)
+
+        # Check that model proc is used
+        self.assertIn("model-proc=detection_model_proc.json", result)
+        self.assertIn("model-proc=classification_model_proc.json", result)
+
+        # Check that opencv is used for pre-processing
+        self.assertIn("pre-process-backend=opencv", result)
+
+    def test_evaluate_gpu_0(self):
+        result = self.pipeline.evaluate(
+            constants=self.constants,
+            parameters={
+                "object_detection_device": "GPU.0",
+                "object_detection_batch_size": 0,
+                "object_detection_inference_interval": 1,
+                "object_detection_nireq": 0,
+                "object_classification_device": "GPU.0",
+                "object_classification_batch_size": 0,
+                "object_classification_inference_interval": 1,
+                "object_classification_nireq": 0,
+                "object_classification_reclassify_interval": 1,
+                "tracking_type": "short-term-imageless",
+                "pipeline_watermark_enabled": True,
+                "live_preview_enabled": False,
+            },
+            regular_channels=self.regular_channels,
+            inference_channels=self.inference_channels,
+            elements=[
                 ("va", "vacompositor", "..."),
                 ("va", "vah264enc", "..."),
                 ("va", "vah264dec", "..."),
@@ -199,10 +239,13 @@ class TestSmartNVRPipeline(unittest.TestCase):
         self.assertIn("model-proc=detection_model_proc.json", result)
         self.assertIn("model-proc=classification_model_proc.json", result)
 
-        # Check that opencv is used for pre-processing
-        self.assertIn("pre-process-backend=opencv", result)
+        # Check that va-surface-sharing is used for pre-processing
+        self.assertIn("pre-process-backend=va-surface-sharing", result)
 
-    def test_evaluate_gpu(self):
+        # Check that the right vaapi elements are used
+        self.assertIn("vacompositor", result)
+
+    def test_evaluate_gpu_1(self):
         result = self.pipeline.evaluate(
             constants=self.constants,
             parameters={
@@ -222,10 +265,10 @@ class TestSmartNVRPipeline(unittest.TestCase):
             regular_channels=self.regular_channels,
             inference_channels=self.inference_channels,
             elements=[
-                ("va", "vacompositor", "..."),
-                ("va", "vah264enc", "..."),
-                ("va", "vah264dec", "..."),
-                ("va", "vapostproc", "..."),
+                ("va", "varenderD129compositor", "..."),
+                ("va", "varenderD129h264enc", "..."),
+                ("va", "varenderD129h264dec", "..."),
+                ("va", "varenderD129postproc", "..."),
             ],
         )
 
@@ -272,10 +315,10 @@ class TestSmartNVRPipeline(unittest.TestCase):
             regular_channels=self.regular_channels,
             inference_channels=self.inference_channels,
             elements=[
-                ("va", "vacompositor", "..."),
-                ("va", "vah264enc", "..."),
-                ("va", "vah264dec", "..."),
-                ("va", "vapostproc", "..."),
+                ("va", "compositor", "..."),
+                ("va", "x264enc", "..."),
+                ("va", "decodebin", "..."),
+                ("va", "videoscale", "..."),
             ],
         )
 

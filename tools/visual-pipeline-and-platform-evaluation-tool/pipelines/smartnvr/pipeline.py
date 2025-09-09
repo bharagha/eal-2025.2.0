@@ -5,6 +5,7 @@ from pathlib import Path
 import struct
 
 from gstpipeline import GstPipeline
+from pipelines._common.common import PipelineElementsSelector
 from utils import UINT8_DTYPE_SIZE, VIDEO_STREAM_META_PATH, is_yolov10_model
 
 logger = logging.getLogger("smartnvr")
@@ -67,6 +68,7 @@ class SmartNVRPipeline(GstPipeline):
         )
 
         self._inference_stream_decode_detect_track = (
+            # Input
             "filesrc "
             "  location={VIDEO_PATH} ! "
             "qtdemux ! "
@@ -78,7 +80,9 @@ class SmartNVRPipeline(GstPipeline):
             "  location=/tmp/stream{id}.mp4 "
             "t{id}. ! "
             "queue2 ! "
+            # Decoder
             "{decoder} ! "
+            # Detection
             "gvafpscounter starting-frame=500 ! "
             "gvadetect "
             "  {detection_model_config} "
@@ -153,17 +157,6 @@ class SmartNVRPipeline(GstPipeline):
             else "va-surface-sharing"
         )
 
-        # Compute total number of channels
-        channels = regular_channels + inference_channels
-
-        # Create a sink for each channel
-        sinks = ""
-        grid_size = math.ceil(math.sqrt(channels))
-        for i in range(channels):
-            xpos = 640 * (i % grid_size)
-            ypos = 360 * (i // grid_size)
-            sinks += self._sink.format(id=i, xpos=xpos, ypos=ypos)
-
         # Use PipelineElementsSelector for element selection
         selector = PipelineElementsSelector(parameters, elements)
         _compositor_element = selector.compositor_element()
@@ -193,26 +186,60 @@ class SmartNVRPipeline(GstPipeline):
         # Create the streams
         streams = ""
 
-        # Handle inference channels
-        for i in range(inference_channels):
-            # Handle object detection parameters and constants
+        # Handle object detection parameters and constants
+        detection_model_config = (
+            f"model={constants['OBJECT_DETECTION_MODEL_PATH']} "
+            f"model-proc={constants['OBJECT_DETECTION_MODEL_PROC']} "
+        )
+
+        if not constants["OBJECT_DETECTION_MODEL_PROC"]:
             detection_model_config = (
                 f"model={constants['OBJECT_DETECTION_MODEL_PATH']} "
-                f"model-proc={constants['OBJECT_DETECTION_MODEL_PROC']} "
             )
 
-            if not constants["OBJECT_DETECTION_MODEL_PROC"]:
-                detection_model_config = (
-                    f"model={constants['OBJECT_DETECTION_MODEL_PATH']} "
-                )
+        # Set inference config parameter for GPU if using YOLOv10
+        ie_config_parameter = ""
+        if parameters.get("object_detection_device", "").startswith(
+            "GPU"
+        ) and is_yolov10_model(constants["OBJECT_DETECTION_MODEL_PATH"]):
+            ie_config_parameter = "ie-config=GPU_DISABLE_WINOGRAD_CONVOLUTION=YES"
 
-            # Set inference config parameter for GPU if using YOLOv10
-            ie_config_parameter = ""
-            if parameters.get("object_detection_device", "").startswith(
-                "GPU"
-            ) and is_yolov10_model(constants["OBJECT_DETECTION_MODEL_PATH"]):
-                ie_config_parameter = "ie-config=GPU_DISABLE_WINOGRAD_CONVOLUTION=YES"
+        # Compute total number of channels
+        channels = regular_channels + inference_channels
 
+        # Create a sink for each channel
+        sinks = ""
+        grid_size = math.ceil(math.sqrt(channels))
+        for i in range(channels):
+            xpos = 640 * (i % grid_size)
+            ypos = 360 * (i // grid_size)
+            sinks += self._sink.format(id=i, xpos=xpos, ypos=ypos)
+
+        # Prepare shmsink and meta if live_preview_enabled
+        output_width = 0
+        output_height = 0
+        if parameters["live_preview_enabled"]:
+            # Calculate output video size for grid layout to ensure same resolution for shmsink and output file
+            output_width = 640 * grid_size
+            output_height = 360 * (
+                (channels + grid_size - 1) // grid_size
+            )  # ceil(channels / grid_size)
+
+            # Write meta file for live preview
+            try:
+                os.makedirs("/tmp/shared_memory", exist_ok=True)
+                with open(VIDEO_STREAM_META_PATH, "wb") as f:
+                    # height=output_height, width=output_width, dtype_size=UINT8_DTYPE_SIZE (uint8)
+                    f.write(
+                        struct.pack(
+                            "III", output_height, output_width, UINT8_DTYPE_SIZE
+                        )
+                    )
+            except Exception as e:
+                logger.warning(f"Could not write shared memory meta file: {e}")
+
+        # Handle inference channels
+        for i in range(inference_channels):
             streams += self._inference_stream_decode_detect_track.format(
                 **parameters,
                 **constants,
@@ -228,6 +255,7 @@ class SmartNVRPipeline(GstPipeline):
                 constants["OBJECT_CLASSIFICATION_MODEL_PATH"] == "Disabled"
                 or parameters["object_classification_device"] == "Disabled"
             ):
+                # Set model config for object classification
                 classification_model_config = (
                     f"model={constants['OBJECT_CLASSIFICATION_MODEL_PATH']} "
                     f"model-proc={constants['OBJECT_CLASSIFICATION_MODEL_PROC']} "
@@ -245,10 +273,11 @@ class SmartNVRPipeline(GstPipeline):
                     classification_model_config=classification_model_config,
                 )
 
-            # Overlay inference results on the inferenced video if enabled
+            # Overlay inference results on the inferred video if enabled
             if parameters["pipeline_watermark_enabled"]:
                 streams += "gvawatermark ! "
 
+            # Metadata processing and publishing
             streams += self._inference_stream_metadata_processing.format(
                 **parameters,
                 **constants,
@@ -282,25 +311,7 @@ class SmartNVRPipeline(GstPipeline):
             )
         # Compose pipeline depending on live_preview_enabled
         if parameters["live_preview_enabled"]:
-            # Calculate output video size for grid layout to ensure same resolution for shmsink and output file
-            output_width = 640 * grid_size
-            output_height = 360 * (
-                (channels + grid_size - 1) // grid_size
-            )  # ceil(channels / grid_size)
-
             # Always produce both file and live stream outputs
-            try:
-                os.makedirs("/tmp/shared_memory", exist_ok=True)
-                with open(VIDEO_STREAM_META_PATH, "wb") as f:
-                    # width=output_height, height=output_width, dtype_size=UINT8_DTYPE_SIZE (uint8)
-                    f.write(
-                        struct.pack(
-                            "III", output_height, output_width, UINT8_DTYPE_SIZE
-                        )
-                    )
-            except Exception as e:
-                logger.warning(f"Could not write shared memory meta file: {e}")
-
             streams = (
                 self._compositor_with_tee.format(
                     **constants,
@@ -327,156 +338,3 @@ class SmartNVRPipeline(GstPipeline):
 
         # Evaluate the pipeline
         return "gst-launch-1.0 -q " + streams
-
-
-class PipelineElementsSelector:
-    def __init__(self, parameters: dict, elements: list):
-        self.parameters = parameters
-        self.elements = elements
-        self.gpu_id = -1
-        self.vaapi_suffix = None
-
-        # Calculate vaapi_suffix once
-        device = parameters.get("object_detection_device", "")
-
-        # Determine gpu_id and vaapi_suffix
-        # If there is only one GPU, device name is just GPU
-        # If there is more than one GPU, device names are like GPU.0, GPU.1, ...
-        if device == "GPU":
-            self.gpu_id = 0
-        elif device.startswith("GPU."):
-            try:
-                gpu_index = int(device.split(".")[1])
-                if gpu_index == 0:
-                    self.gpu_id = 0
-                elif gpu_index > 0:
-                    self.vaapi_suffix = str(128 + gpu_index)
-                    self.gpu_id = gpu_index
-            except (IndexError, ValueError):
-                self.gpu_id = -1
-        else:
-            self.gpu_id = -1
-
-        self._compositor_element = None
-        self._encoder_element = None
-        self._decoder_element = None
-        self._postprocessing_element = None
-        if self.gpu_id > 0:
-            varender_compositor = f"varenderD{self.vaapi_suffix}compositor"
-            self._compositor_element = next(
-                (
-                    varender_compositor
-                    for element in elements
-                    if element[1] == varender_compositor
-                ),
-                None,
-            )
-
-            varender_encoder_lp = f"varenderD{self.vaapi_suffix}h264lpenc"
-            varender_encoder = f"varenderD{self.vaapi_suffix}h264enc"
-            self._encoder_element = next(
-                (
-                    varender_encoder_lp
-                    for element in elements
-                    if element[1] == varender_encoder_lp
-                ),
-                next(
-                    (
-                        varender_encoder
-                        for element in elements
-                        if element[1] == varender_encoder
-                    ),
-                    None,
-                ),
-            )
-
-            varender_decoder = f"varenderD{self.vaapi_suffix}h264dec"
-            self._decoder_element = next(
-                (
-                    f"{varender_decoder} ! video/x-raw(memory:VAMemory)"
-                    for element in elements
-                    if element[1] == varender_decoder
-                ),
-                None,
-            )
-
-            varender_postprocessing = f"varenderD{self.vaapi_suffix}postproc"
-            self._postprocessing_element = next(
-                (
-                    varender_postprocessing
-                    for element in elements
-                    if element[1] == varender_postprocessing
-                ),
-                None,
-            )
-        elif self.gpu_id == 0:
-            self._compositor_element = next(
-                (
-                    "vacompositor"
-                    for element in elements
-                    if element[1] == "vacompositor"
-                ),
-                None,
-            )
-
-            self._encoder_element = next(
-                ("vah264lpenc" for element in elements if element[1] == "vah264lpenc"),
-                next(
-                    ("vah264enc" for element in elements if element[1] == "vah264enc"),
-                    None,
-                ),
-            )
-
-            self._decoder_element = next(
-                (
-                    "vah264dec ! video/x-raw(memory:VAMemory)"
-                    for element in elements
-                    if element[1] == "vah264dec"
-                ),
-                None,
-            )
-
-            self._postprocessing_element = next(
-                ("vapostproc" for element in elements if element[1] == "vapostproc"),
-                None,
-            )
-
-        if self._compositor_element is None:
-            self._compositor_element = next(
-                ("compositor" for element in elements if element[1] == "compositor"),
-                None,
-            )
-
-        if self._encoder_element is None:
-            self._encoder_element = next(
-                (
-                    "x264enc bitrate=16000 speed-preset=superfast"
-                    for element in elements
-                    if element[1] == "x264enc"
-                ),
-                None,
-            )
-
-        if self._decoder_element is None:
-            self._decoder_element = next(
-                ("decodebin" for element in elements if element[1] == "decodebin"),
-                None,
-            )
-
-        if self._postprocessing_element is None:
-            self._postprocessing_element = next(
-                ("videoscale" for element in elements if element[1] == "videoscale"),
-                None,
-            )
-
-    def compositor_element(self):
-        return self._compositor_element
-
-    def encoder_element(self):
-        return self._encoder_element
-
-    def decoder_element(self):
-        return self._decoder_element
-
-    def postprocessing_element(self):
-        return self._postprocessing_element
