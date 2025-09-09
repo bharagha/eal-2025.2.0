@@ -68,7 +68,7 @@ struct RegionOfInterestTest : public ::testing::Test {
 };
 
 TEST_F(RegionOfInterestTest, RegionOfInterestTestTensors) {
-    ASSERT_DOUBLE_EQ(region_of_interest->confidence(), 0.0);
+    ASSERT_DOUBLE_EQ(region_of_interest->confidence(), 0.77);
     ASSERT_EQ(region_of_interest->tensors().size(), 0);
 
     std::vector<GVA::Tensor> test_tensors;
