@@ -43,6 +43,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@8edcb1bdb4e267140fa742c62e395cd74f332709
+      
+      - name: Run Trivy Filesystem Scan
+        uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
+        id: trivy-fs
+        with:
+          scan_type: "fs"  
+          scan-scope: "all"  
+          severity: "HIGH,CRITICAL" 
+          format: "json"
+          scan_target: "sample-applications/chat-question-and-answer-core/"
+          report_suffix: "-fs-chat-qna-core-CT7"
 
       - name: Build Docker image for ${{ matrix.name }}
         working-directory: sample-applications/chat-question-and-answer-core
@@ -50,9 +61,8 @@ jobs:
 
       - name: Run Trivy Image Scan - ${{ matrix.name }} (HTML)
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
-        env:
-          INPUTS_SCAN_TARGET: ${{ matrix.image }}
         with:
+          scan_target: ${{ matrix.image }}
           scan_type: "image"  
           scan-scope: "all"
           severity: "HIGH,CRITICAL"  
@@ -62,9 +72,8 @@ jobs:
 
       - name: Run Trivy Image Scan - ${{ matrix.name }} (SPDX)
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
-        env:
-          INPUTS_SCAN_TARGET: ${{ matrix.image }}
         with:
+          scan_target: ${{ matrix.image }}
           scan_type: "image"  
           scan-scope: "all"
           severity: "HIGH,CRITICAL"  
