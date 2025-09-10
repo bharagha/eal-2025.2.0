@@ -53,9 +53,11 @@ jobs:
         env:
           INPUTS_SCAN_TARGET: ${{ matrix.image }}
         with:
-          scan_type: "image"
-          severity: "HIGH,CRITICAL"
+          scan_type: "image"  
+          scan-scope: "all"
+          severity: "HIGH,CRITICAL"  
           format: "table"
+          generate_sbom: "false"
           report_suffix: "-image-${{ matrix.name }}-html"
 
       - name: Run Trivy Image Scan - ${{ matrix.name }} (SPDX)
@@ -63,10 +65,12 @@ jobs:
         env:
           INPUTS_SCAN_TARGET: ${{ matrix.image }}
         with:
-          scan_type: "image"
-          severity: "HIGH,CRITICAL"
+          scan_type: "image"  
+          scan-scope: "all"
+          severity: "HIGH,CRITICAL"  
           format: "spdx-json"
           scanners: "vuln"
+          generate_sbom: "false"
           report_suffix: "-image-${{ matrix.name }}-spdx"
 
       - name: Scan Dockerfile - ${{ matrix.name }}
