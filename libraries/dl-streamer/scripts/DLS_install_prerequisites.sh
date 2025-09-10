@@ -339,7 +339,7 @@ setup_gpu(){
     esac
     $SUDO_PREFIX apt update
     if [ "$ubuntu_version" == "24.04" ]; then
-        install_packages libze-intel-gpu1=25.18.33578.15-1146~24.04 libze1=1.21.9.0-1136~24.04 clinfo=3.0.21.02.21-1 \
+        install_packages libze-intel-gpu1=25.18.33578.15-1146~24.04 libze1=1.21.9.0-1136~24.04 \
         intel-media-va-driver-non-free=25.2.4-1146~24.04 intel-gsc=0.9.5-123~u24.04 intel-opencl-icd=25.18.33578.15-1146~24.04
     if [ "$ubuntu_version" == "22.04" ]; then
         install_packages libze-intel-gpu1=25.18.33578.15-1146~22.04 libze1=1.21.9.0-1136~22.04 \
