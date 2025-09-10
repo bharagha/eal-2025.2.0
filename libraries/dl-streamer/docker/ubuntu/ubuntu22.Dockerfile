@@ -59,11 +59,18 @@ RUN \
     rm -rf /var/lib/apt/lists/*
 
 # Intel GPU client drivers and prerequisites installation
-RUN apt-get update && apt-get install -y wget gnupg && \
-    wget -qO - https://repositories.intel.com/gpu/intel-graphics.key | gpg --yes --dearmor -o /usr/share/keyrings/intel-graphics.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/intel-graphics.gpg] https://repositories.intel.com/gpu/ubuntu jammy/lts/2523.21 unified" > /etc/apt/sources.list.d/intel-gpu-jammy.list && \
-    apt-get update && apt-get install -y intel-opencl-icd=* libze-intel-gpu1=* libze1=* intel-media-va-driver-non-free=* libmfx-gen1=* libvpl2=* libegl-mesa0=* libegl1-mesa=* libegl1-mesa-dev=* libgbm1=* libgl1-mesa-dev=* libgl1-mesa-dri=* libglapi-mesa=* libglx-mesa0=* libigdgmm12=* libxatracker2=* mesa-va-drivers=* mesa-vdpau-drivers=* mesa-vulkan-drivers=* va-driver-all=* vainfo=* hwinfo=* clinfo=* intel-ocloc=* && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN \
+    curl -fsSL https://repositories.intel.com/gpu/intel-graphics.key | \
+    gpg --dearmor -o /usr/share/keyrings/intel-graphics.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/intel-graphics.gpg] https://repositories.intel.com/gpu/ubuntu jammy unified" | \
+    tee /etc/apt/sources.list.d/intel-gpu-jammy.list
+
+RUN \
+    apt-get update && \
+    apt-get install -y --no-install-recommends libze-intel-gpu1=25.18.33578.15-1146~22.04 libze1=1.21.9.0-1136~22.04 \
+    intel-media-va-driver-non-free=25.2.4-1146~22.04 intel-opencl-icd=25.18.33578.15-1146~22.04 clinfo=3.0.21.02.21-1 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Intel NPU drivers and prerequisites installation
 WORKDIR /tmp/npu_deps
@@ -432,11 +439,18 @@ RUN \
 
 # As clean ubuntu image is used, we need to install GPU and NPU on this image as well
 # Intel GPU client drivers and prerequisites installation
-RUN apt-get update && apt-get install -y wget gnupg && \
-    wget -qO - https://repositories.intel.com/gpu/intel-graphics.key | gpg --yes --dearmor -o /usr/share/keyrings/intel-graphics.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/intel-graphics.gpg] https://repositories.intel.com/gpu/ubuntu jammy/lts/2523.21 unified" > /etc/apt/sources.list.d/intel-gpu-jammy.list && \
-    apt-get update && apt-get install -y intel-opencl-icd=* libze-intel-gpu1=* libze1=* intel-media-va-driver-non-free=* libmfx-gen1=* libvpl2=* libegl-mesa0=* libegl1-mesa=* libegl1-mesa-dev=* libgbm1=* libgl1-mesa-dev=* libgl1-mesa-dri=* libglapi-mesa=* libglx-mesa0=* libigdgmm12=* libxatracker2=* mesa-va-drivers=* mesa-vdpau-drivers=* mesa-vulkan-drivers=* va-driver-all=* vainfo=* hwinfo=* clinfo=* intel-ocloc=* && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN \
+    curl -fsSL https://repositories.intel.com/gpu/intel-graphics.key | \
+    gpg --dearmor -o /usr/share/keyrings/intel-graphics.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/intel-graphics.gpg] https://repositories.intel.com/gpu/ubuntu jammy unified" | \
+    tee /etc/apt/sources.list.d/intel-gpu-jammy.list
+
+RUN \
+    apt-get update && \
+    apt-get install -y --no-install-recommends libze-intel-gpu1=25.18.33578.15-1146~22.04 libze1=1.21.9.0-1136~22.04 \
+    intel-media-va-driver-non-free=25.2.4-1146~22.04 intel-opencl-icd=25.18.33578.15-1146~22.04 clinfo=3.0.21.02.21-1 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Intel NPU drivers and prerequisites installation
 WORKDIR /tmp/npu_deps
