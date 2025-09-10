@@ -48,29 +48,22 @@ jobs:
         working-directory: sample-applications/chat-question-and-answer-core
         run: make build-${{ matrix.name }}
 
-      # --- THIS IS THE CORRECTED TRIVY SCAN ---
       - name: Run Trivy Image Scan - ${{ matrix.name }} (HTML)
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
-        # Set the matrix variable as an environment variable for this step
         env:
-          IMAGE_TO_SCAN: ${{ matrix.image }}
+          INPUTS_SCAN_TARGET: ${{ matrix.image }}
         with:
           scan_type: "image"
-          # Reference the clean environment variable instead of the matrix context
-          scan_target: ${{ env.IMAGE_TO_SCAN }}
           severity: "HIGH,CRITICAL"
           format: "table"
           report_suffix: "-image-${{ matrix.name }}-html"
 
       - name: Run Trivy Image Scan - ${{ matrix.name }} (SPDX)
         uses: open-edge-platform/orch-ci/.github/actions/security/trivy@27276444a9bcf247a27369406686b689933bd1ff
-        # Set the matrix variable as an environment variable for this step
         env:
-          IMAGE_TO_SCAN: ${{ matrix.image }}
+          INPUTS_SCAN_TARGET: ${{ matrix.image }}
         with:
           scan_type: "image"
-          # Reference the clean environment variable
-          scan_target: ${{ env.IMAGE_TO_SCAN }}
           severity: "HIGH,CRITICAL"
           format: "spdx-json"
           scanners: "vuln"
