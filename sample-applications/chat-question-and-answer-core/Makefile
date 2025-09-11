@@ -107,7 +107,7 @@ test-frontend:
 .PHONY: test-backend
 test-backend:
 	@echo "--- Running backend unit tests ---"
-	@python$(PYTHON_VERSION) -m venv chat-qna-core-venv; \
+	@python3 -m venv chat-qna-core-venv; \
 	source chat-qna-core-venv/bin/activate; \
 	pip install poetry; \
 	poetry install --with dev || true; \
@@ -141,7 +141,7 @@ shellcheck:
 .PHONY: pylint
 pylint:
 	@echo "--- Setting up environment and running Pylint to analyze Python code ---"
-	@python$(PYTHON_VERSION) -m venv pylint-venv; \
+	@python3 -m venv pylint-venv; \
 	source pylint-venv/bin/activate; \
 	pip install poetry; \
 	poetry install --with dev || true; \
