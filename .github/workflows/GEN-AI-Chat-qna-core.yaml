@@ -51,7 +51,6 @@ jobs:
           echo "Created versions.env file:"
           cat versions.env
 
-      # --- NEW STEP TO UPLOAD THE FILE ---
       - name: Upload versions file as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -237,9 +236,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@8edcb1bdb4e267140fa742c62e395cd74f332709
       
+      - name: Download versions artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: versions-artifact
+
       - name: Load versions into environment
         id: versions
-        run: cat ${{ env.APP_PATH }}/versions.env >> $GITHUB_ENV
+        run: cat versions.env >> $GITHUB_ENV
       
       - name: Setup Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
@@ -264,6 +268,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@8edcb1bdb4e267140fa742c62e395cd74f332709
       
+      - name: Download versions artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: versions-artifact  
+
       - name: Load versions into environment
         id: versions
         run: cat ${{ env.APP_PATH }}/versions.env >> $GITHUB_ENV
