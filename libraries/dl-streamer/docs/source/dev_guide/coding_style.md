@@ -8,25 +8,6 @@ from the root of this project (`.clang-format`).
 
 ## Install clang formatter
 
-<!--
-- **Ubuntu**:
-
-  ```bash
-  sudo apt install -y clang-format-12
-  sudo ln -s /usr/bin/clang-format-12 /usr/bin/clang-format
-  ```
-
-- **Other distros**
-
-  You can find an appropriate repository at <https://apt.llvm.org/>.
-  And install the newest version:
-
-  ```bash
-  sudo apt install -y clang-format-9
-  sudo ln -s /usr/bin/clang-format-9 /usr/bin/clang-format
-  ```
--->
-
 ::::{tab-set}
 :::{tab-item} Ubuntu
 :sync: tab1
