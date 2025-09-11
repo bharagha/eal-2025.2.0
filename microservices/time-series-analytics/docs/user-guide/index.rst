@@ -20,7 +20,6 @@ For more information on creating custom UDFs, see the
 .. toctree::
    :hidden:
 
-   Overview
    high-level-arch
    system-requirements
    get-started
