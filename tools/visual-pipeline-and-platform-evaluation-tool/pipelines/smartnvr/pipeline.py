@@ -394,4 +394,4 @@ class SmartNVRPipeline(GstPipeline):
             )
 
         # Evaluate the pipeline
-        return "gst-launch-1.0 -q " + streams
+        return streams

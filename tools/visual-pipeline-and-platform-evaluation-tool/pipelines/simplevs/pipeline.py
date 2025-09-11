@@ -236,4 +236,4 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
             else:
                 streams += "fakesink "
 
-        return "gst-launch-1.0 -q " + streams
+        return streams
