@@ -851,7 +851,8 @@ class OpenVinoNewApiImpl {
 
     static bool image_has_roi(const Image &image) {
         const auto r = image.rect;
-        return r.x || r.y || ((r.width > 0) && (r.width != image.width)) || ((r.height > 0) && (r.height != image.height));
+        return r.x || r.y || ((r.width > 0) && (r.width != image.width)) ||
+               ((r.height > 0) && (r.height != image.height));
     }
 
     std::vector<ov::Tensor> image_to_tensors(const Image &image) {
@@ -883,7 +884,7 @@ class OpenVinoNewApiImpl {
     ov::Tensor image_rgbp_to_tensor(const Image &image) {
         // input image has 3 planes, separately for R, G, B channels
         // this function converts 3 planes to ov::Tensor with NCHW layout
-        // planes must must be equally spaced in memory, and have same stride
+        // planes must be equally spaced in memory, and have same stride
         assert(image.planes[0] && image.planes[1] && image.planes[2]);
         assert((image.planes[1] - image.planes[0]) == (image.planes[2] - image.planes[1]));
         assert((image.stride[0] == image.stride[1]) && (image.stride[1] == image.stride[2]));
@@ -901,7 +902,7 @@ class OpenVinoNewApiImpl {
             memcpy(tensor.data(), image.planes[0], plane_size);
             memcpy(static_cast<uint8_t *>(tensor.data()) + plane_size, image.planes[1], plane_size);
             memcpy(static_cast<uint8_t *>(tensor.data()) + 2 * plane_size, image.planes[2], plane_size);
-         }
+        }
 
         // ROI
         if (image_has_roi(image)) {
