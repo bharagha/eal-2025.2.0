@@ -896,12 +896,15 @@ class OpenVinoNewApiImpl {
         ov::Tensor tensor{ov::element::u8, shape, image.planes[0], stride};
 
         // NPU device plugin requires contigous tensors
-        if (_device == "NPU" && !tensor.is_continuous()) {
+        if (!tensor.is_continuous()) {
             tensor = ov::Tensor(ov::element::u8, shape);
             const size_t plane_size = image.height * image.width;
-            memcpy(tensor.data(), image.planes[0], plane_size);
-            memcpy(static_cast<uint8_t *>(tensor.data()) + plane_size, image.planes[1], plane_size);
-            memcpy(static_cast<uint8_t *>(tensor.data()) + 2 * plane_size, image.planes[2], plane_size);
+            for (uint32_t plane = 0; plane < channels_num; plane++) {
+                for (uint32_t row = 0; row < image.height; row++) {
+                    memcpy(static_cast<uint8_t *>(tensor.data()) + plane * plane_size + row * image.width,
+                           static_cast<uint8_t *>(image.planes[plane]) + row * image.stride[plane], image.width);
+                }
+            }
         }
 
         // ROI
