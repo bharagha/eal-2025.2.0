@@ -57,7 +57,7 @@ RUN userdel -r ubuntu
 
 RUN \
     apt-get update && \
-    apt-get install -y -q --no-install-recommends build-essential=\* git=\* cmake=\* pkg-config=\* meson=\* libdrm-dev=\* automake=\* libtool=\* libtbb12=\* curl=\* gpg=\* ca-certificates=\* && \
+    apt-get install -y -q --no-install-recommends build-essential=\* git=\* cmake=\* wget=\* pkg-config=\* meson=\* libdrm-dev=\* automake=\* libtool=\* libtbb12=\* curl=\* gpg=\* ca-certificates=\* && \
     rm -rf /var/lib/apt/lists/*
 
 # Intel GPU client drivers and prerequisites installation
