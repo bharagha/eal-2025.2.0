@@ -30,7 +30,7 @@ PUBLIC_MODELS_ENV := .public_models_env
 export RENDER_GROUP_ID := 1000
 
 $(VENV_DIR): requirements.txt ## Create Python venv
-	python3 -m venv $@ ;\
+	python3 -m venv $@ --system-site-packages;\
 	set +u; . ./$@/bin/activate; set -u ;\
 	python -m pip install --upgrade pip ;\
 	python -m pip install -r requirements-dev.txt
