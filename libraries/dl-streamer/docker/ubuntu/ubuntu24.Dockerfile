@@ -444,7 +444,7 @@ RUN userdel -r ubuntu
 # install prerequisites - gcc and cmake are needed to run .cpp samples
 RUN \
     apt-get update && \
-    apt-get install -y -q --no-install-recommends autoconf=\* libtool=\* libdrm-dev=\* xorg=\* xorg-dev=\* openbox=\* libx11-dev=\* libgl1-mesa-glx=\* build-essential=\* wget=\* git=\* cmake=\* pkg-config=\* meson=\* libdrm-dev=\* automake=\* libtool=\* curl=\* gpg=\* ca-certificates=\* libtbb12=\* git=\* python3-venv=\* && \
+    apt-get install -y -q --no-install-recommends autoconf=\* libtool=\* libdrm-dev=\* xorg=\* xorg-dev=\* openbox=\* libx11-dev=\* libgl1=\* build-essential=\* wget=\* git=\* cmake=\* pkg-config=\* meson=\* libdrm-dev=\* automake=\* libtool=\* curl=\* gpg=\* ca-certificates=\* libtbb12=\* git=\* python3-venv=\* && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
