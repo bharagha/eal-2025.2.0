@@ -882,8 +882,8 @@ class OpenVinoNewApiImpl {
     }
 
     ov::Tensor image_rgbp_to_tensor(const Image &image) {
-        // input image has 3 planes, separately for R, G, B channels
-        // this function converts 3 planes to ov::Tensor with NCHW layout
+        // Input image has 3 planes, separately for RBG (or BGR)
+        // This function converts 3 planes to ov::Tensor with NCHW layout
         // planes must be equally spaced in memory, and have same stride
         assert(image.planes[0] && image.planes[1] && image.planes[2]);
         assert((image.planes[1] - image.planes[0]) == (image.planes[2] - image.planes[1]));
@@ -895,18 +895,6 @@ class OpenVinoNewApiImpl {
         ov::Strides stride{channels_num * plane_stride, plane_stride, image.stride[0], 1};
         ov::Tensor tensor{ov::element::u8, shape, image.planes[0], stride};
 
-        // NPU device plugin requires contigous tensors
-        if (!tensor.is_continuous()) {
-            tensor = ov::Tensor(ov::element::u8, shape);
-            const size_t plane_size = image.height * image.width;
-            for (uint32_t plane = 0; plane < channels_num; plane++) {
-                for (uint32_t row = 0; row < image.height; row++) {
-                    memcpy(static_cast<uint8_t *>(tensor.data()) + plane * plane_size + row * image.width,
-                           static_cast<uint8_t *>(image.planes[plane]) + row * image.stride[plane], image.width);
-                }
-            }
-        }
-
         // ROI
         if (image_has_roi(image)) {
             const auto &r = image.rect;
@@ -914,6 +902,16 @@ class OpenVinoNewApiImpl {
             const ov::Coordinate end{shape[0], shape[1], r.y + r.height, r.x + r.width};
             tensor = ov::Tensor(tensor, begin, end);
         }
+
+        // Allocate new tensor in host memory and COPY data if the original tensor is not contigous
+        // - NPU device plugin requires contigous tensors (explicit assert)
+        // - GPU plugin fails in certain cases with non-contigous tensors
+        if (!tensor.is_continuous()) {
+            ov::Tensor sparse_tensor(tensor);
+            tensor = ov::Tensor(ov::element::u8, sparse_tensor.get_shape());
+            sparse_tensor.copy_to(tensor);
+        }
+
         return tensor;
     }
 
