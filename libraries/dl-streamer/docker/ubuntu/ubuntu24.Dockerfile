@@ -57,66 +57,20 @@ RUN userdel -r ubuntu
 
 RUN \
     apt-get update && \
-    apt-get install -y -q --no-install-recommends build-essential=\* git=\* cmake=\* wget=\* pkg-config=\* meson=\* libdrm-dev=\* automake=\* libtool=\* libtbb12=\* curl=\* gpg=\* ca-certificates=\* && \
+    apt-get install -y -q --no-install-recommends libtbb12=\* curl=\* gpg=\* ca-certificates=\* && \
     rm -rf /var/lib/apt/lists/*
 
 # Intel GPU client drivers and prerequisites installation
-########## libva ##########
-WORKDIR /tmp/libva
-RUN git clone https://github.com/intel/libva.git . && \
-    git checkout tags/2.22.0 && \
-    ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu && \
-    make && \
-    make install && \
-    cd / && rm -rf /tmp/libva
-
-########## gmmlib ##########
-WORKDIR /tmp/gmmlib
-RUN git clone https://github.com/intel/gmmlib.git . && \
-    git checkout tags/intel-gmmlib-22.8.2 && \
-    mkdir build
-
-WORKDIR /tmp/gmmlib/build
-RUN cmake -DCMAKE_BUILD_TYPE=Release .. && \
-    make -j"$(nproc)" && \
-    make install && \
-    cd / && rm -rf /tmp/gmmlib
-
-########## media-driver ##########
-WORKDIR /tmp/media-driver
-RUN git clone https://github.com/intel/media-driver.git .
-
-WORKDIR /tmp/build_media
-RUN cmake ../media-driver && \
-    make -j"$(nproc)" && \
-    make install && \
-    cd / && rm -rf /tmp/media-driver /tmp/build_media
-
-########## neo (compute runtime) ##########
-WORKDIR /tmp/neo
-RUN wget https://github.com/intel/intel-graphics-compiler/releases/download/v2.16.0/intel-igc-core-2_2.16.0+19683_amd64.deb && \
-    wget https://github.com/intel/intel-graphics-compiler/releases/download/v2.16.0/intel-igc-opencl-2_2.16.0+19683_amd64.deb && \
-    wget https://github.com/intel/compute-runtime/releases/download/25.31.34666.3/intel-ocloc_25.31.34666.3-0_amd64.deb && \
-    wget https://github.com/intel/compute-runtime/releases/download/25.31.34666.3/intel-opencl-icd_25.31.34666.3-0_amd64.deb && \
-    wget https://github.com/intel/compute-runtime/releases/download/25.31.34666.3/libigdgmm12_22.8.1_amd64.deb && \
-    wget https://github.com/intel/compute-runtime/releases/download/25.31.34666.3/libze-intel-gpu1_25.31.34666.3-0_amd64.deb && \
-    dpkg -i *.deb || apt-get install -f -y && \
-    cd / && rm -rf /tmp/neo
-
-# Clean up build dependencies and cache
-RUN apt-get remove -y \
-    git \
-    build-essential \
-    cmake \
-    autotools-dev \
-    automake \
-    libtool \
-    pkg-config \
-    wget \
-    && apt-get autoremove -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /tmp/*
+RUN \            
+    apt update && \
+    apt install -y software-properties-common \
+    add-apt-repository ppa:kobuk-team/intel-graphics -y \
+    apt update && \
+    echo "Snapshot: 20250915T030400Z" >> /etc/apt/sources.list.d/kobuk-team-ubuntu-intel-graphics-noble.sources \
+    apt install -y libze-intel-gpu1 libze1 intel-ocloc intel-opencl-icd clinfo intel-gsc libze-intel-gpu-raytracing \
+    apt install -y intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Intel NPU drivers and prerequisites installation
 WORKDIR /tmp/npu_deps
@@ -444,68 +398,22 @@ RUN userdel -r ubuntu
 # install prerequisites - gcc and cmake are needed to run .cpp samples
 RUN \
     apt-get update && \
-    apt-get install -y -q --no-install-recommends autoconf=\* libtool=\* libdrm-dev=\* xorg=\* xorg-dev=\* openbox=\* libx11-dev=\* libgl1=\* build-essential=\* wget=\* git=\* cmake=\* pkg-config=\* meson=\* libdrm-dev=\* automake=\* libtool=\* curl=\* gpg=\* ca-certificates=\* libtbb12=\* git=\* python3-venv=\* && \
+    apt-get install -y -q --no-install-recommends curl=\* gpg=\* ca-certificates=\* libtbb12=\* git=\* python3-venv=\* && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # As clean ubuntu image is used, we need to install GPU and NPU on this image as well
 # Intel GPU client drivers and prerequisites installation
-########## libva ##########
-WORKDIR /tmp/libva
-RUN git clone https://github.com/intel/libva.git . && \
-    git checkout tags/2.22.0 && \
-    ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu && \
-    make && \
-    make install && \
-    cd / && rm -rf /tmp/libva
-
-########## gmmlib ##########
-WORKDIR /tmp/gmmlib
-RUN git clone https://github.com/intel/gmmlib.git . && \
-    git checkout tags/intel-gmmlib-22.8.2 && \
-    mkdir build
-
-WORKDIR /tmp/gmmlib/build
-RUN cmake -DCMAKE_BUILD_TYPE=Release .. && \
-    make -j"$(nproc)" && \
-    make install && \
-    cd / && rm -rf /tmp/gmmlib
-
-########## media-driver ##########
-WORKDIR /tmp/media-driver
-RUN git clone https://github.com/intel/media-driver.git .
-
-WORKDIR /tmp/build_media
-RUN cmake ../media-driver && \
-    make -j"$(nproc)" && \
-    make install && \
-    cd / && rm -rf /tmp/media-driver /tmp/build_media
-
-########## neo (compute runtime) ##########
-WORKDIR /tmp/neo
-RUN wget https://github.com/intel/intel-graphics-compiler/releases/download/v2.16.0/intel-igc-core-2_2.16.0+19683_amd64.deb && \
-    wget https://github.com/intel/intel-graphics-compiler/releases/download/v2.16.0/intel-igc-opencl-2_2.16.0+19683_amd64.deb && \
-    wget https://github.com/intel/compute-runtime/releases/download/25.31.34666.3/intel-ocloc_25.31.34666.3-0_amd64.deb && \
-    wget https://github.com/intel/compute-runtime/releases/download/25.31.34666.3/intel-opencl-icd_25.31.34666.3-0_amd64.deb && \
-    wget https://github.com/intel/compute-runtime/releases/download/25.31.34666.3/libigdgmm12_22.8.1_amd64.deb && \
-    wget https://github.com/intel/compute-runtime/releases/download/25.31.34666.3/libze-intel-gpu1_25.31.34666.3-0_amd64.deb && \
-    dpkg -i *.deb || apt-get install -f -y && \
-    cd / && rm -rf /tmp/neo
-
-# Clean up build dependencies and cache
-RUN apt-get remove -y \
-    git \
-    build-essential \
-    cmake \
-    autotools-dev \
-    automake \
-    libtool \
-    pkg-config \
-    wget \
-    && apt-get autoremove -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /tmp/*
+RUN \            
+    apt update && \
+    apt install -y software-properties-common \
+    add-apt-repository ppa:kobuk-team/intel-graphics -y \
+    apt update && \
+    echo "Snapshot: 20250915T030400Z" >> /etc/apt/sources.list.d/kobuk-team-ubuntu-intel-graphics-noble.sources \
+    apt install -y libze-intel-gpu1 libze1 intel-ocloc intel-opencl-icd clinfo intel-gsc libze-intel-gpu-raytracing \
+    apt install -y intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Intel NPU drivers and prerequisites installation
 WORKDIR /tmp/npu_deps
