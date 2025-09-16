@@ -67,6 +67,7 @@ RUN \
     add-apt-repository -y ppa:kobuk-team/intel-graphics && \
     apt update && \
     echo "Snapshot: 20250915T030400Z" >> /etc/apt/sources.list.d/kobuk-team-ubuntu-intel-graphics-noble.sources && \
+    apt update && \
     apt-get install -y --no-install-recommends \
     libze-intel-gpu1 libze1 intel-ocloc intel-opencl-icd clinfo intel-gsc libze-intel-gpu-raytracing \
     intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo && \
@@ -411,6 +412,7 @@ RUN \
     add-apt-repository -y ppa:kobuk-team/intel-graphics && \
     apt update && \
     echo "Snapshot: 20250915T030400Z" >> /etc/apt/sources.list.d/kobuk-team-ubuntu-intel-graphics-noble.sources && \
+    apt update && \
     apt-get install -y --no-install-recommends \
     libze-intel-gpu1 libze1 intel-ocloc intel-opencl-icd clinfo intel-gsc libze-intel-gpu-raytracing \
     intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo && \
