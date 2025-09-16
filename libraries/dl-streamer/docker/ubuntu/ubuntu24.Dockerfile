@@ -63,10 +63,10 @@ RUN \
 # Intel GPU client drivers and prerequisites installation
 RUN \            
     apt update && \
-    apt-get install -y --no-install-recommends software-properties-common \
-    add-apt-repository -y ppa:kobuk-team/intel-graphics \
+    apt-get install -y --no-install-recommends software-properties-common && \
+    add-apt-repository -y ppa:kobuk-team/intel-graphics && \
     apt update && \
-    echo "Snapshot: 20250915T030400Z" >> /etc/apt/sources.list.d/kobuk-team-ubuntu-intel-graphics-noble.sources \
+    echo "Snapshot: 20250915T030400Z" >> /etc/apt/sources.list.d/kobuk-team-ubuntu-intel-graphics-noble.sources && \
     apt-get install -y --no-install-recommends \
     libze-intel-gpu1 libze1 intel-ocloc intel-opencl-icd clinfo intel-gsc libze-intel-gpu-raytracing \
     intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo && \
@@ -407,16 +407,15 @@ RUN \
 # Intel GPU client drivers and prerequisites installation
 RUN \            
     apt update && \
-    apt-get install -y --no-install-recommends software-properties-common \
-    add-apt-repository -y ppa:kobuk-team/intel-graphics \
+    apt-get install -y --no-install-recommends software-properties-common && \
+    add-apt-repository -y ppa:kobuk-team/intel-graphics && \
     apt update && \
-    echo "Snapshot: 20250915T030400Z" >> /etc/apt/sources.list.d/kobuk-team-ubuntu-intel-graphics-noble.sources \
+    echo "Snapshot: 20250915T030400Z" >> /etc/apt/sources.list.d/kobuk-team-ubuntu-intel-graphics-noble.sources && \
     apt-get install -y --no-install-recommends \
     libze-intel-gpu1 libze1 intel-ocloc intel-opencl-icd clinfo intel-gsc libze-intel-gpu-raytracing \
     intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
 # Intel NPU drivers and prerequisites installation
 WORKDIR /tmp/npu_deps
 
