@@ -63,12 +63,13 @@ RUN \
 # Intel GPU client drivers and prerequisites installation
 RUN \            
     apt update && \
-    apt install -y software-properties-common \
-    add-apt-repository ppa:kobuk-team/intel-graphics -y \
+    apt-get install -y --no-install-recommends software-properties-common \
+    add-apt-repository -y ppa:kobuk-team/intel-graphics \
     apt update && \
     echo "Snapshot: 20250915T030400Z" >> /etc/apt/sources.list.d/kobuk-team-ubuntu-intel-graphics-noble.sources \
-    apt install -y libze-intel-gpu1 libze1 intel-ocloc intel-opencl-icd clinfo intel-gsc libze-intel-gpu-raytracing \
-    apt install -y intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo \
+    apt-get install -y --no-install-recommends \
+    libze-intel-gpu1 libze1 intel-ocloc intel-opencl-icd clinfo intel-gsc libze-intel-gpu-raytracing \
+    intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -406,12 +407,13 @@ RUN \
 # Intel GPU client drivers and prerequisites installation
 RUN \            
     apt update && \
-    apt install -y software-properties-common \
-    add-apt-repository ppa:kobuk-team/intel-graphics -y \
+    apt-get install -y --no-install-recommends software-properties-common \
+    add-apt-repository -y ppa:kobuk-team/intel-graphics \
     apt update && \
     echo "Snapshot: 20250915T030400Z" >> /etc/apt/sources.list.d/kobuk-team-ubuntu-intel-graphics-noble.sources \
-    apt install -y libze-intel-gpu1 libze1 intel-ocloc intel-opencl-icd clinfo intel-gsc libze-intel-gpu-raytracing \
-    apt install -y intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo \
+    apt-get install -y --no-install-recommends \
+    libze-intel-gpu1 libze1 intel-ocloc intel-opencl-icd clinfo intel-gsc libze-intel-gpu-raytracing \
+    intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
