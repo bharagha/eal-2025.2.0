@@ -811,6 +811,8 @@ gboolean gva_base_inference_set_caps(GstBaseTransform *trans, GstCaps *incaps, G
     if (!base_inference->pre_proc_type || !*base_inference->pre_proc_type) {
         if (caps_feature == SYSTEM_MEMORY_CAPS_FEATURE)
             base_inference->pre_proc_type = g_strdup("ie");
+        else if (caps_feature == D3D11_MEMORY_CAPS_FEATURE)
+            base_inference->pre_proc_type = g_strdup("d3d11");
     }
 
     // Need to acquire inference model instance

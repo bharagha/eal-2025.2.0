@@ -6,6 +6,7 @@
 
 set (TARGET_NAME "audio_inference_elements")
 
+find_package(OpenCL)
 find_package(PkgConfig REQUIRED)
 find_package(OpenVINO REQUIRED Runtime)
 
@@ -62,5 +63,18 @@ PRIVATE
     logger
     openvino::runtime
 )
+
+if (OpenCL_FOUND)
+target_include_directories(${TARGET_NAME}
+PRIVATE
+        ${OpenCL_INCLUDE_DIRS}
+)
+
+target_link_libraries(${TARGET_NAME}
+PUBLIC
+        ${OpenCL_LIBRARY}
+)
+endif()
+
 
 install(TARGETS ${TARGET_NAME} DESTINATION ${DLSTREAMER_PLUGINS_INSTALL_PATH})

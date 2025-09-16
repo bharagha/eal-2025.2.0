@@ -102,6 +102,8 @@ class BufferMapperFactory {
             return std::make_shared<dlstreamer::MemoryMapperGSTToVAAPI>(nullptr, output_context);
         case InferenceBackend::MemoryType::USM_DEVICE_POINTER:
             throw std::runtime_error("Not impemented");
+        case InferenceBackend::MemoryType::D3D11:
+            return std::make_shared<dlstreamer::BaseMemoryMapper>(nullptr, output_context);
         case InferenceBackend::MemoryType::ANY:
         default:
             break;

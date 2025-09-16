@@ -26,7 +26,7 @@ struct fourcc {
 
 namespace InferenceBackend {
 
-enum class MemoryType { ANY = 0, SYSTEM = 1, DMA_BUFFER = 2, VAAPI = 3, USM_DEVICE_POINTER = 4 };
+enum class MemoryType { ANY = 0, SYSTEM = 1, DMA_BUFFER = 2, VAAPI = 3, USM_DEVICE_POINTER = 4, D3D11 = 5 };
 
 enum FourCC {
     FOURCC_RGBP_F32 = 0x07282024,

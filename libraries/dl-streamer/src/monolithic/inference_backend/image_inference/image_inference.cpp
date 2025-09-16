@@ -70,6 +70,10 @@ ImageInference::Ptr ImageInference::createImageInferenceInstance(MemoryType inpu
         break;
     }
 
+    case MemoryType::D3D11:
+        memory_type_to_use = InferenceBackend::MemoryType::D3D11;
+        break;
+
     default:
         throw std::invalid_argument("Unsupported memory type");
     }

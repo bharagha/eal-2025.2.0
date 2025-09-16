@@ -63,6 +63,8 @@ struct fmt::formatter<InferenceBackend::ImagePreprocessorType> : formatter<strin
         case ImagePreprocessorType::VAAPI_SURFACE_SHARING:
             name = "VAAPI Surface Sharing";
             break;
+        case ImagePreprocessorType::D3D11:
+            name = "d3d11";
         }
         return formatter<string_view>::format(name, ctx);
     }
@@ -831,6 +833,7 @@ class OpenVinoNewApiImpl {
             format = FourCC::FOURCC_RGBP;
             break;
         case MemoryType::VAAPI:
+        case MemoryType::D3D11:
             format = FourCC::FOURCC_NV12;
             break;
         default:
@@ -861,6 +864,8 @@ class OpenVinoNewApiImpl {
             return {image_bgrx_to_tensor(image)};
 
         case FourCC::FOURCC_NV12:
+            if (image.type == MemoryType::D3D11)
+                return image_nv12_d3d_to_tensor(image);
             if (image.type != MemoryType::VAAPI)
                 return image_nv12_to_tensor(image);
             return image_nv12_surface_to_tensor(image);
@@ -912,6 +917,20 @@ class OpenVinoNewApiImpl {
             ov::Coordinate uv_end{uv_shape[0], (r.y + r.height) / 2, (r.x + r.width) / 2, 2};
             uv_tensor = ov::Tensor(uv_tensor, uv_begin, uv_end);
         }
+
+        return {y_tensor, uv_tensor};
+    }
+
+    std::vector<ov::Tensor> image_nv12_d3d_to_tensor(const Image &image) {
+        auto rmt_ctx = _openvino_context->remote_context<ov::intel_gpu::ocl::D3DContext>();
+        auto width = image.width;
+        auto height = image.height;
+
+        ov::AnyMap tensor_params = {{ov::intel_gpu::shared_mem_type.name(), "DX_BUFFER"},
+                                    {ov::intel_gpu::va_plane.name(), uint32_t(0)}};
+        auto y_tensor = rmt_ctx.create_tensor(ov::element::u8, {1, height, width, 1}, tensor_params);
+        tensor_params[ov::intel_gpu::va_plane.name()] = uint32_t(1);
+        auto uv_tensor = rmt_ctx.create_tensor(ov::element::u8, {1, height / 2, width / 2, 2}, tensor_params);
 
         return {y_tensor, uv_tensor};
     }
@@ -1142,7 +1161,7 @@ class OpenVinoNewApiImpl {
         GVA_DEBUG("%s", pp_type_string.c_str());
 
         // OPENCV and VAAPI pre-processors handle color coversion and scaling, input tensors in NCHW format
-        if (pp_type == ImagePreprocessorType::OPENCV || pp_type == ImagePreprocessorType::VAAPI_SYSTEM) {
+        if (pp_type == ImagePreprocessorType::OPENCV || pp_type == ImagePreprocessorType::VAAPI_SYSTEM || pp_type == ImagePreprocessorType::D3D11) {
             input.tensor().set_layout("NCHW");
         }
 
@@ -1264,11 +1283,16 @@ class OpenVinoNewApiImpl {
         }
 
         // print_input_and_outputs_info(*_model);
-        if (_openvino_context) {
+        if (_openvino_context) {     
+#if _MSC_VER
+            _compiled_model = core().compile_model(_model, _device);
+#else
             _compiled_model = core().compile_model(_model, _openvino_context->remote_context(), ov_params);
+#endif
         } else {
             _compiled_model = core().compile_model(_model, _device, ov_params);
         }
+
         GVA_INFO("Network loaded to device");
 
         auto supported_properties = _compiled_model.get_property(ov::supported_properties);
@@ -1312,6 +1336,10 @@ class OpenVinoNewApiImpl {
 
     dlstreamer::ContextPtr create_remote_context() {
         // FIXME: invert to reduce nesting
+        if (_memory_type == MemoryType::D3D11) {
+            auto d3d11_context = dlstreamer::D3D11Context::create();
+            _openvino_context = std::make_shared<dlstreamer::OpenVINOContext>(core(), _device, d3d11_context);
+        }
         if (is_device_gpu() && !is_device_multi() &&
             (_memory_type == MemoryType::VAAPI || _memory_type == MemoryType::SYSTEM)) {
             if (_app_context) {
@@ -1363,6 +1391,9 @@ OpenVINOImageInference::OpenVINOImageInference(const InferenceBackend::Inference
 
     try {
         ConfigHelper cfg_helper(config);
+        if (!context_) {
+            context_ = dlstreamer::D3D11Context::create();
+        }
         _impl = std::make_unique<OpenVinoNewApiImpl>(cfg_helper, context, callback, error_handler, memory_type);
 
         model_name = _impl->_model->get_friendly_name();

@@ -7,6 +7,7 @@
 set(TARGET_NAME "openvino_inference_backend")
 
 find_package(OpenVINO REQUIRED Runtime)
+find_package(OpenCL)
 pkg_search_module(VA va libva REQUIRED)
 
 add_library(${TARGET_NAME} OBJECT openvino.cpp openvino.hpp)
@@ -21,3 +22,15 @@ PRIVATE
     openvino::runtime
     dlstreamer_logger
 )
+
+if (OpenCL_FOUND)
+target_include_directories(${TARGET_NAME}
+PRIVATE
+        ${OpenCL_INCLUDE_DIRS}
+)
+
+target_link_libraries(${TARGET_NAME}
+PUBLIC
+        ${OpenCL_LIBRARY}
+)
+endif()

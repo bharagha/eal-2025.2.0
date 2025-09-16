@@ -6,6 +6,7 @@
 
 set (TARGET_NAME "image_inference_openvino")
 
+find_package(OpenCL)
 # FIXME: update macro below
 find_package(PkgConfig REQUIRED)
 find_package(OpenVINO REQUIRED Runtime)
@@ -45,6 +46,19 @@ PUBLIC
         logger
         dlstreamer_logger
 )
+
+if (OpenCL_FOUND)
+target_include_directories(${TARGET_NAME}
+PRIVATE
+        ${OpenCL_INCLUDE_DIRS}
+)
+
+target_link_libraries(${TARGET_NAME}
+PUBLIC
+        ${OpenCL_LIBRARY}
+)
+endif()
+
 
 if (${ENABLE_VAAPI} AND ${OpenVINO_VERSION} VERSION_GREATER_EQUAL "2023.3")
         add_definitions(-DENABLE_GPU_TILE_AFFINITY)

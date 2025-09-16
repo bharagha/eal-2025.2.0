@@ -93,7 +93,8 @@ ImagePreprocessorType ImagePreprocessorTypeFromString(const std::string &image_p
         {"vaapi-surface-sharing", ImagePreprocessorType::VAAPI_SURFACE_SHARING},
         {"va", ImagePreprocessorType::VAAPI_SYSTEM},
         {"va-surface-sharing", ImagePreprocessorType::VAAPI_SURFACE_SHARING},
-        {"opencv", ImagePreprocessorType::OPENCV}};
+        {"opencv", ImagePreprocessorType::OPENCV},
+        {"d3d11", ImagePreprocessorType::D3D11}};
 
     for (auto &elem : preprocessor_types) {
         if (image_preprocessor_name == elem.first)
@@ -258,6 +259,7 @@ bool IsPreprocSupported(ImagePreprocessorType preproc,
     case ImagePreprocessorType::VAAPI_SURFACE_SHARING:
         return !isNpu && IsModelProcSupportedForVaapiSurfaceSharing(model_input_processor_info, input_video_info);
     case ImagePreprocessorType::OPENCV:
+    case ImagePreprocessorType::D3D11:
         return true;
     case ImagePreprocessorType::AUTO:
     default:
@@ -292,6 +294,9 @@ GetPreferredImagePreproc(CapsFeature caps, const std::vector<ModelInputProcessor
 #else
         result = ImagePreprocessorType::VAAPI_SYSTEM;
 #endif
+        break;
+    case D3D11_MEMORY_CAPS_FEATURE:
+        result = ImagePreprocessorType::D3D11;
         break;
     default:
         throw std::runtime_error("Unsupported caps have been detected for image preprocessor!");
@@ -505,6 +510,8 @@ MemoryType GetMemoryType(CapsFeature caps_feature) {
     case CapsFeature::VA_SURFACE_CAPS_FEATURE:
     case CapsFeature::VA_MEMORY_CAPS_FEATURE:
         return MemoryType::VAAPI;
+    case CapsFeature::D3D11_MEMORY_CAPS_FEATURE:
+        return MemoryType::D3D11;
     case CapsFeature::ANY_CAPS_FEATURE:
     default:
         return MemoryType::ANY;
@@ -541,6 +548,9 @@ MemoryType GetMemoryType(MemoryType input_image_memory_type, ImagePreprocessorTy
         }
         break;
     }
+    case MemoryType::D3D11:
+        type = MemoryType::D3D11;
+        break;
     default:
         break;
     }
@@ -582,6 +592,9 @@ int getGPURenderDevId(GvaBaseInference *gva_base_inference) {
             }
         }
         gst_query_unref(gstQueryLcl);
+    }
+    if (gva_base_inference->caps_feature == D3D11_MEMORY_CAPS_FEATURE) {
+        return 32081;
     }
     return gpuRenderDevId;
 }
@@ -730,6 +743,8 @@ InferenceImpl::Model InferenceImpl::CreateModel(GvaBaseInference *gva_base_infer
                 ie_config[KEY_BASE][KEY_IMAGE_FORMAT] = "NV12";
             }
         }
+    } else if (memory_type == MemoryType::D3D11) { 
+        va_dpy = nullptr;
     }
 
     if (gva_base_inference->inference_region == FULL_FRAME) {

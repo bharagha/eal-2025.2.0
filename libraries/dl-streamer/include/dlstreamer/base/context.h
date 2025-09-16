@@ -105,4 +105,28 @@ class BaseContext : public Context {
     }
 };
 
+class D3D11Context;
+using D3D11ContextPtr = std::shared_ptr<D3D11Context>;
+
+class D3D11Context : public BaseContext {
+public:
+    D3D11Context() : BaseContext(MemoryType::VAAPI) {
+    }
+
+    D3D11Context(const ContextPtr &another_context) : BaseContext(MemoryType::D3D11) {
+        _parent = another_context;
+    }
+
+    static inline D3D11ContextPtr create() {
+        return std::make_shared<D3D11Context>();
+    }
+
+    static inline D3D11ContextPtr create(const ContextPtr &another_context) {
+        if (!another_context) {
+            return std::make_shared<D3D11Context>();
+        }
+        return create_from_another<D3D11Context>(another_context, MemoryType::D3D11);
+    }
+};
+
 } // namespace dlstreamer

@@ -12,6 +12,10 @@
 #include <openvino/openvino.hpp>
 #include <openvino/runtime/intel_gpu/properties.hpp>
 #include <openvino/runtime/intel_gpu/remote_properties.hpp>
+#if _MSC_VER
+#include <openvino/runtime/intel_gpu/ocl/ocl.hpp>
+#include <openvino/runtime/intel_gpu/ocl/dx.hpp>
+#endif
 
 namespace dlstreamer {
 
@@ -41,8 +45,11 @@ class OpenVINOContext : public BaseContext {
                 context_params = {{ov::intel_gpu::context_type.name(), "VA_SHARED"},
                                   {ov::intel_gpu::va_device.name(), static_cast<void *>(va_display)},
                                   {ov::intel_gpu::tile_id.name(), tile_id}};
+            } else {
+                //context_params = core.get_default_context(device).as<ov::intel_gpu::ocl::D3DContext>().get_params();
+                context_params = core.get_default_context(device).get_params();
             }
-        }
+        }   
         _remote_context = core.create_context(device, context_params);
     }
 
