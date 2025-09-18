@@ -73,6 +73,9 @@ class PipelineElementsSelector:
                 return None
 
             for search, result in pairs:
+                if search == "": # to support optional parameters
+                    return result
+
                 if VAAPI_SUFFIX_PLACEHOLDER in search or VAAPI_SUFFIX_PLACEHOLDER in result:
                     suffix = vaapi_suffix if vaapi_suffix is not None else ""
                     search = search.replace(VAAPI_SUFFIX_PLACEHOLDER, suffix)

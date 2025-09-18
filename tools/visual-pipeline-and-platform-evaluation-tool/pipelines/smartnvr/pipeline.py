@@ -168,16 +168,16 @@ class SmartNVRPipeline(GstPipeline):
                 },
                 decoder={
                     GPU_0: [
-                        ("vah264dec", "vah264dec ! video/x-raw(memory:VAMemory)"),
+                        ("vah264dec", "vah264dec ! video/x-raw\\(memory:VAMemory\\)"),
                     ],
                     GPU_N: [
                         (
                             f"varenderD{VAAPI_SUFFIX_PLACEHOLDER}h264dec",
-                            f"varenderD{VAAPI_SUFFIX_PLACEHOLDER}h264dec ! video/x-raw(memory:VAMemory)",
+                            f"varenderD{VAAPI_SUFFIX_PLACEHOLDER}h264dec ! video/x-raw\\(memory:VAMemory\\)",
                         ),
                     ],
                     OTHER: [
-                        ("decodebin", "decodebin"),
+                        ("decodebin3", "decodebin3"),
                     ],
                 },
                 postprocessing={

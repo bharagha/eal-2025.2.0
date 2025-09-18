@@ -38,8 +38,11 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
             # Input
             "filesrc "
             "  location={VIDEO_PATH} ! "
+            "qtdemux ! "
+            "h264parse ! "
             # Decoder
             "{decoder} ! "
+            "{postprocessing}" # postprocessing is optional, if present it will have a trailing " ! "
             # Detection
             "gvafpscounter starting-frame=500 ! "
             "gvadetect "
@@ -107,13 +110,36 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
                 },
                 decoder={
                     GPU_0: [
-                        ("decodebin3", "decodebin3 ! vapostproc ! video/x-raw\\(memory:VAMemory\\)"),
+                        (
+                            "vaapidecodebin",
+                            "vaapidecodebin",
+                        ),
                     ],
                     GPU_N: [
-                        ("decodebin3", "decodebin3 ! vapostproc ! video/x-raw\\(memory:VAMemory\\)"),
+                        (
+                            "vaapidecodebin",
+                            "vaapidecodebin",
+                        ),
                     ],
                     OTHER: [
                         ("decodebin3", "decodebin3"),
+                    ],
+                },
+                postprocessing={
+                    GPU_0: [
+                        (
+                            "vapostproc",
+                            "vapostproc ! video/x-raw\\(memory:VAMemory\\) ! ",
+                        ),
+                    ],
+                    GPU_N: [
+                        (
+                            f"varenderD{VAAPI_SUFFIX_PLACEHOLDER}postproc",
+                            f"varenderD{VAAPI_SUFFIX_PLACEHOLDER}postproc ! video/x-raw\\(memory:VAMemory\\) ! ",
+                        ),
+                    ],
+                    OTHER: [
+                        ("", ""), # force empty string if no postprocessing is needed
                     ],
                 },
             )
@@ -149,10 +175,11 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
             _,
             _encoder_element,
             _decoder_element,
-            _,
+            _postprocessing_element,
         ) = self._selector.select_elements(parameters, elements)
 
         # If any of the essential elements is not found, log an error and return an empty string
+        # _postprocessing_element is optional, so don't include it in the check
         if not all(
             [
                 _encoder_element,
@@ -160,11 +187,11 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
             ]
         ):
             logger.error("Could not find all necessary elements for the pipeline.")
-            logger.error(f"Encoder: {_encoder_element}, Decoder: {_decoder_element}")
+            logger.error(f"Encoder: {_encoder_element}, Decoder: {_decoder_element}, Postprocessing: {_postprocessing_element}")
             return ""
         else:
             logger.info(
-                f"Using pipeline elements - Encoder: {_encoder_element}, Decoder: {_decoder_element}"
+                f"Using pipeline elements - Encoder: {_encoder_element}, Decoder: {_decoder_element}, Postprocessing: {_postprocessing_element}"
             )
 
         # Handle object detection parameters and constants
@@ -215,6 +242,7 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
                 **parameters,
                 **constants,
                 decoder=_decoder_element,
+                postprocessing=_postprocessing_element,
                 detection_model_config=detection_model_config,
                 ie_config_parameter=ie_config_parameter,
             )
