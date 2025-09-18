@@ -177,7 +177,7 @@ class SmartNVRPipeline(GstPipeline):
                         ),
                     ],
                     OTHER: [
-                        ("decodebin3", "decodebin3"),
+                        ("decodebin", "decodebin"),
                     ],
                 },
                 postprocessing={
