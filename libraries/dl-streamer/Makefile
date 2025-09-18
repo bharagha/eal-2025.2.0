@@ -42,7 +42,6 @@ export GST_PLUGIN_FEATURE_RANK 	:= ${GST_PLUGIN_FEATURE_RANK},ximagesink:MAX
 
 .PHONY: dependencies
 dependencies:
-	@echo "ENABLE_GENAI=$(ENABLE_GENAI)"
 	cmake \
 		-B build/deps \
 		-DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
