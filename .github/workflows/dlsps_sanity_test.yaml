@@ -16,7 +16,7 @@ permissions: {}
 jobs:
   sanity:
      
-    runs-on: ubuntu-latest
+    runs-on: dlstreamer
     permissions:
       contents: read
       packages: write
