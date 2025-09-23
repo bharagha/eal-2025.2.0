@@ -10,7 +10,7 @@ on:
   pull_request:
     paths:
       - 'microservices/dlstreamer-pipeline-server/**'
-      
+  workflow_dispatch:
   workflow_call:
 permissions: {}
 jobs:
