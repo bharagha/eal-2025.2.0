@@ -3,7 +3,7 @@ run-name: "[DLSPS] PR  Sanity workflow (by @${{ github.actor }} via ${{ github.e
 on:
   push:
     branches:
-      - 'main'
+      - 'nsz-dlsps-tetss'
     paths:
       - 'microservices/dlstreamer-pipeline-server/**'
       
