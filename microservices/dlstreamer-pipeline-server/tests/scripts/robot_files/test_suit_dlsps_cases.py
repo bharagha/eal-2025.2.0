@@ -1,6 +1,6 @@
 #
 # Apache v2 license
-# Copyright (C) 2024 Intel Corporation
+# Copyright (C) 2024-2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 # 
 
@@ -34,8 +34,42 @@ class test_suit_dlsps_cases(unittest.TestCase):
         env["TEST_CASE"] = "dlsps003"
         ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/dlsps.py:test_dlsps_cases.test_dlsps", shell=True, env=env)
         return ret
-        
+    def TC_023_dlsps(self):
+        env["TEST_CASE"] = "dlsps023"
+        ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/dlsps.py:test_dlsps_cases.test_dlsps", shell=True, env=env)
+        return ret
+    
+    def TC_024_dlsps(self):
+        env["TEST_CASE"] = "dlsps024"
+        ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/dlsps.py:test_dlsps_cases.test_dlsps", shell=True, env=env)
+        return ret
+    def TC_027_dlsps(self):
+        env["TEST_CASE"] = "dlsps027"
+        ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/dlsps.py:test_dlsps_cases.test_dlsps", shell=True, env=env)
+        return ret
 
+    def TC_028_dlsps(self):
+        env["TEST_CASE"] = "dlsps028"
+        ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/dlsps.py:test_dlsps_cases.test_dlsps", shell=True, env=env)
+        return ret
+    def TC_064_dlsps(self):
+        env["TEST_CASE"] = "dlsps064"
+        ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/dlsps.py:test_dlsps_cases.test_dlsps", shell=True, env=env)
+        return ret
+    
+    def TC_065_dlsps(self):
+        env["TEST_CASE"] = "dlsps065"
+        ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/dlsps.py:test_dlsps_cases.test_dlsps", shell=True, env=env)
+        return ret
+    def TC_069_dlsps(self):
+        env["TEST_CASE"] = "dlsps069"
+        ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/dlsps.py:test_dlsps_cases.test_dlsps", shell=True, env=env)
+        return ret
+    
+    def TC_070_dlsps(self):
+        env["TEST_CASE"] = "dlsps070"
+        ret = subprocess.call("nosetests3 --nocapture -v ../functional_tests/dlsps.py:test_dlsps_cases.test_dlsps", shell=True, env=env)
+        return ret
 if __name__ == '__main__':
     """
     Entry point for executing the test suite.
