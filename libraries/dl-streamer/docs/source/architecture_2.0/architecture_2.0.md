@@ -49,6 +49,7 @@ and ③ inside block **Deep Learning Streamer Pipeline Framework**
 > (some changes/renaming may occur). It could be used for evaluation and
 > prototyping, it's not recommended for production usage yet.
 
+<!--
 :::{toctree}
 :maxdepth: 1
 
@@ -64,3 +65,4 @@ packaging
 samples_2.0
 api_ref/index
 :::
+-->

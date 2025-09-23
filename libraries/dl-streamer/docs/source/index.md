@@ -116,6 +116,7 @@ AIVID TECHVISION and others.
 > **\*** *Other names and brands may be claimed as the property of
 > others.*
 
+<!--
 :::{toctree}
 :maxdepth: 2
 :hidden:
@@ -128,3 +129,4 @@ api_ref/api_reference
 architecture_2.0/architecture_2.0
 release-notes
 :::
+-->
