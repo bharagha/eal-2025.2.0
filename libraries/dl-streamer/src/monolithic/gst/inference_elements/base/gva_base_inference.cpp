@@ -231,10 +231,11 @@ void gva_base_inference_class_init(GvaBaseInferenceClass *klass) {
 
     g_object_class_install_property(
         gobject_class, PROP_MODEL_INSTANCE_ID,
-        g_param_spec_string("model-instance-id", "Model Instance Id",
-                            "Identifier for sharing a loaded model instance between elements of the same type. Elements with the "
-                            "same model-instance-id will share all model and inference engine related properties",
-                            DEFAULT_MODEL_INSTANCE_ID, param_flags));
+        g_param_spec_string(
+            "model-instance-id", "Model Instance Id",
+            "Identifier for sharing a loaded model instance between elements of the same type. Elements with the "
+            "same model-instance-id will share all model and inference engine related properties",
+            DEFAULT_MODEL_INSTANCE_ID, param_flags));
 
     g_object_class_install_property(
         gobject_class, PROP_SCHEDULING_POLICY,
@@ -247,11 +248,12 @@ void gva_base_inference_class_init(GvaBaseInferenceClass *klass) {
 
     g_object_class_install_property(
         gobject_class, PROP_PRE_PROC_BACKEND,
-        g_param_spec_string("pre-process-backend", "Pre-processing method",
-                            "Select a pre-processing method (color conversion, resize and crop), "
-                            "one of 'ie', 'opencv', 'va', 'va-surface-sharing, 'vaapi', 'vaapi-surface-sharing'."
-                            " If not set, it will be selected automatically: 'va' for VAMemory and DMABuf, 'ie' for SYSTEM memory.",
-                            DEFAULT_PRE_PROC, param_flags));
+        g_param_spec_string(
+            "pre-process-backend", "Pre-processing method",
+            "Select a pre-processing method (color conversion, resize and crop), "
+            "one of 'ie', 'opencv', 'va', 'va-surface-sharing, 'vaapi', 'vaapi-surface-sharing'."
+            " If not set, it will be selected automatically: 'va' for VAMemory and DMABuf, 'ie' for SYSTEM memory.",
+            DEFAULT_PRE_PROC, param_flags));
 
     g_object_class_install_property(
         gobject_class, PROP_MODEL_PROC,
@@ -261,9 +263,10 @@ void gva_base_inference_class_init(GvaBaseInferenceClass *klass) {
 
     g_object_class_install_property(
         gobject_class, PROP_DEVICE,
-        g_param_spec_string("device", "Device",
-                            "Target device for inference. Please see OpenVINO™ Toolkit documentation for list of supported devices.",
-                            DEFAULT_DEVICE, param_flags));
+        g_param_spec_string(
+            "device", "Device",
+            "Target device for inference. Please see OpenVINO™ Toolkit documentation for list of supported devices.",
+            DEFAULT_DEVICE, param_flags));
 
     g_object_class_install_property(
         gobject_class, PROP_BATCH_SIZE,
@@ -303,10 +306,11 @@ void gva_base_inference_class_init(GvaBaseInferenceClass *klass) {
 
     g_object_class_install_property(
         gobject_class, PROP_NO_BLOCK,
-        g_param_spec_boolean("no-block", "Adaptive inference skipping",
-                             "(Experimental) Option to help maintain frames per second of incoming stream. Skips inference "
-                             "on an incoming frame if all inference requests are currently processing outstanding frames",
-                             DEFAULT_NO_BLOCK, static_cast<GParamFlags>(param_flags | G_PARAM_DEPRECATED)));
+        g_param_spec_boolean(
+            "no-block", "Adaptive inference skipping",
+            "(Experimental) Option to help maintain frames per second of incoming stream. Skips inference "
+            "on an incoming frame if all inference requests are currently processing outstanding frames",
+            DEFAULT_NO_BLOCK, static_cast<GParamFlags>(param_flags | G_PARAM_DEPRECATED)));
 
     g_object_class_install_property(gobject_class, PROP_NIREQ,
                                     g_param_spec_uint("nireq", "NIReq", "Number of inference requests",
