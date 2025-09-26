@@ -11,10 +11,25 @@ from app import (
 
 class TestApp(unittest.TestCase):
     def setUp(self):
-        # Patch open for supported_models.lst to avoid FileNotFoundError
+        # Patch SupportedModelsManager.__init__ to avoid FileNotFoundError
         patcher = mock.patch(
-            "models.open",
-            mock.mock_open(read_data="model1|Model 1|source1|detection\nmodel2|Model 2|source2|classification\n"),
+            "models.SupportedModelsManager.__init__",
+            lambda self: setattr(
+                self,
+                "_models",
+                [
+                    mock.Mock(
+                        display_name="Model 1",
+                        model_type="detection",
+                        exists_on_disk=lambda: True,
+                    ),
+                    mock.Mock(
+                        display_name="Model 2",
+                        model_type="classification",
+                        exists_on_disk=lambda: True,
+                    ),
+                ],
+            ),
         )
         self.addCleanup(patcher.stop)
         patcher.start()
