@@ -11,11 +11,12 @@ class SupportedModel:
     Represents a single supported model with its metadata.
     """
 
-    def __init__(self, name, display_name, source, model_type):
+    def __init__(self, name, display_name, source, model_type, default_flag=None):
         self.name = name
         self.display_name = display_name
         self.source = source
         self.model_type = model_type
+        self.default_flag = default_flag
 
     def model_dir(self):
         """
@@ -45,12 +46,12 @@ class SupportedModelsManager:
                     if not line or line.startswith("#"):
                         continue
                     parts = line.split("|")
-                    # Each line must have exactly 4 columns
-                    if len(parts) != 4:
+                    # Each line must have exactly 5 columns
+                    if len(parts) != 5:
                         continue
-                    name, display_name, source, model_type = parts
+                    name, display_name, source, model_type, default_flag = parts
                     self._models.append(
-                        SupportedModel(name, display_name, source, model_type)
+                        SupportedModel(name, display_name, source, model_type, default_flag)
                     )
         except Exception as e:
             raise RuntimeError(

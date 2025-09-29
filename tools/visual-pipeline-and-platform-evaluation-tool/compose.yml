@@ -44,8 +44,8 @@ services:
     volumes:
       - ./models/output/:/output
     environment:
-      - MODELS_PATH=/output/
-      - MODEL_INSTALLATION=${MODEL_INSTALLATION}
+      - MODELS_PATH=/output
+      - MODEL_INSTALLATION=${MODEL_INSTALLATION:-once}
       - http_proxy=${http_proxy}
       - https_proxy=${https_proxy}
       - no_proxy=${no_proxy}

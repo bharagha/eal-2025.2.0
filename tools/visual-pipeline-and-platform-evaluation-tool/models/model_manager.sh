@@ -193,18 +193,19 @@ declare -a MODEL_NAMES
 declare -a MODEL_DISPLAY_NAMES
 declare -a MODEL_SOURCES
 declare -a MODEL_TYPES
+declare -a MODEL_DEFAULTS
 
 while IFS= read -r line || [ -n "$line" ]; do
     # Ignore empty lines
     [[ -z "$line" ]] && continue
 
     # Split line into columns
-    IFS='|' read -r name display_name source type extra <<<"$line"
+    IFS='|' read -r name display_name source type default_flag extra <<<"$line"
 
-    # Check for correct number of columns (4, no more, no less)
-    if [ -z "$name" ] || [ -z "$display_name" ] || [ -z "$source" ] || [ -z "$type" ] || [ -n "$extra" ]; then
+    # Check for correct number of columns (5, no more, no less)
+    if [ -z "$name" ] || [ -z "$display_name" ] || [ -z "$source" ] || [ -z "$type" ] || [ -z "$default_flag" ] || [ -n "$extra" ]; then
         echo "Error: Invalid line in $SUPPORTED_MODELS_FILE: '$line'"
-        echo "Each line must contain 4 columns separated by '|': name|display_name|source|type"
+        echo "Each line must contain 5 columns separated by '|': name|display_name|source|type|default_flag"
         cleanup_and_exit 5
     fi
 
@@ -213,33 +214,82 @@ while IFS= read -r line || [ -n "$line" ]; do
     MODEL_DISPLAY_NAMES+=("$display_name")
     MODEL_SOURCES+=("$source")
     MODEL_TYPES+=("$type")
+    MODEL_DEFAULTS+=("$default_flag")
 done < "$SUPPORTED_MODELS_FILE"
+
+# SORT MODELS BY MODEL_TYPE
+# 1. Find all unique MODEL_TYPES and sort them
+mapfile -t SORTED_TYPES < <(printf "%s\n" "${MODEL_TYPES[@]}" | sort -u)
+
+# 2. Reorder all model arrays according to sorted MODEL_TYPES, preserving file order within each type
+declare -a SORTED_MODEL_LINES
+declare -a SORTED_MODEL_NAMES
+declare -a SORTED_MODEL_DISPLAY_NAMES
+declare -a SORTED_MODEL_SOURCES
+declare -a SORTED_MODEL_TYPES
+
+for type in "${SORTED_TYPES[@]}"; do
+    for i in "${!MODEL_NAMES[@]}"; do
+        if [ "${MODEL_TYPES[$i]}" == "$type" ]; then
+            SORTED_MODEL_LINES+=("${MODEL_LINES[$i]}")
+            SORTED_MODEL_NAMES+=("${MODEL_NAMES[$i]}")
+            SORTED_MODEL_DISPLAY_NAMES+=("${MODEL_DISPLAY_NAMES[$i]}")
+            SORTED_MODEL_SOURCES+=("${MODEL_SOURCES[$i]}")
+            SORTED_MODEL_TYPES+=("${MODEL_TYPES[$i]}")
+        fi
+    done
+done
+
+# Overwrite original arrays with sorted ones
+MODEL_LINES=("${SORTED_MODEL_LINES[@]}")
+MODEL_NAMES=("${SORTED_MODEL_NAMES[@]}")
+MODEL_DISPLAY_NAMES=("${SORTED_MODEL_DISPLAY_NAMES[@]}")
+MODEL_SOURCES=("${SORTED_MODEL_SOURCES[@]}")
+MODEL_TYPES=("${SORTED_MODEL_TYPES[@]}")
 
 echo "Parsed supported models from $SUPPORTED_MODELS_FILE. Found ${#MODEL_NAMES[@]} models."
 
 declare -A SELECTED_MODELS
 if [ "$MODEL_INSTALLATION" == "all" ]; then
-    # Select all models for installation
+    # Select all models for installation, skip dialog
     for i in "${!MODEL_NAMES[@]}"; do
         SELECTED_MODELS["$i"]=1
     done
 else
-    # Calculate dialog width based on the longest display name
-    max_display_len=0
-    for display_name in "${MODEL_DISPLAY_NAMES[@]}"; do
-        len=${#display_name}
-        (( len > max_display_len )) && max_display_len=$len
-    done
-    dialog_width=$((max_display_len + 30))
-
-    # Build dialog checklist options, mark installed models as ON
-    CHECKLIST_ITEMS=()
+    # Preselect models that exist on disk
     for i in "${!MODEL_NAMES[@]}"; do
         model_dir="$MODELS_PATH/${MODEL_SOURCES[$i]}/${MODEL_NAMES[$i]}"
         if [ -d "$model_dir" ]; then
-            CHECKLIST_ITEMS+=("${MODEL_DISPLAY_NAMES[$i]}" "" "on")
+            SELECTED_MODELS["$i"]=1
+        fi
+    done
+    # If first run, also preselect models with 'default' in the fifth column
+    if [ ! -f "$MODELS_PATH/.models_initialized" ]; then
+        for i in "${!MODEL_NAMES[@]}"; do
+            if [ "${MODEL_DEFAULTS[$i]}" == "default" ]; then
+                SELECTED_MODELS["$i"]=1
+            fi
+        done
+    fi
+
+    # Calculate dialog width based on the longest display name and type
+    max_display_len=0
+    for display_name in "${MODEL_DISPLAY_NAMES[@]}"; do
+        (( ${#display_name} > max_display_len )) && max_display_len=${#display_name}
+    done
+    max_type_len=0
+    for type in "${MODEL_TYPES[@]}"; do
+        (( ${#type} > max_type_len )) && max_type_len=${#type}
+    done
+    dialog_width=$((max_display_len + max_type_len + 30))
+
+    # Build dialog checklist options, mark preselected models as ON
+    CHECKLIST_ITEMS=()
+    for i in "${!MODEL_NAMES[@]}"; do
+        if [ "${SELECTED_MODELS[$i]}" == "1" ]; then
+            CHECKLIST_ITEMS+=("${MODEL_DISPLAY_NAMES[$i]}" "${MODEL_TYPES[$i]}" "on")
         else
-            CHECKLIST_ITEMS+=("${MODEL_DISPLAY_NAMES[$i]}" "" "off")
+            CHECKLIST_ITEMS+=("${MODEL_DISPLAY_NAMES[$i]}" "${MODEL_TYPES[$i]}" "off")
         fi
     done
 
@@ -255,20 +305,19 @@ else
         cleanup_and_exit 7
     fi
 
-    # Show dialog checklist in the center of the screen
+    # Always show dialog for interactive selection
     DIALOG_OUTPUT=$(
         dialog --checklist "Select models to install/remove:" 0 $dialog_width ${#MODEL_NAMES[@]} \
         "${CHECKLIST_ITEMS[@]}" \
         2>&1 >/dev/tty
     )
-
     dialog_exit_code=$?
+
+    clear
     if [ $dialog_exit_code -ne 0 ]; then
         echo "Dialog cancelled by user. Exiting."
         cleanup_and_exit -1
     fi
-
-    clear
 
     # Parse selected display names into array (preserve quoted strings with spaces)
     eval "SELECTED_DISPLAY_NAMES=($DIALOG_OUTPUT)"
@@ -284,7 +333,9 @@ else
     done
     echo "Selected models: ${CLEANED_SELECTED_DISPLAY_NAMES[*]}"
 
-    # Map display names to model names, sources, types
+    # Reset SELECTED_MODELS and set according to dialog selection
+    unset SELECTED_MODELS
+    declare -A SELECTED_MODELS
     for i in "${!MODEL_DISPLAY_NAMES[@]}"; do
         for selected_clean in "${CLEANED_SELECTED_DISPLAY_NAMES[@]}"; do
             if [ "${MODEL_DISPLAY_NAMES[$i]}" == "$selected_clean" ]; then
