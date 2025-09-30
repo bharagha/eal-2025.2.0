@@ -1,5 +1,6 @@
 ch_PP-OCRv4_rec_infer|PaddleOCR (FP32)|public|classification|default
 efficientnet-b0_INT8|EfficientNet B0 (INT8)|pipeline-zoo-models|classification|default
+human-pose-estimation-0001|Human Pose Estimation 0001 (FP16)|omz|classification|optional
 mobilenet-v2-pytorch|MobileNet V2 PyTorch (FP16)|omz|classification|optional
 resnet-50-tf_INT8|ResNet-50 TF (INT8)|pipeline-zoo-models|classification|default
 ssdlite_mobilenet_v2_INT8|SSDLite MobileNet V2 (INT8)|pipeline-zoo-models|detection|default
