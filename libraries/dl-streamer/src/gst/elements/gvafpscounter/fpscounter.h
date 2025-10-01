@@ -49,6 +49,12 @@ class IterativeFpsCounter : public FpsCounter {
     std::map<std::string, std::vector<double>> latencies;
     std::vector<double> total_frame_intervals;
     std::vector<double> total_latencies;
+  // per-interval debugging info for latency
+  std::map<std::string, double> interval_first_timecode_ms;
+  std::map<std::string, double> interval_last_timecode_ms;
+  std::map<std::string, double> interval_first_now_ms;
+  std::map<std::string, double> interval_last_now_ms;
+  std::map<std::string, unsigned> interval_missing_timecode_count;
     std::mutex mutex;
     bool eos_result_reported;
     bool print_std_dev;

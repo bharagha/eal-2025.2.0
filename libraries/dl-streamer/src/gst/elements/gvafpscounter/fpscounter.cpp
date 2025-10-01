@@ -46,14 +46,23 @@ bool IterativeFpsCounter::NewFrame(const std::string &element_name, FILE *output
         if (buffer) {
             tc_meta = gst_buffer_get_video_time_code_meta(buffer);
         }
+        double now_millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
         if (tc_meta) {
             GstVideoTimeCode *vtc = gst_video_time_code_copy(&tc_meta->tc);
             GDateTime *frame_date_time = gst_video_time_code_to_date_time(vtc);
             double frame_date_time_millis = g_date_time_get_microsecond(frame_date_time) * MICRO_TO_MILLI;
             frame_date_time_millis += g_date_time_to_unix(frame_date_time) * SECOND_TO_MILLI;
-            double now_millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+            // push latency
             latencies[element_name].push_back(now_millis - frame_date_time_millis);
+            // per-interval first/last timecode and now
+            if (interval_first_timecode_ms.find(element_name) == interval_first_timecode_ms.end())
+                interval_first_timecode_ms[element_name] = frame_date_time_millis;
+            interval_last_timecode_ms[element_name] = frame_date_time_millis;
+            if (interval_first_now_ms.find(element_name) == interval_first_now_ms.end())
+                interval_first_now_ms[element_name] = now_millis;
+            interval_last_now_ms[element_name] = now_millis;
         } else {
+            interval_missing_timecode_count[element_name]++;
             print_latency = false;
         }
     }
@@ -231,9 +240,28 @@ void IterativeFpsCounter::PrintFPS(FILE *output, double sec, bool eos) {
         // clear vector for the next iteration of displaying standard deviation
         total_latencies.clear();
 
-        // clear per-stream latency buffers
+        // print per-interval timecode debug info
+        for (auto &num_frame : num_frames) {
+            const auto &name = num_frame.first;
+            double first_tc = interval_first_timecode_ms.count(name) ? interval_first_timecode_ms[name] : 0.0;
+            double last_tc = interval_last_timecode_ms.count(name) ? interval_last_timecode_ms[name] : 0.0;
+            double first_now = interval_first_now_ms.count(name) ? interval_first_now_ms[name] : 0.0;
+            double last_now = interval_last_now_ms.count(name) ? interval_last_now_ms[name] : 0.0;
+            unsigned missing = interval_missing_timecode_count.count(name) ? interval_missing_timecode_count[name] : 0;
+            double delta_tc = last_tc - first_tc;
+            double delta_now = last_now - first_now;
+            fprintf(output, "\nTimecode interval for %s: first_tc=%.0fms last_tc=%.0fms delta_tc=%.0fms | first_now=%.0fms last_now=%.0fms delta_now=%.0fms missing_tc=%u",
+                    name.c_str(), first_tc, last_tc, delta_tc, first_now, last_now, delta_now, missing);
+        }
+
+        // clear per-stream latency buffers and interval debug maps
         for (auto &num_frame : num_frames) {
             latencies[num_frame.first].clear();
+            interval_first_timecode_ms.erase(num_frame.first);
+            interval_last_timecode_ms.erase(num_frame.first);
+            interval_first_now_ms.erase(num_frame.first);
+            interval_last_now_ms.erase(num_frame.first);
+            interval_missing_timecode_count.erase(num_frame.first);
         }
     }
     fprintf(output, "\n");
