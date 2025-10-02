@@ -926,13 +926,18 @@ class OpenVinoNewApiImpl {
         auto width = image.width;
         auto height = image.height;
 
-        ov::AnyMap tensor_params = {{ov::intel_gpu::shared_mem_type.name(), "DX_BUFFER"},
-                                    {ov::intel_gpu::va_plane.name(), uint32_t(0)}};
-        auto y_tensor = rmt_ctx.create_tensor(ov::element::u8, {1, height, width, 1}, tensor_params);
-        tensor_params[ov::intel_gpu::va_plane.name()] = uint32_t(1);
-        auto uv_tensor = rmt_ctx.create_tensor(ov::element::u8, {1, height / 2, width / 2, 2}, tensor_params);
+        //ov::AnyMap tensor_params = {{ov::intel_gpu::shared_mem_type.name(), "DX_BUFFER"},
+        //                            {ov::intel_gpu::va_plane.name(), uint32_t(0)}};
+        
+        //ov::AnyMap tensor_params = {{ov::intel_gpu::shared_mem_type.name(), "VA_SURFACE"},
+        //                            {ov::intel_gpu::dev_object_handle.name(), "d3d11"},
+        //                            {ov::intel_gpu::va_plane.name(), uint32_t(0)}};
 
-        return {y_tensor, uv_tensor};
+        auto param_input= _model->get_parameters().at(0);
+
+        auto tensor = rmt_ctx.create_tensor(param_input->get_element_type(), param_input->get_shape());
+    
+        return {tensor};
     }
 
     std::vector<ov::Tensor> image_nv12_surface_to_tensor(const Image &image) {
@@ -1026,6 +1031,14 @@ class OpenVinoNewApiImpl {
 
         auto ppp = ov::preprocess::PrePostProcessor(_model);
         configure_model_inputs(config, ppp);
+/*
+        ppp.input().tensor().set_element_type(ov::element::u8)
+                            .set_color_format(ov::preprocess::ColorFormat::NV12_TWO_PLANES, {"y", "uv"})
+                            .set_memory_type(ov::intel_gpu::memory_type::surface);
+        ppp.input().preprocess().convert_color(ov::preprocess::ColorFormat::BGR);
+        ppp.input().model().set_layout("NCHW");
+*/
+
         _model = ppp.build();
 
         // dynamic shapes may have height=0 and width=0 after IE preprocessing
@@ -1387,9 +1400,9 @@ OpenVINOImageInference::OpenVINOImageInference(const InferenceBackend::Inference
 
     try {
         ConfigHelper cfg_helper(config);
-        if (!context_) {
-            context_ = dlstreamer::D3D11Context::create();
-        }
+        //if (!context_) {
+        //    context_ = dlstreamer::D3D11Context::create();
+        //}
         _impl = std::make_unique<OpenVinoNewApiImpl>(cfg_helper, context, callback, error_handler, memory_type);
 
         model_name = _impl->_model->get_friendly_name();
@@ -1410,7 +1423,8 @@ OpenVINOImageInference::OpenVINOImageInference(const InferenceBackend::Inference
 
         // FIXME: why VAAPI ?
         if (pp_type == InferenceBackend::ImagePreprocessorType::OPENCV ||
-            pp_type == InferenceBackend::ImagePreprocessorType::VAAPI_SYSTEM) {
+            pp_type == InferenceBackend::ImagePreprocessorType::VAAPI_SYSTEM) {//||
+            //pp_type == InferenceBackend::ImagePreprocessorType::D3D11) {
             std::string pp_type_string = fmt::format("creating pre-processor, type: {}", pp_type);
             GVA_INFO("%s", pp_type_string.c_str());
             pre_processor.reset(InferenceBackend::ImagePreprocessor::Create(pp_type, custom_preproc_lib));

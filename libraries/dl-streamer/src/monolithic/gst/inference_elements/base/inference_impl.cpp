@@ -297,6 +297,7 @@ GetPreferredImagePreproc(CapsFeature caps, const std::vector<ModelInputProcessor
         break;
     case D3D11_MEMORY_CAPS_FEATURE:
         result = ImagePreprocessorType::D3D11;
+        //result = ImagePreprocessorType::IE;
         break;
     default:
         throw std::runtime_error("Unsupported caps have been detected for image preprocessor!");
