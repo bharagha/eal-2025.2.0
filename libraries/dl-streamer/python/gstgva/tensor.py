@@ -456,14 +456,6 @@ class Tensor:
             tensor["type"] = "classification_result"
             tensor["confidence"] = result_confidence
 
-            # To uncomment after update GStreamer to 1.27
-            # cls_descriptor_mtd = next(
-            #     mtd.iter_direct_related(
-            #         GstAnalytics.RelTypes.RELATE_TO, GstAnalytics.ClsMtd
-            #     ),
-            #     None,
-            # )
-
             cls_descriptor_mtd = None
             for cls_descriptor_mtd in mtd.meta:
                 if (

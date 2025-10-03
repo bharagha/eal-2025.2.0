@@ -1145,25 +1145,6 @@ GstFlowReturn InferenceImpl::TransformFrameIp(GvaBaseInference *gva_base_inferen
         case ROI_LIST: {
             /* iterates through buffer's meta and pushes it in vector if inference needed. */
             gpointer state = NULL;
-            // GMutexLockGuard guard(&gva_base_inference->meta_mutex);
-            // GstAnalyticsRelationMeta *relation_meta = gst_buffer_get_analytics_relation_meta(buffer);
-
-            // GstAnalyticsODMtd od_meta;
-            // while (gst_analytics_relation_meta_iterate(relation_meta, &state, gst_analytics_od_mtd_get_mtd_type(),
-            //                                            &od_meta)) {
-            //     GstVideoRegionOfInterestMeta *roi = gst_buffer_get_video_region_of_interest_meta_id(buffer, od_meta.id);
-            //     if (!roi) {
-            //         throw std::runtime_error("InferenceImpl::TransformFrameIp: Failed to get video region of interest "
-            //                                  "meta for object detection metadata");
-            //     }
-
-            //     if (!gva_base_inference->is_roi_inference_needed ||
-            //         gva_base_inference->is_roi_inference_needed(gva_base_inference, gva_base_inference->frame_num,
-            //                                                     buffer, roi)) {
-            //         metas.push_back(*roi);
-            //     }
-            // }
-
             GstVideoRegionOfInterestMeta *meta = NULL;
             while ((meta = GST_VIDEO_REGION_OF_INTEREST_META_ITERATE(buffer, &state))) {
                 if (!gva_base_inference->is_roi_inference_needed ||

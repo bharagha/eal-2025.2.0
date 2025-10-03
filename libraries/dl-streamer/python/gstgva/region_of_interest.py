@@ -57,13 +57,6 @@ class RegionOfInterest(object):
                         self._detection = tensor
                 param = param.contents.next
 
-        # To uncomment after update GStreamer to 1.27
-        # for rlt_mtd in od_meta.iter_direct_related(GstAnalytics.RelTypes.CONTAIN):
-        #     tensor_structure = Tensor.convert_to_tensor(rlt_mtd)
-        #     if tensor_structure is not None:
-        #         tensor = Tensor(tensor_structure)
-        #         self._tensors.append(tensor)
-
         for rlt_mtd in od_meta.meta:
             if rlt_mtd.id == od_meta.id:
                 continue
@@ -143,19 +136,6 @@ class RegionOfInterest(object):
     ## @brief Get object id using analytics tracking metadata
     # @return object id as an int, None if failed to get
     def object_id(self) -> int | None:
-        # To uncomment after update GStreamer to 1.27
-        # for trk_mtd in self.__od_meta.iter_direct_related(
-        #     GstAnalytics.RelTypes.ANY, GstAnalytics.TrackingMtd
-        # ):
-        #     success, tracking_id, _, _, _ = trk_mtd.get_info()
-
-        #     if not success:
-        #         raise RuntimeError(
-        #             "RegionOfInterest:object_id: Failed to get tracking info from analytics metadata"
-        #         )
-
-        #     return tracking_id
-
         for trk_mtd in self.__od_meta.meta:
             if (
                 trk_mtd.id == self.__od_meta.id
@@ -200,17 +180,6 @@ class RegionOfInterest(object):
                 libgstvideo.gst_video_region_of_interest_meta_add_param(
                     self.meta(), tensor_structure
                 )
-
-        # To uncomment after update GStreamer to 1.27
-        # for trk_mtd in self.__od_meta.iter_direct_related(
-        #     GstAnalytics.RelTypes.ANY, GstAnalytics.TrackingMtd
-        # ):
-        #     if not self.__od_meta.meta.set_relation(
-        #         GstAnalytics.RelTypes.NONE, self.__od_meta.id, trk_mtd.id
-        #     ):
-        #         raise RuntimeError(
-        #             "RegionOfInterest:set_object_id: Failed to remove existing relation to tracking metadata"
-        #         )
 
         for trk_mtd in self.__od_meta.meta:
             if (
@@ -283,14 +252,6 @@ class RegionOfInterest(object):
     def label_id(self) -> int:
         label_quark = self.__od_meta.get_obj_type()
 
-        # To uncomment after update GStreamer to 1.27
-        # cls_descriptor_mtd = next(
-        #     self.__od_meta.iter_direct_related(
-        #         GstAnalytics.RelTypes.RELATE_TO, GstAnalytics.ClsMtd
-        #     ),
-        #     None,
-        # )
-
         cls_descriptor_mtd = None
         for cls_descriptor_mtd in self.__od_meta.meta:
             if (
@@ -362,16 +323,6 @@ class RegionOfInterest(object):
     ## @brief Retrieves the parent object detection ID for this region of interest.
     # @return The ID of the parent object detection metadata if found, None otherwise.
     def parent_id(self) -> int | None:
-        # To uncomment after update GStreamer to 1.27
-        # parent_mtd = next(
-        #     self.__od_meta.iter_direct_related(
-        #         GstAnalytics.RelTypes.IS_PART_OF, GstAnalytics.ODMtd
-        #     ),
-        #     None,
-        # )
-
-        # return parent_mtd.id if parent_mtd else None
-
         for rlt_mtd in self.__od_meta.meta:
             if rlt_mtd.id == self.__od_meta.id or type(rlt_mtd) != GstAnalytics.ODMtd:
                 continue
@@ -395,8 +346,6 @@ class RegionOfInterest(object):
         if relation_meta is None:
             return
 
-        # Switch after update GStreamer to 1.27
-        # for od_mtd in relation_meta.iter_on_type(GstAnalytics.ODMtd):
         for od_mtd in relation_meta:
             if type(od_mtd) != GstAnalytics.ODMtd:
                 continue
