@@ -21,6 +21,7 @@ type ConversationProps = {
 const Conversation = ({ title }: ConversationProps) => {
 
   const [prompt, setPrompt] = useState<string>("")
+  const [hasLLMResponse, setHasLLMResponse] = useState<boolean>(false)
   const promptInputRef = useRef<HTMLTextAreaElement>(null)
   const [fileUploadOpened, { open: openFileUpload, close: closeFileUpload }] = useDisclosure(false);
 
@@ -43,6 +44,14 @@ const Conversation = ({ title }: ConversationProps) => {
   useEffect(() => {
     dispatch(fetchModelName(undefined));
   }, [dispatch]);
+
+  // Check if we have any LLM responses to show model name
+  useEffect(() => {
+    if (selectedConversation && selectedConversation.Messages.length > 0 &&
+      selectedConversation.Messages.some(msg => msg.role === MessageRole.Assistant)) {
+      setHasLLMResponse(true);
+    }
+  }, [selectedConversation?.Messages]);
 
 
   const handleSubmit = () => {
@@ -134,7 +143,7 @@ const Conversation = ({ title }: ConversationProps) => {
               <ConversationMessage key={`_ai`} date={Date.now()} human={false} message={onGoingResults[selectedConversationId]} />
             )}
 
-            {selectedConversation && selectedConversation?.Messages.length > 0 && (
+            {hasLLMResponse && (
               <div style={{textAlign: 'right', paddingTop: '12px'}}>
                 <Anchor href={LLM_MODEL_URL} target="_blank" size="xs" style={{textDecoration: 'underline'}}>
                   {modelName}
