@@ -29,4 +29,5 @@ export interface ConversationReducer {
   selectedConversationId: string;
   conversations: Conversation[];
   onGoingResults: { [conversationId: string]: string };
+  modelName: string;
 }

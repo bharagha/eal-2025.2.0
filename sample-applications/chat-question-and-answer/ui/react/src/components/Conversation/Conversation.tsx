@@ -3,9 +3,9 @@
 
 import { KeyboardEventHandler, SyntheticEvent, useEffect, useRef, useState } from 'react'
 import styleClasses from "./conversation.module.scss"
-import { ActionIcon, Group, Textarea, Title, rem } from '@mantine/core'
+import { ActionIcon, Group, Textarea, Title, rem, Anchor } from '@mantine/core'
 import { IconArrowRight, IconFilePlus, IconMessagePlus } from '@tabler/icons-react'
-import { conversationSelector, doConversation, newConversation } from '../../redux/Conversation/ConversationSlice'
+import { conversationSelector, doConversation, newConversation, fetchModelName } from '../../redux/Conversation/ConversationSlice'
 import { ConversationMessage } from '../Message/conversationMessage'
 import { useAppDispatch, useAppSelector } from '../../redux/store'
 import { Message, MessageRole } from '../../redux/Conversation/Conversation'
@@ -24,9 +24,11 @@ const Conversation = ({ title }: ConversationProps) => {
   const promptInputRef = useRef<HTMLTextAreaElement>(null)
   const [fileUploadOpened, { open: openFileUpload, close: closeFileUpload }] = useDisclosure(false);
 
-  const { conversations, onGoingResults, selectedConversationId } = useAppSelector(conversationSelector)
+  const { conversations, onGoingResults, selectedConversationId, modelName } = useAppSelector(conversationSelector)
   const dispatch = useAppDispatch();
   const selectedConversation = conversations.find(x=>x.conversationId===selectedConversationId)
+
+  const LLM_MODEL_URL = `https://huggingface.co/${modelName}`;
 
   const scrollViewport = useRef<HTMLDivElement>(null)
 
@@ -36,6 +38,11 @@ const Conversation = ({ title }: ConversationProps) => {
     role: MessageRole.System,
     content: "You are helpful assistant",
   };
+
+    // Fetch model name
+  useEffect(() => {
+    dispatch(fetchModelName(undefined));
+  }, [dispatch]);
 
 
   const handleSubmit = () => {
@@ -58,7 +65,7 @@ const Conversation = ({ title }: ConversationProps) => {
       conversationId: selectedConversationId,
       userPrompt,
       messages,
-      model: "meta-llama/Meta-Llama-3-8B-Instruct",
+      model: modelName,
     })
     setPrompt("")
   }
@@ -79,7 +86,6 @@ const Conversation = ({ title }: ConversationProps) => {
       }, 1)
     }
   }
-
 
 
   const handleNewConversation = () => {
@@ -127,6 +133,14 @@ const Conversation = ({ title }: ConversationProps) => {
             {onGoingResults?.[selectedConversationId] && (
               <ConversationMessage key={`_ai`} date={Date.now()} human={false} message={onGoingResults[selectedConversationId]} />
             )}
+
+            {selectedConversation && selectedConversation?.Messages.length > 0 && (
+              <div style={{textAlign: 'right', paddingTop: '12px'}}>
+                <Anchor href={LLM_MODEL_URL} target="_blank" size="xs" style={{textDecoration: 'underline'}}>
+                  {modelName}
+                </Anchor>
+              </div>
+            )}
           </div>
 
           <div className={styleClasses.conversationActions}>
@@ -144,7 +158,6 @@ const Conversation = ({ title }: ConversationProps) => {
                   <IconArrowRight style={{ width: rem(18), height: rem(18) }} stroke={1.5} />
                 </ActionIcon>
               }
-            // {...props}
             />
           </div>
         </div>

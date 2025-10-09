@@ -9,13 +9,14 @@ import { getCurrentTimeStamp, uuidv4 } from "../../common/util";
 import { createAsyncThunkWrapper } from "../thunkUtil";
 import client from "../../common/client";
 import { notifications } from "@mantine/notifications";
-import { CHAT_QNA_URL, DATA_PREP_URL } from "../../config";
+import { CHAT_QNA_URL, DATA_PREP_URL, MODEL_URL } from "../../config";
 
 
 const initialState: ConversationReducer = {
   conversations: [],
   selectedConversationId: "",
   onGoingResults: {},
+  modelName: "...",
 };
 
 export const ConversationSlice = createSlice({
@@ -82,8 +83,23 @@ export const ConversationSlice = createSlice({
         message: "Submit Failed",
       });
     });
+    builder.addCase(fetchModelName.fulfilled, (state, action) => {
+      state.modelName = action.payload;
+    });
+    builder.addCase(fetchModelName.rejected, (state) => {
+      state.modelName = "Unknown Model";
+    });
   },
 });
+
+export const fetchModelName = createAsyncThunkWrapper(
+  "conversation/fetchModelName",
+  async (_, {}) => {
+    const response = await client.get(MODEL_URL);
+    console.log("Fetched model name:", response);
+    return response.data.llm_model || "Unknown Model";
+  },
+);
 
 export const submitDataSourceURL = createAsyncThunkWrapper(
   "conversation/submitDataSourceURL",
