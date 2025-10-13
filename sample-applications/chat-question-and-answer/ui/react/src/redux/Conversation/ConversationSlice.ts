@@ -9,7 +9,7 @@ import { getCurrentTimeStamp, uuidv4 } from "../../common/util";
 import { createAsyncThunkWrapper } from "../thunkUtil";
 import client from "../../common/client";
 import { notifications } from "@mantine/notifications";
-import { CHAT_QNA_URL, DATA_PREP_URL, MODEL_URL } from "../../config";
+import { CHAT_QNA_URL, DATA_PREP_URL, LINK_PREP_URL, MODEL_URL } from "../../config";
 
 
 const initialState: ConversationReducer = {
@@ -118,9 +118,7 @@ export const fetchModelName = createAsyncThunkWrapper(
 export const submitDataSourceURL = createAsyncThunkWrapper(
   "conversation/submitDataSourceURL",
   async ({ link_list }: { link_list: string[] }, {}) => {
-    const body = new FormData();
-    body.append("link_list", JSON.stringify(link_list));
-    const response = await client.post(DATA_PREP_URL, body);
+    const response = await client.post(LINK_PREP_URL, link_list);
     return response.data;
   },
 );

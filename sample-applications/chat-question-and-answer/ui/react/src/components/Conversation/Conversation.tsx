@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from '../../redux/store'
 import { Message, MessageRole } from '../../redux/Conversation/Conversation'
 import { getCurrentTimeStamp } from '../../common/util'
 import { useDisclosure } from '@mantine/hooks'
-import DataSource from './DataSource'
+import DataSource from '../Drawer/DataSource'
 import { ConversationSideBar } from './ConversationSideBar'
 
 type ConversationProps = {
