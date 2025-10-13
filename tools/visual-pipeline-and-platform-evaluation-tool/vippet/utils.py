@@ -215,7 +215,7 @@ def get_model_path_and_proc(model_name: str) -> tuple[str, str]:
         ),
     }
     if model_name not in model_map:
-        raise ValueError("Unrecognized Object Classification Model")
+        raise ValueError("Unrecognized model name")
     return model_map[model_name]
 
 
