@@ -1,5 +1,6 @@
 {
     "config": {
+        "sync_fps_on_new_pipeline": true,
         "pipelines": [
             {
                 "name": "pallet_defect_detection",

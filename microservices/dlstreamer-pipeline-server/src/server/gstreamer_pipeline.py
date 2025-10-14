@@ -293,6 +293,16 @@ class GStreamerPipeline(Pipeline):
         if not self.state.stopped() and self.start_time is not None:
             self._avg_fps = self.frame_count / (time.time() - self.start_time)
 
+    def reset_fps_counters(self):
+        """Reset FPS counters to synchronize with other pipelines"""
+        if not self.state.stopped():
+            self.frame_count = 0
+            # Only reset start_time if pipeline is actually RUNNING
+            if self.state == Pipeline.State.RUNNING:
+                self.start_time = time.time()
+            self._avg_fps = 0
+            self._logger.debug("FPS counters reset for pipeline {} (state: {})".format(self.identifier, self.state))
+
     def _get_element_property(self, element, key):
         if isinstance(element, str):
             return (element, key, None)
@@ -615,7 +625,7 @@ class GStreamerPipeline(Pipeline):
                     self.config["prepare-pads"](self.pipeline)
 
                 self.pipeline.set_state(Gst.State.PLAYING)
-                self.start_time = time.time()
+                # start_time will be set when pipeline state becomes RUNNING in bus_call()
             except Exception as error:
                 self._logger.error("Error on Pipeline {id}: {err}".format(
                     id=self.identifier, err=error))

@@ -452,6 +452,9 @@ class PipelineServerManager:
         self.server_running = False
         self.pipeline_path = os.path.join(self.pipeline_root, self.pipeline_name)
         self.gencam_serial_availability = dict()   # anytime, allow only 1 gencam serial to be used
+        
+        # Configuration option to enable synchronized FPS reset across all pipelines
+        self.sync_fps_on_new_pipeline = self.app_config.get('sync_fps_on_new_pipeline', True)
 
         if not os.path.isdir(self.pipeline_path):
             os.makedirs(self.pipeline_path)
@@ -555,6 +558,21 @@ class PipelineServerManager:
         """GET /pipelines/{instance_id}/status"""
         return self.pserv.pipeline_manager.get_instance_status(instance_id)
 
+    def _reset_all_pipeline_fps_counters(self):
+        """Reset FPS counters for all running pipeline instances to synchronize measurements"""
+        self.log.info("Resetting FPS counters for all running pipelines due to new pipeline start")
+        reset_count = 0
+        for pipeline in self._PIPELINES.values():
+            for pdata in pipeline._INSTANCES.values():
+                pinstance = pdata["obj"]
+                if pinstance.is_running and hasattr(pinstance, 'pipeline') and pinstance.pipeline:
+                    # Access the underlying GStreamer pipeline and reset its FPS counters
+                    gst_pipeline = pinstance.pipeline
+                    if hasattr(gst_pipeline, 'reset_fps_counters'):
+                        gst_pipeline.reset_fps_counters()
+                        reset_count += 1
+        self.log.info("Reset FPS counters for {} running pipeline instances".format(reset_count))
+
     def stop_instance(self, 
                       instance_id: str)->str:
         """DELETE /pipelines/{instance_id}"""
@@ -607,6 +625,10 @@ class PipelineServerManager:
                     MODEL_IDS_TO_SET[gvaelement].append(minst_id)
             
         #TODO if model-instance-id comes from a REST request/payload
+        
+        # Reset FPS counters for all existing pipelines before starting new one (if enabled)
+        if self.sync_fps_on_new_pipeline:
+            self._reset_all_pipeline_fps_counters()
         
         instance_id = pipeline.start(request)
         self.log.info("Pipeline instance_id: {}".format(instance_id))
