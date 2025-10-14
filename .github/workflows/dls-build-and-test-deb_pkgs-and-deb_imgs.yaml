@@ -49,7 +49,8 @@ jobs:
         cd edge-ai-libraries-repo
         git submodule update --init libraries/dl-streamer/thirdparty/spdlog
         git submodule update --init libraries/dl-streamer/dl-streamer-tests
-
+        ls libraries/dl-streamer
+        ls libraries/dl-streamer/dl-streamer-tests
     # ======================================================== BUILDING PART ========================================================
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 #3.10.0
