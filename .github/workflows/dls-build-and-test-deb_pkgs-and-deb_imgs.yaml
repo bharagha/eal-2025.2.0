@@ -48,6 +48,7 @@ jobs:
       run: |
         cd edge-ai-libraries-repo
         git submodule update --init libraries/dl-streamer/thirdparty/spdlog
+        git submodule update --init libraries/dl-streamer/dl-streamer-tests
 
     # ======================================================== BUILDING PART ========================================================
     - name: Set up Docker Buildx
@@ -188,7 +189,7 @@ jobs:
       env:
         TEST_CONFIGS: ${{ env.TEST_CONFIGS }}
       run: |
-        cd $DLS_REL_PATH/tests
+        cd $DLS_REL_PATH/dl-streamer-tests
         mkdir functional_tests_results
         cd functional_tests_results
         DLS_TESTS_RESULTS_PATH=$PWD
