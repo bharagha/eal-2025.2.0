@@ -273,10 +273,10 @@ class SimpleVideoStructurizationPipeline(GstPipeline):
             "VIDEO_PATH": "/tmp/dummy-video.mp4",
             "VIDEO_CODEC": "h264",
             "VIDEO_OUTPUT_PATH": "/tmp/dummy-video-output.mp4",
-            "OBJECT_DETECTION_MODEL_PATH": "/tmp/pipeline-zoo-models/yolov5m-416_INT8/FP16-INT8/yolov5m-416_INT8.xml",
-            "OBJECT_DETECTION_MODEL_PROC": "/tmp/pipeline-zoo-models/yolov5m-416_INT8/yolo-v5.json",
-            "OBJECT_CLASSIFICATION_MODEL_PATH": "/tmp/pipeline-zoo-models/resnet-50-tf_INT8/resnet-50-tf_i8.xml",
-            "OBJECT_CLASSIFICATION_MODEL_PROC": "/tmp/pipeline-zoo-models/resnet-50-tf_INT8/resnet-50-tf_i8.json",
+            "OBJECT_DETECTION_MODEL_PATH": "/models/output/public/yolov8_license_plate_detector/FP32/yolov8_license_plate_detector.xml",
+            "OBJECT_DETECTION_MODEL_PROC": "",
+            "OBJECT_CLASSIFICATION_MODEL_PATH": "/models/output/public/ch_PP-OCRv4_rec_infer/FP32/ch_PP-OCRv4_rec_infer.xml",
+            "OBJECT_CLASSIFICATION_MODEL_PROC": "",
         }
 
         # Use the full evaluate method with default parameters

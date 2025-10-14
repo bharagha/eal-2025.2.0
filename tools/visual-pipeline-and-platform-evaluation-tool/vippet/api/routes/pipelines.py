@@ -10,13 +10,14 @@ import api_schemas as schemas
 from gstpipeline import PipelineLoader
 from optimize import PipelineOptimizer
 from explore import GstInspector
-from utils import prepare_video_and_constants, download_file
+from utils import download_file, replace_file_path
 from benchmark import Benchmark
 
 TEMP_DIR = tempfile.gettempdir()
 
 router = APIRouter()
 gst_inspector = GstInspector()
+
 
 @router.get("", response_model=List[schemas.Pipeline])
 def get_pipelines():
@@ -93,36 +94,30 @@ def validate_pipeline(body: schemas.PipelineValidation):
     else:
         raise HTTPException(status_code=400, detail=message)
 
+
 @router.post("/{name}/{version}/run")
 def run_pipeline(name: str, version: str, body: schemas.PipelineRequestRun):
-    parameters = body.parameters or {}
+    # Download the pipeline recording file
+    file_name = os.path.basename(body.source.uri)
+    file_path = download_file(
+        body.source.uri,
+        file_name,
+    )
+    # Replace file path in launch string if needed
+    launch_string = replace_file_path(body.parameters.launch_string, file_path)
 
+    # Initialize pipeline object from launch string
     gst_pipeline, config = PipelineLoader.load_from_launch_string(
-        parameters["launch_string"], name=name
+        launch_string, name=name
     )
 
-    # Download the pipeline recording files if using built-in config
-    if "recording" in config:
-        download_file(
-            config["recording"]["url"],
-            config["recording"]["filename"],
-        )
-        input_video_path = os.path.join(TEMP_DIR, config["recording"]["filename"])
-    else:
-        file_name = os.path.basename(body.source.uri)
-        download_file(
-            body.source.uri,
-            file_name,
-        )
-        # Use the source URI from the request
-        input_video_path = os.path.join(TEMP_DIR, file_name)
-
-    recording_channels = 0
-    inferencing_channels = parameters.get("inferencing_channels", 1)
+    inferencing_channels = body.parameters.inferencing_channels
+    recording_channels = body.parameters.recording_channels
 
     if recording_channels + inferencing_channels == 0:
         return {"error": "At least one channel must be enabled"}
 
+    # TODO: Enable live preview when implemented
     param_grid = {"live_preview_enabled": [False]}
 
     optimizer = PipelineOptimizer(
@@ -145,48 +140,32 @@ def run_pipeline(name: str, version: str, body: schemas.PipelineRequestRun):
 
     return best_result_message
 
+
 @router.post("/{name}/{version}/benchmark")
 def benchmark_pipeline(name: str, version: str, body: schemas.PipelineRequestBenchmark):
-    dir = "smartnvr"  # This should be mapped from name/version in a real implementation
-    gst_pipeline, config = PipelineLoader.load(dir)
+    # Download the pipeline recording file
+    file_name = os.path.basename(body.source.uri)
+    file_path = download_file(
+        body.source.uri,
+        file_name,
+    )
+    # Replace file path in launch string if needed
+    launch_string = replace_file_path(body.parameters.launch_string, file_path)
 
-    # Download the pipeline recording files if using built-in config
-    if "recording" in config:
-        download_file(
-            config["recording"]["url"],
-            config["recording"]["filename"],
-        )
-        input_video_path = os.path.join(TEMP_DIR, config["recording"]["filename"])
-    else:
-        file_name = os.path.basename(body.source.uri)
-        download_file(
-            body.source.uri,
-            file_name,
-        )
-        # Use the source URI from the request
-        input_video_path = os.path.join(TEMP_DIR, file_name)
+    # Initialize pipeline object from launch string
+    gst_pipeline, config = PipelineLoader.load_from_launch_string(
+        launch_string, name=name
+    )
 
-    # Prepare parameters, ensuring input video is set
-    parameters = body.parameters or {}
-    parameters["input_video_player"] = input_video_path
-
-    try:
-        video_output_path, constants, param_grid = prepare_video_and_constants(
-            **parameters
-        )
-    except ValueError as e:
-        return {"error": str(e)}
-
-    logging.info(f"Constants: {constants}")
-    logging.info(f"param_grid: {param_grid}")
+    # Disable live preview for benchmarking
+    param_grid = {"live_preview_enabled": [False]}
 
     # Initialize the benchmark class
     bm = Benchmark(
         pipeline_cls=gst_pipeline,
-        fps_floor=parameters.get("fps_floor"),
-        rate=parameters.get("ai_stream_rate"),
+        fps_floor=body.parameters.fps_floor,
+        rate=body.parameters.ai_stream_rate,
         parameters=param_grid,
-        constants=constants,
         elements=gst_inspector.get_elements(),
     )
 
@@ -225,9 +204,11 @@ def delete_pipeline(name: str, version: str):
 def get_pipeline_status():
     return []
 
+
 @router.delete("/{instance_id}", response_model=List[schemas.PipelineInstanceStatus])
 def stop_pipeline_instance(instance_id: UUID):
     return []
+
 
 @router.get("/{instance_id}", response_model=schemas.PipelineInstanceSummary)
 def get_pipeline_summary(instance_id: UUID):

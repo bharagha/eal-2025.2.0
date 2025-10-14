@@ -33,6 +33,11 @@ class DeviceFamily(str, Enum):
     NPU = "NPU"
 
 
+class ModelCategory(str, Enum):
+    CLASSIFICATION = "classification"
+    DETECTION = "detection"
+
+
 # Define minimal models based on schema references
 class Source(BaseModel):
     type: SourceType
@@ -41,6 +46,18 @@ class Source(BaseModel):
 
 class PipelineParameters(BaseModel):
     default: Optional[Dict[str, Any]]
+
+
+class PipelineParametersRun(BaseModel):
+    inferencing_channels: int = 1
+    recording_channels: int = 0
+    launch_string: str
+
+
+class PipelineParametersBenchmark(BaseModel):
+    fps_floor: int = 30
+    ai_stream_rate: int = 100
+    launch_string: str
 
 
 class Pipeline(BaseModel):
@@ -69,14 +86,14 @@ class PipelineValidation(BaseModel):
 class PipelineRequestRun(BaseModel):
     async_: Optional[bool] = Body(default=True, alias="async")
     source: Source
-    parameters: Optional[Dict[str, Any]]
+    parameters: PipelineParametersRun
     tags: Optional[Dict[str, str]]
 
 
 class PipelineRequestBenchmark(BaseModel):
     async_: Optional[bool] = Body(default=True, alias="async")
     source: Source
-    parameters: Optional[Dict[str, Any]]
+    parameters: PipelineParametersBenchmark
     tags: Optional[Dict[str, str]]
 
 
@@ -115,7 +132,7 @@ class Device(BaseModel):
 class Model(BaseModel):
     name: str
     display_name: str
-    category: str
+    category: ModelCategory
     precision: Optional[str]
 
 
