@@ -121,7 +121,7 @@ jobs:
     - name: Run python script to get Unit Test results
       env:
         RESULTS_DIR: test-results
-      run: python3 edge-ai-libraries-repo/libraries/dl-streamer-tests/scripts/unit_test_results.py $PWD/${RESULTS_DIR}
+      run: python3 edge-ai-libraries-repo/libraries/dl-streamer/dl-streamer-tests/scripts/unit_test_results.py $PWD/${RESULTS_DIR}
 
     - name: Add test summary to job summary
       if: always ()
