@@ -36,11 +36,6 @@ class GstPipeline:
             "The evaluate method must be implemented by subclasses"
         )
 
-    def set_default_gst_launch(self, gst_launch: str) -> None:
-        raise NotImplementedError(
-            "The evaluate method must be implemented by subclasses"
-        )
-
     def diagram(self) -> Path:
         if self._diagram is None:
             raise ValueError("Diagram is not defined")
@@ -75,10 +70,6 @@ class CustomGstPipeline(GstPipeline):
         inference_channels: int,
         elements: list,
     ) -> str:
-        """
-        For custom pipelines, we return the custom GST launch string.
-        Parameters can be used to format the string if needed.
-        """
         # Remove "gst-launch-1.0 -q " prefix if present
         launch = self._launch_string.lstrip()
         if launch.startswith("gst-launch-1.0 -q "):
@@ -93,11 +84,6 @@ class CustomGstPipeline(GstPipeline):
         inference_channels: int = 1,
         elements: list = None,
     ) -> str:
-        """
-        For custom pipelines, the default is the custom launch string itself.
-        """
-        regular_channels = 1
-        inference_channels = 1
         return self.evaluate(
             constants, parameters, regular_channels, inference_channels, elements or []
         )
@@ -179,10 +165,10 @@ class PipelineLoader:
         bounding_boxes: List = None,
     ) -> Tuple[CustomGstPipeline, Dict]:
         """
-        Load a custom pipeline from a GST launch string.
+        Load a custom pipeline from a launch string.
 
         Args:
-            launch_string: The GST launch command string
+            launch_string: The launch command string
             name: Display name for the pipeline
             diagram_path: Optional path to pipeline diagram
             bounding_boxes: Optional list of bounding boxes for UI interaction
