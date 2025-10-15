@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter
 
-import api_schemas as schemas
+import api.api_schemas as schemas
 from device import DeviceDiscovery
 
 router = APIRouter()
@@ -9,8 +9,7 @@ router = APIRouter()
 
 @router.get("", response_model=List[schemas.Device])
 def get_devices():
-    device_discovery = DeviceDiscovery()
-    device_list = device_discovery.list_devices()
+    device_list = DeviceDiscovery().list_devices()
     return [
         schemas.Device(
             device_name=device.device_name,

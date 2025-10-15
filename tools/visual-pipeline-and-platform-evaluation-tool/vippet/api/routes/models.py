@@ -1,6 +1,7 @@
-import api_schemas as schemas
 from typing import List
 from fastapi import APIRouter
+
+import api.api_schemas as schemas
 from models import SupportedModelsManager
 
 router = APIRouter()

@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from uuid import UUID
 
-import api_schemas as schemas
+import api.api_schemas as schemas
 from gstpipeline import PipelineLoader
 from optimize import PipelineOptimizer
 from explore import GstInspector
