@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from '../../redux/store'
 import { submitDataSourceURL, uploadFile, fetchInitialFiles, fetchInitialLinks,
   removeFile, removeAllFiles, removeLink, removeAllLinks, 
   conversationSelector} from '../../redux/Conversation/ConversationSlice'
-import { isValidUrl } from '../../utils/util'
+import { isValidUrl, extractOriginalFilename } from '../../utils/util'
 
 type Props = {
   opened: boolean
@@ -283,19 +283,19 @@ export default function DataSource({ opened, onClose }: Props) {
                 <tbody>
                   {files.map((file: any) => (
                     <tr key={file.file_name}>
-                      <td>
+                      <td style={{ display: 'flex', justifyContent: 'center' }}>
                         <Checkbox
                           checked={selectedFiles.includes(file.file_name)}
                           onChange={(event: any) => handleSelectFile(file.file_name, event.currentTarget.checked)}
                         />
                       </td>
-                      <td>
-                        <Group gap="xs">
+                      <td style={{ textAlign: 'center' }}>
+                        <Group gap="xs" justify="center">
                           <IconFile size={16} />
-                          <Text size="sm">{file.file_name}</Text>
+                          <Text size="sm">{extractOriginalFilename(file.file_name)}</Text>
                         </Group>
                       </td>
-                      <td>
+                      <td style={{ textAlign: 'center' }}>
                         <Badge variant="light" size="sm">{file.bucket_name}</Badge>
                       </td>
                     </tr>
@@ -353,13 +353,13 @@ export default function DataSource({ opened, onClose }: Props) {
                 <tbody>
                   {links.map((link: any, index: number) => (
                     <tr key={index}>
-                      <td>
+                      <td style={{ display: 'flex', justifyContent: 'center' }}>
                         <Checkbox
                           checked={selectedLinks.includes(link)}
                           onChange={(event: any) => handleSelectLink(link, event.currentTarget.checked)}
                         />
                       </td>
-                      <td>
+                      <td style={{ textAlign: 'center' }}>
                         <Text size="sm" truncate="end">
                           {link}
                         </Text>

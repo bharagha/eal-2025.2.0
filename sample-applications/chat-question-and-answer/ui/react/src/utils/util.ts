@@ -19,3 +19,32 @@ export const isValidUrl = (url: string): boolean => {
     return false;
   }
 };
+
+/**
+ * Extracts the original filename from database naming pattern
+ * Pattern: prefix_filename_stringID.extension
+ * Example: "doc_my_file_name_abc123.pdf" -> "my_file_name.pdf"
+ */
+export const extractOriginalFilename = (dbFilename: string): string => {
+  if (!dbFilename) return dbFilename;
+
+  // 1. Extract position of last dot and extract extension
+  const lastDotIndex = dbFilename.lastIndexOf('.');
+  const extension = lastDotIndex !== -1 ? dbFilename.substring(lastDotIndex) : '';
+
+  // 2. Remove prefix (find index of 1st underscore, and truncate everything before that)
+  const firstUnderscoreIndex = dbFilename.indexOf('_');
+  if (firstUnderscoreIndex === -1) return dbFilename; // No underscore found
+
+  const withoutPrefix = dbFilename.substring(firstUnderscoreIndex + 1);
+
+  // 3. Find the index of last underscore and truncate the string after that
+  const nameWithoutExtension = lastDotIndex !== -1 ? withoutPrefix.substring(0, withoutPrefix.lastIndexOf('.')) : withoutPrefix;
+  const lastUnderscoreIndex = nameWithoutExtension.lastIndexOf('_');
+  if (lastUnderscoreIndex === -1) return dbFilename; // No second underscore found
+
+  const originalFilename = nameWithoutExtension.substring(0, lastUnderscoreIndex);
+
+  // 4. Attach with extension
+  return originalFilename + extension;
+};
