@@ -16,12 +16,13 @@ namespace dlstreamer {
 class BaseContext : public Context {
   public:
     struct key {
-        static constexpr auto va_display = "va_display"; // (VAAPI) VADisplay
-        static constexpr auto va_tile_id = "va_tile_id"; // (VAAPI) VADisplay
-        static constexpr auto cl_context = "cl_context"; // (OpenCL) cl_context
-        static constexpr auto cl_queue = "cl_queue";     // (OpenCL) cl_command_queue
-        static constexpr auto ze_context = "ze_context"; // (Level-zero) ze_context_handle_t
-        static constexpr auto ze_device = "ze_device";   // (Level-zero) ze_device_handle_t
+        static constexpr auto va_display = "va_display";       // (VAAPI) VADisplay
+        static constexpr auto va_tile_id = "va_tile_id";       // (VAAPI) VADisplay
+        static constexpr auto cl_context = "cl_context";       // (OpenCL) cl_context
+        static constexpr auto cl_queue = "cl_queue";           // (OpenCL) cl_command_queue
+        static constexpr auto ze_context = "ze_context";       // (Level-zero) ze_context_handle_t
+        static constexpr auto ze_device = "ze_device";         // (Level-zero) ze_device_handle_t
+        static constexpr auto d3d_device = "d3d_device";       // (D3D11) D3D11Device
     };
 
     BaseContext(MemoryType memory_type) : _memory_type(memory_type) {
@@ -102,30 +103,6 @@ class BaseContext : public Context {
             }
         }
         return std::make_shared<T>(ctx);
-    }
-};
-
-class D3D11Context;
-using D3D11ContextPtr = std::shared_ptr<D3D11Context>;
-
-class D3D11Context : public BaseContext {
-public:
-    D3D11Context() : BaseContext(MemoryType::VAAPI) {
-    }
-
-    D3D11Context(const ContextPtr &another_context) : BaseContext(MemoryType::D3D11) {
-        _parent = another_context;
-    }
-
-    static inline D3D11ContextPtr create() {
-        return std::make_shared<D3D11Context>();
-    }
-
-    static inline D3D11ContextPtr create(const ContextPtr &another_context) {
-        if (!another_context) {
-            return std::make_shared<D3D11Context>();
-        }
-        return create_from_another<D3D11Context>(another_context, MemoryType::D3D11);
     }
 };
 

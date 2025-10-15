@@ -7,9 +7,6 @@
 #include "gva_caps.h"
 
 CapsFeature get_caps_feature(GstCaps *caps) {
-#if _MSC_VER
-    return D3D11_MEMORY_CAPS_FEATURE;
-#endif
     for (size_t i = 0; i < gst_caps_get_size(caps); i++) {
         GstCapsFeatures *const features = gst_caps_get_features(caps, i);
         if (gst_caps_features_contains(features, DMABUF_FEATURE_STR))

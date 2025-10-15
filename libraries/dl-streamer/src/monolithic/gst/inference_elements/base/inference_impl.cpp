@@ -94,7 +94,8 @@ ImagePreprocessorType ImagePreprocessorTypeFromString(const std::string &image_p
         {"va", ImagePreprocessorType::VAAPI_SYSTEM},
         {"va-surface-sharing", ImagePreprocessorType::VAAPI_SURFACE_SHARING},
         {"opencv", ImagePreprocessorType::OPENCV},
-        {"d3d11", ImagePreprocessorType::D3D11}};
+        {"d3d11", ImagePreprocessorType::D3D11}},
+        {"d3d11-surface-sharing", ImagePreprocessorType::D3D11_SURFACE_SHARING}};
 
     for (auto &elem : preprocessor_types) {
         if (image_preprocessor_name == elem.first)
@@ -297,7 +298,6 @@ GetPreferredImagePreproc(CapsFeature caps, const std::vector<ModelInputProcessor
         break;
     case D3D11_MEMORY_CAPS_FEATURE:
         result = ImagePreprocessorType::D3D11;
-        //result = ImagePreprocessorType::IE;
         break;
     default:
         throw std::runtime_error("Unsupported caps have been detected for image preprocessor!");

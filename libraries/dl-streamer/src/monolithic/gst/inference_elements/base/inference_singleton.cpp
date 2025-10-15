@@ -113,9 +113,6 @@ void initExistingElements(std::shared_ptr<InferenceRefs> infRefs) {
 }
 
 std::string capsFeatureString(CapsFeature newCapsFeature) {
-#if _MSC_VER
-    return "D3D11Memory";
-#endif
     switch (newCapsFeature) {
     case ANY_CAPS_FEATURE:
         return "ANY";

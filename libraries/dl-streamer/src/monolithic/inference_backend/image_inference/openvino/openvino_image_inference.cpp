@@ -64,7 +64,11 @@ struct fmt::formatter<InferenceBackend::ImagePreprocessorType> : formatter<strin
             name = "VAAPI Surface Sharing";
             break;
         case ImagePreprocessorType::D3D11:
-            name = "d3d11";
+            name = "D3D11 System Memory";
+            break;
+        case ImagePreprocessorType::D3D11:
+            name = "D3D11 Surface Sharing";
+            break;
         }
         return formatter<string_view>::format(name, ctx);
     }
@@ -1345,10 +1349,10 @@ class OpenVinoNewApiImpl {
 
     dlstreamer::ContextPtr create_remote_context() {
         // FIXME: invert to reduce nesting
-        if (_memory_type == MemoryType::D3D11) {
+        /*if (_memory_type == MemoryType::D3D11) {
             auto d3d11_context = dlstreamer::D3D11Context::create();
             _openvino_context = std::make_shared<dlstreamer::OpenVINOContext>(core(), _device, d3d11_context);
-        }
+        }*/
         if (is_device_gpu() && !is_device_multi() &&
             (_memory_type == MemoryType::VAAPI || _memory_type == MemoryType::SYSTEM)) {
             if (_app_context) {
@@ -1400,9 +1404,6 @@ OpenVINOImageInference::OpenVINOImageInference(const InferenceBackend::Inference
 
     try {
         ConfigHelper cfg_helper(config);
-        //if (!context_) {
-        //    context_ = dlstreamer::D3D11Context::create();
-        //}
         _impl = std::make_unique<OpenVinoNewApiImpl>(cfg_helper, context, callback, error_handler, memory_type);
 
         model_name = _impl->_model->get_friendly_name();
@@ -1423,8 +1424,8 @@ OpenVINOImageInference::OpenVINOImageInference(const InferenceBackend::Inference
 
         // FIXME: why VAAPI ?
         if (pp_type == InferenceBackend::ImagePreprocessorType::OPENCV ||
-            pp_type == InferenceBackend::ImagePreprocessorType::VAAPI_SYSTEM) {//||
-            //pp_type == InferenceBackend::ImagePreprocessorType::D3D11) {
+            pp_type == InferenceBackend::ImagePreprocessorType::VAAPI_SYSTEM ||
+            pp_type == InferenceBackend::ImagePreprocessorType::D3D11) {
             std::string pp_type_string = fmt::format("creating pre-processor, type: {}", pp_type);
             GVA_INFO("%s", pp_type_string.c_str());
             pre_processor.reset(InferenceBackend::ImagePreprocessor::Create(pp_type, custom_preproc_lib));

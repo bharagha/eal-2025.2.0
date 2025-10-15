@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <fcntl.h>
+#include <gst/d3d11/gstd3d11device.h>
 
 using namespace InferenceBackend;
 
@@ -23,11 +24,9 @@ D3D11Context::D3D11Context(ID3D11Device* d3d11_device) : _device(d3d11_device) {
 D3D11Context::D3D11Context(dlstreamer::ContextPtr display_context)
     : _device_context_storage(display_context) {
     
-    // TODO: Fix dlstreamer context integration
-    // _device = static_cast<ID3D11Device*>(display_context->handle(dlstreamer::D3D11Context::key::d3d11_device));
+    auto gst_device = static_cast<GSTD3D11Device*>(display_context->handle(dlstreamer::D3D11Context::key::d3d11_device));
+    _device = gst_d3d11_device_get_device_handle(gst_device);
     
-    throw std::runtime_error("D3D11Context construction from dlstreamer context not yet implemented");
-
     create_config_and_contexts();
     create_supported_pixel_formats();
 }

@@ -70,12 +70,21 @@ ImageInference::Ptr ImageInference::createImageInferenceInstance(MemoryType inpu
         break;
     }
 
-    case MemoryType::D3D11:
-        memory_type_to_use = InferenceBackend::MemoryType::D3D11;
-        break;
-
+    case MemoryType::D3D11: {
+        async_mode = true;
+        case ImagePreprocessorType::D3D11:
+            memory_type_to_use = MemoryType::SYSTEM;
+            break;
+        case ImagePreprocessorType::D3D11_SURFACE_SHARING:
+            memory_type_to_use = MemoryType::D3D11;
+            throw std::runtime_error("Not implemented yet")
+            break;
+        default:
+            throw std::runtime_error("Incorrect pre-process-backend, should be d3d11 or d3d11-surface-sharing");
+    }
     default:
         throw std::invalid_argument("Unsupported memory type");
+    
     }
 
     // Create an OpenVINOImageInference instance with the determined memory type
@@ -87,6 +96,9 @@ ImageInference::Ptr ImageInference::createImageInferenceInstance(MemoryType inpu
 #ifdef ENABLE_VAAPI
         // Wrap the inference in an asynchronous handler if async mode is enabled
         result_inference = std::make_shared<ImageInferenceAsync>(config, context, std::move(ov_inference));
+#endif
+#ifdef _MSC_VER
+        result_inference = std::make_shared<ImageInferenceAsyncD3D11>(config, context, std::move(ov_inference));
 #endif
     } else {
         // Use the OpenVINO inference directly if not in async mode

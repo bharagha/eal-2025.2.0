@@ -6,6 +6,7 @@
 
 #pragma once
 #include "inference_backend/image.h"
+#include "dlstreamer/d3d11/context.h"
 
 #include <functional>
 #include <set>

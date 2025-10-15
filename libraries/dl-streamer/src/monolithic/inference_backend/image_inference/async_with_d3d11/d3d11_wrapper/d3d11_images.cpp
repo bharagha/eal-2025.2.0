@@ -153,7 +153,7 @@ D3D11Image *D3D11ImagePool::AcquireBuffer() {
 
 void D3D11ImagePool::ReleaseBuffer(D3D11Image *image) {
     if (!image)
-        throw std::runtime_error("Received VA-API image is null");
+        throw std::runtime_error("Received D3D11 image is null");
 
     image->completed = true;
     _free_image_condition_variable.notify_one();

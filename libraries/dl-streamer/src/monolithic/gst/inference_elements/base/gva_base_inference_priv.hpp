@@ -16,6 +16,8 @@
 struct GvaBaseInferencePrivate {
     // Decoder VA display, if present
     dlstreamer::ContextPtr va_display;
+    // Decoder D3D11Device, if present
+    dlstreamer::ContextPtr d3d11_device;
 
     std::unique_ptr<InferenceBackend::BufferToImageMapper> buffer_mapper;
 };

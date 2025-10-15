@@ -13,27 +13,6 @@
 
 namespace InferenceBackend {
 
-
-class D3D11Preprocessor : public ImagePreprocessor {
-    void Convert(const Image &src, Image &dst, const InputImageLayerDesc::Ptr &pre_proc_info = nullptr,
-                         const ImageTransformationParams::Ptr &image_transform_info = nullptr, bool make_planar = true,
-                         bool allocate_destination = false) {
-        return;
-    }
-
-    void ReleaseImage(const Image &dst) {
-        return;
-    }
-
-    bool needPreProcessing(const Image &src, Image &dst) {
-        return false;
-    }
-    bool needCustomImageConvert(const InputImageLayerDesc::Ptr &pre_proc_info) {
-        return false;
-    }
-
-};
-
 ImagePreprocessor *ImagePreprocessor::Create(ImagePreprocessorType type, const std::string custom_preproc_lib) {
     ImagePreprocessor *p = nullptr;
     switch (type) {
@@ -44,7 +23,7 @@ ImagePreprocessor *ImagePreprocessor::Create(ImagePreprocessorType type, const s
         p = CreatePreProcOpenCV(custom_preproc_lib);
         break;
     case ImagePreprocessorType::D3D11:
-        p = new D3D11Preprocessor();
+        p = CreatePreProcOpenCV(custom_preproc_lib);
         break;
     }
     if (p == nullptr)
