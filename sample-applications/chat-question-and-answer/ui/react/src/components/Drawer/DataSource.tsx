@@ -10,6 +10,7 @@ import { submitDataSourceURL, uploadFile, fetchInitialFiles, fetchInitialLinks,
   removeFile, removeAllFiles, removeLink, removeAllLinks, 
   conversationSelector} from '../../redux/Conversation/ConversationSlice'
 import { isValidUrl, extractOriginalFilename } from '../../utils/util'
+import { MAX_FILE_SIZE } from '../../utils/constant'
 
 type Props = {
   opened: boolean
@@ -39,34 +40,71 @@ export default function DataSource({ opened, onClose }: Props) {
   }, [opened, dispatch])
 
   const handleFileUpload = async () => {
-    if (file) {
-      try {
-        await dispatch(uploadFile({ file })).unwrap()
-        setFile(null)
-        dispatch(fetchInitialFiles()) // Refresh files list
-        onClose() // Close drawer on success
-      } catch (error) {
-        console.error('Failed to upload file:', error)
+    if (!file) return;
+
+    // Check file size (MAX_FILE_SIZE is in MB)
+    const fileSizeInMB = file.size / (1024 * 1024);
+    if (fileSizeInMB > MAX_FILE_SIZE) {
+      alert(`File size exceeds ${MAX_FILE_SIZE} MB limit. Current size: ${fileSizeInMB.toFixed(2)} MB`);
+      return;
+    }
+
+    // Check for duplicate by comparing original filename
+    const originalFileName = file.name;
+    const isDuplicate = files.some((existingFile: any) => {
+      const existingOriginalName = extractOriginalFilename(existingFile.file_name);
+      return existingOriginalName === originalFileName;
+    });
+
+    if (isDuplicate) {
+      const confirmUpload = window.confirm(
+        `A file with the name "${originalFileName}" already exists. Do you want to upload anyway?`
+      );
+      if (!confirmUpload) {
+        return;
       }
+    }
+
+    try {
+      await dispatch(uploadFile({ file })).unwrap();
+      setFile(null);
+      dispatch(fetchInitialFiles()); // Refresh files list
+      onClose(); // Close drawer on success
+    } catch (error) {
+      console.error('Failed to upload file:', error);
     }
   }
 
   const handleURLSubmit = async () => {
     if (url) {
-      const links = url.split(";")
+      const inputLinks = url.split(";")
         .map((link: string) => link.trim())
         .filter(Boolean)
     
-      const validLinks = links.filter((link: string) => isValidUrl(link))
+      const validLinks = inputLinks.filter((link: string) => isValidUrl(link))
 
       if (validLinks.length === 0) {
         alert('Please enter valid HTTP or HTTPS URLs')
         return
       }
 
-      if (validLinks.length !== links.length) {
-        const invalidLinks = links.filter((link: string) => !isValidUrl(link))
+      if (validLinks.length !== inputLinks.length) {
+        const invalidLinks = inputLinks.filter((link: string) => !isValidUrl(link))
         alert(`Warning: ${invalidLinks.length} invalid URL(s) were filtered out: ${invalidLinks.join(', ')}`)
+      }
+
+      // Check for duplicate URLs against existing database links
+      const duplicateLinks = validLinks.filter((newLink: string) =>
+        links.some((existingLink: any) => existingLink === newLink)
+      );
+
+      if (duplicateLinks.length > 0) {
+        const confirmUpload = window.confirm(
+          `The following URL(s) already exist:\n${duplicateLinks.join('\n')}\n\nDo you want to submit anyway?`
+        );
+        if (!confirmUpload) {
+          return;
+        }
       }
 
       try {
