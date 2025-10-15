@@ -6,8 +6,12 @@
 
 set (TARGET_NAME "d3d11_wrapper")
 
-find_package(PkgConfig)
+find_package(PkgConfig REQUIRED)
 
+# Find GStreamer D3D11
+if(WIN32)
+    pkg_check_modules(GSTD3D11 gstreamer-d3d11-1.0>=1.16 REQUIRED)
+endif()
 
 file (GLOB MAIN_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
@@ -24,6 +28,7 @@ target_include_directories(${TARGET_NAME}
 PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${VA_INCLUDE_DIRS}
+        ${GSTD3D11_INCLUDE_DIRS}
 PRIVATE
         ${VADRM_INCLUDE_DIRS}
 )
@@ -36,6 +41,7 @@ PUBLIC
         utils
         d3d11
         dxgi
+        ${GSTD3D11_LIBRARIES}
 PRIVATE
         utils
 )

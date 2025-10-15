@@ -7,6 +7,9 @@
 #include "image_inference_async/image_inference_async.h"
 #include "openvino_image_inference.h"
 #include "utils.h"
+#ifdef _MSC_VER
+#include "image_inference_async_d3d11/image_inference_async_d3d11.h"
+#endif
 
 using namespace InferenceBackend;
 
@@ -72,6 +75,12 @@ ImageInference::Ptr ImageInference::createImageInferenceInstance(MemoryType inpu
 
     case MemoryType::D3D11: {
         async_mode = true;
+        // Ensure context is provided for D3D11
+        if (!context) {
+            throw std::invalid_argument("Null context provided (D3D11Context is expected)");
+        }
+        // Determine the preprocessor type based on configuration
+        ImagePreprocessorType preproc_type = getPreProcType(config.at(KEY_BASE));
         switch (preproc_type) {
         case ImagePreprocessorType::D3D11:
             memory_type_to_use = MemoryType::SYSTEM;
