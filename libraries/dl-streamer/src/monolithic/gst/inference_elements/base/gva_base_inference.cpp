@@ -829,8 +829,9 @@ gboolean gva_base_inference_set_caps(GstBaseTransform *trans, GstCaps *incaps, G
                 GST_WARNING_OBJECT(trans, "Couldn't query VADisplay from gstreamer-vaapi elements. Possible reason: "
                                           "gstreamer-vaapi isn't built with required patches");
             }
+        }
 #ifdef _MSC_VER
-        if (!base_inference->priv->va_display && (base_inference->caps_feature == D3D11_MEMORY_CAPS_FEATURE)) {
+        if (!base_inference->priv->d3d11_device && (base_inference->caps_feature == D3D11_MEMORY_CAPS_FEATURE)) {
 
             // Try to query D3D11Device from decoder. Select dlstreamer::MemoryType::D3D11 memory type as default.
             try {
