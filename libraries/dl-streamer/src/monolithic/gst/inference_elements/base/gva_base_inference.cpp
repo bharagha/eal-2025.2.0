@@ -860,7 +860,7 @@ gboolean gva_base_inference_set_caps(GstBaseTransform *trans, GstCaps *incaps, G
         if (base_inference->caps_feature == D3D11_MEMORY_CAPS_FEATURE ){
             base_inference->priv->buffer_mapper =
             BufferMapperFactory::createMapper(base_inference->inference->GetInferenceMemoryType(), base_inference->info,
-                                              base_inference->priv->d3d_device);
+                                              base_inference->priv->d3d11_device);
         } else {
             base_inference->priv->buffer_mapper =
             BufferMapperFactory::createMapper(base_inference->inference->GetInferenceMemoryType(), base_inference->info,

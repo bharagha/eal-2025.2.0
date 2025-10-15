@@ -94,7 +94,7 @@ ImagePreprocessorType ImagePreprocessorTypeFromString(const std::string &image_p
         {"va", ImagePreprocessorType::VAAPI_SYSTEM},
         {"va-surface-sharing", ImagePreprocessorType::VAAPI_SURFACE_SHARING},
         {"opencv", ImagePreprocessorType::OPENCV},
-        {"d3d11", ImagePreprocessorType::D3D11}},
+        {"d3d11", ImagePreprocessorType::D3D11},
         {"d3d11-surface-sharing", ImagePreprocessorType::D3D11_SURFACE_SHARING}};
 
     for (auto &elem : preprocessor_types) {
@@ -463,7 +463,7 @@ void ApplyImageBoundaries(std::shared_ptr<InferenceBackend::Image> &image, GstVi
         throw std::invalid_argument("Region of interest meta is null.");
     }
     if (inference_region == FULL_FRAME) {
-        image->rect = Rectangle<uint32_t>(meta->x, meta->y, meta->w, meta->h);
+        image->rect = InferenceBackend::Rectangle<uint32_t>(meta->x, meta->y, meta->w, meta->h);
         return;
     }
 
