@@ -20,6 +20,7 @@ using namespace InferenceBackend;
 
 namespace InferenceBackend {
 
+std::mutex D3D11Converter::_convert_mutex;
 
 D3D11Converter::D3D11Converter(D3D11Context *context) : _context(context) {
     if (!context)

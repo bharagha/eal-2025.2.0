@@ -93,7 +93,7 @@ if(${ENABLE_VAAPI})
 endif()
 
 if(WIN32)
-        target_link_libraries(${TARGET_NAME} PRIVATE d3d11_api_wrapper image_inference_async_d3d11)
+        target_link_libraries(${TARGET_NAME} PRIVATE d3d11_wrapper image_inference_async_d3d11)
 endif()
 
 add_subdirectory(gvaattachroi)

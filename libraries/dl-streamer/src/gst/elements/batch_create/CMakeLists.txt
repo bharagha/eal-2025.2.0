@@ -8,6 +8,11 @@ set(TARGET_NAME "batch_create")
 
 pkg_search_module(VA va libva REQUIRED)
 
+if(WIN32)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GSTD3D11 gstreamer-d3d11-1.0)
+endif()
+
 file(GLOB MAIN_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
 )
@@ -23,12 +28,15 @@ target_include_directories(${TARGET_NAME}
 PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${VA_INCLUDE_DIRS}
+    ${GSTD3D11_INCLUDE_DIRS}
 )
+
 
 target_link_libraries(${TARGET_NAME}
 PUBLIC
     dlstreamer_gst
     batch_split
+     ${GSTD3D11_LIBRARIES}
 )
 
 install(TARGETS ${TARGET_NAME} DESTINATION ${DLSTREAMER_PLUGINS_INSTALL_PATH})
