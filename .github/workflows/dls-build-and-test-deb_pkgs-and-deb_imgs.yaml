@@ -49,13 +49,6 @@ jobs:
         cd edge-ai-libraries-repo
         git submodule update --init libraries/dl-streamer/thirdparty/spdlog
 
-    - name: Check out test repository
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #4.2.2
-      with:
-        repository: open-edge-platform/dl-streamer-tests
-        persist-credentials: false
-        ref: ea7ae3c99045ee1803aa842a2c46fcd46a47016f
-
     # ======================================================== BUILDING PART ========================================================
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 #3.10.0
@@ -189,6 +182,13 @@ jobs:
     - name: Link DL Streamer to home directory
       run: |
         ln -s $PWD/$DLS_REL_PATH $HOME
+
+    - name: Check out test repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #4.2.2
+      with:
+        repository: open-edge-platform/dl-streamer-tests
+        persist-credentials: false
+        ref: ea7ae3c99045ee1803aa842a2c46fcd46a47016f
 
     - name: 🚀 Run tests
       id: run_tests
