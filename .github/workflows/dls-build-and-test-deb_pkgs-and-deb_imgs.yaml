@@ -189,6 +189,14 @@ jobs:
         repository: open-edge-platform/dl-streamer-tests
         persist-credentials: false
         ref: ea7ae3c99045ee1803aa842a2c46fcd46a47016f
+    - name: Debug
+      run: |
+        echo "This is just ls"
+        ls
+        echo "This is ${{ env.DLS_REL_PATH }}"
+        ls ${{ env.DLS_REL_PATH }}
+        echo "This is edge-ai-libraries-repo"
+        ls edge-ai-libraries-repo
 
     - name: 🚀 Run tests
       id: run_tests
