@@ -745,7 +745,7 @@ InferenceImpl::Model InferenceImpl::CreateModel(GvaBaseInference *gva_base_infer
             }
         }
     } else if (memory_type == MemoryType::D3D11) { 
-        va_dpy = nullptr;
+        va_dpy = gva_base_inference->priv->d3d11_device;
     }
 
     if (gva_base_inference->inference_region == FULL_FRAME) {
@@ -803,7 +803,11 @@ InferenceImpl::InferenceImpl(GvaBaseInference *gva_base_inference) {
 }
 
 dlstreamer::ContextPtr InferenceImpl::GetDisplay(GvaBaseInference *gva_base_inference) {
+#ifdef _MSC_VER
+    return gva_base_inference->priv->d3d11_device;
+#else
     return gva_base_inference->priv->va_display;
+#endif
 }
 void InferenceImpl::SetDisplay(GvaBaseInference *gva_base_inference, const dlstreamer::ContextPtr &display) {
     gva_base_inference->priv->va_display = display;

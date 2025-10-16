@@ -85,10 +85,10 @@ void D3D11Context::CreateVideoProcessorAndEnumerator(
     content_desc.OutputHeight = output_height;
     content_desc.Usage = D3D11_VIDEO_USAGE_OPTIMAL_SPEED;
     
-    // Set frame rates (30 fps as default)
-    content_desc.InputFrameRate.Numerator = 30;
+    // Set frame rates (200 fps as default)
+    content_desc.InputFrameRate.Numerator = 200;
     content_desc.InputFrameRate.Denominator = 1;
-    content_desc.OutputFrameRate.Numerator = 30;
+    content_desc.OutputFrameRate.Numerator = 200;
     content_desc.OutputFrameRate.Denominator = 1;
     
     // Create enumerator

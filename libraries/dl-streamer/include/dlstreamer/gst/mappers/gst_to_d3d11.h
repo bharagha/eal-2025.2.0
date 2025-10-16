@@ -5,11 +5,11 @@
 #include "dlstreamer/d3d11/context.h"
 #include "dlstreamer/d3d11/tensor.h"
 
+#include <gst/d3d11/gstd3d11.h>
+
 namespace dlstreamer {
 
 class MemoryMapperGSTToD3D11 : public BaseMemoryMapper {
-    constexpr static GstMapFlags GST_MAP_D3D11 = static_cast<GstMapFlags>(GST_MAP_FLAG_LAST << 2);
-
   public:
     using BaseMemoryMapper::BaseMemoryMapper;
 
@@ -31,13 +31,14 @@ class MemoryMapperGSTToD3D11 : public BaseMemoryMapper {
   protected:
     void* get_d3d11_texture(GstMemory *mem) {
         GstMapInfo map_info;
-        GstMapFlags flags = GST_MAP_D3D11;
-        gboolean sts = gst_memory_map(mem, &map_info, flags);
-        if (!sts) { // try with GST_MAP_READ
-            flags = static_cast<GstMapFlags>(flags | GST_MAP_READ);
-            DLS_CHECK(gst_memory_map(mem, &map_info, flags));
+        GstMapFlags flags = GST_MAP_READ;
+        gst_memory_map(mem, &map_info, flags);
+        gboolean is_d3d11 = gst_is_d3d11_memory(mem);
+        if (!is_d3d11) {
+            gst_memory_unmap(mem, &map_info);
+            throw std::runtime_error("MemoryMapperGSTToD3D11: GstMemory is not D3D11 memory");
         }
-        void* d3d11_texture = *reinterpret_cast<void**>(map_info.data);
+        void* d3d11_texture = reinterpret_cast<void*>(gst_d3d11_memory_get_resource_handle((GstD3D11Memory *) mem));
         gst_memory_unmap(mem, &map_info);
         return d3d11_texture;
     }

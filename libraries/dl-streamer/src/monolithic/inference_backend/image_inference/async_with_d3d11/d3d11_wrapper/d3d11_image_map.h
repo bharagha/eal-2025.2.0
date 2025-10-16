@@ -6,14 +6,13 @@
 
 #pragma once
 
+#include "inference_backend/image.h"
 #include "d3d11_images.h"
 #include <d3d11.h>
 #include <wrl/client.h>
 
-
-#include "inference_backend/image.h"
-
 namespace InferenceBackend {
+
 
 class D3D11ImageMap_SystemMemory : public ImageMap {
   public:
@@ -23,9 +22,13 @@ class D3D11ImageMap_SystemMemory : public ImageMap {
     Image Map(const Image &image) override;
     void Unmap() override;
 
+    void SetContext(D3D11Context* context) { d3d11_context = context; }
+
   protected:
+    D3D11Context* d3d11_context = nullptr;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> d3d11_device_context;
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> d3d11_texture;  // Original render target texture
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> staging_texture;  // Staging texture for CPU readback
     int num_planes;
 };
 

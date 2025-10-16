@@ -832,7 +832,6 @@ gboolean gva_base_inference_set_caps(GstBaseTransform *trans, GstCaps *incaps, G
         }
 #ifdef _MSC_VER
         if (!base_inference->priv->d3d11_device && (base_inference->caps_feature == D3D11_MEMORY_CAPS_FEATURE)) {
-
             // Try to query D3D11Device from decoder. Select dlstreamer::MemoryType::D3D11 memory type as default.
             try {
                 base_inference->priv->d3d11_device = std::make_shared<dlstreamer::GSTContextQuery>(

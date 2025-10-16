@@ -5,6 +5,7 @@
  ******************************************************************************/
 
 #include "d3d11_images.h"
+#include "d3d11_image_map.h"
 #include <dxgi.h>
 
 using namespace InferenceBackend;
@@ -16,19 +17,18 @@ namespace {
 DXGI_FORMAT ConvertToDXGIFormat(int pixel_format);
 
 Microsoft::WRL::ComPtr<ID3D11Texture2D> CreateID3D11Texture2D(ID3D11Device* device, uint32_t width, uint32_t height, int pixel_format,  MemoryType memory_type) {
-    D3D11_TEXTURE2D_DESC texture2d_desc;
+    D3D11_TEXTURE2D_DESC texture2d_desc = {};  // Zero-initialize the entire structure
     texture2d_desc.Width = width;
     texture2d_desc.Height = height;
     texture2d_desc.MipLevels = 1;
     texture2d_desc.ArraySize = 1;
     texture2d_desc.Format = ConvertToDXGIFormat(pixel_format);
     texture2d_desc.SampleDesc.Count = 1;
+    texture2d_desc.SampleDesc.Quality = 0;
     texture2d_desc.Usage = D3D11_USAGE_DEFAULT;
     texture2d_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-    if (memory_type == MemoryType::SYSTEM)
-        texture2d_desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ; // Do we need write too?
-    else
-        texture2d_desc.CPUAccessFlags = 0;
+    texture2d_desc.CPUAccessFlags = 0;  // No CPU access for render targets
+    texture2d_desc.MiscFlags = 0;
 
     Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
     HRESULT hr = device->CreateTexture2D(&texture2d_desc, nullptr, &texture);
@@ -76,6 +76,15 @@ D3D11Image::D3D11Image() {
     image.d3d11_device = nullptr;
 }
 
+D3D11Image::~D3D11Image() {
+    // Release the D3D11 texture if it was created
+    if (image.d3d11_texture) {
+        auto texture = static_cast<ID3D11Texture2D*>(image.d3d11_texture);
+        texture->Release();
+        image.d3d11_texture = nullptr;
+    }
+}
+
 D3D11Image::D3D11Image(D3D11Context *context_, uint32_t width, uint32_t height, int pixel_format,
                        MemoryType memory_type) {
     if (!context_)
@@ -87,8 +96,21 @@ D3D11Image::D3D11Image(D3D11Context *context_, uint32_t width, uint32_t height, 
     image.height = height;
     image.format = pixel_format;
     image.d3d11_device = context->Device();
-    image.d3d11_texture = CreateID3D11Texture2D(context->Device(), width, height, pixel_format, memory_type).GetAddressOf();
+
+    // Create texture and transfer ownership (Detach releases the ComPtr without decrementing ref count)
+    auto texture = CreateID3D11Texture2D(context->Device(), width, height, pixel_format, memory_type);
+    if (!texture) {
+        throw std::runtime_error("Failed to create D3D11 texture");
+    }
+    image.d3d11_texture = texture.Detach();  // Transfer ownership to raw pointer
     image_map = std::unique_ptr<ImageMap>(ImageMap::Create(memory_type));
+
+    if (memory_type == MemoryType::SYSTEM) {
+        auto* sys_map = dynamic_cast<D3D11ImageMap_SystemMemory*>(image_map.get());
+        if (sys_map) {
+            sys_map->SetContext(context);
+        }
+    }
     completed = true;
 }
 
@@ -116,7 +138,7 @@ D3D11ImagePool::D3D11ImagePool(D3D11Context *context, SizeParams size_params, Im
             bool is_set = false;
             for (auto format : possible_formats)
                 if (context->IsPixelFormatSupported(format.dxgi_format)) {
-                    msg += "Using a supported format " + FourccName(format.dxgi_format) + ".";
+                    msg += "Using a supported format " + FourccName(format.ib_fourcc) + ".";
                     info.format = format.ib_fourcc;
                     is_set = true;
                     break;

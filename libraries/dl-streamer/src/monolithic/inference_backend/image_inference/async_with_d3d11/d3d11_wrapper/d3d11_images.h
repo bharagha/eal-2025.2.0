@@ -34,6 +34,7 @@ struct D3D11Image {
 
     D3D11Image();
     D3D11Image(D3D11Context *context_, uint32_t width, uint32_t height, int format_, MemoryType memory_type);
+    ~D3D11Image();
 
     Image Map();
     void Unmap();
