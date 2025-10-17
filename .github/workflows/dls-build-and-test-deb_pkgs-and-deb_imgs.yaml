@@ -150,6 +150,21 @@ jobs:
         name: hello_dlstreamer_output_video_${{ matrix.runner_print_label }}_${{ matrix.ubuntu_version }}_CPU_yolo11s
         path: ${{ env.DLS_REL_PATH }}/test_hello_dlstreamer
 
+    - name: Init tests configurations
+      run: |
+        if [[ ${{ matrix.runner_print_label }} == "TGL" ]]; then
+          echo "TEST_CONFIGS=on_host/samples_TGL.json" >> $GITHUB_ENV
+          echo "Selected test configuration file: on_host/samples_TGL.json ✅" >> $GITHUB_STEP_SUMMARY
+        elif [[ ${{ matrix.runner_print_label }} == "ARL" ]]; then
+          echo "TEST_CONFIGS=on_host/samples_ARL.json" >> $GITHUB_ENV
+          echo "Selected test configuration file: on_host/samples_ARL.json ✅" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "Test configuration file: not found ❌" >> $GITHUB_STEP_SUMMARY
+          echo "❌ Cannot assign correct test configuration JSON file for runner based on label: ${{ matrix.runner_print_label }}"
+          echo "Please review and fix! Exiting..."
+          exit 1
+        fi
+
     - name: Link DL Streamer to home directory
       run: |
         ln -s $PWD/$DLS_REL_PATH $HOME
@@ -159,7 +174,7 @@ jobs:
       with:
         repository: open-edge-platform/dl-streamer-tests
         persist-credentials: false
-        ref: nsz-fix-paths
+        ref: be671f53438c01ad148f227adf405fff32bbe0a4
         path: dl-streamer-tests-repo
 
     - name: Init test environemtnt
