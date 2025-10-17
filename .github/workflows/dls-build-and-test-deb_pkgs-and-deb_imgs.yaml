@@ -174,7 +174,7 @@ jobs:
       with:
         repository: open-edge-platform/dl-streamer-tests
         persist-credentials: false
-        ref: be671f53438c01ad148f227adf405fff32bbe0a4
+        ref: nsz-fix-paths
         path: dl-streamer-tests-repo
 
     - name: Init test environemtnt
