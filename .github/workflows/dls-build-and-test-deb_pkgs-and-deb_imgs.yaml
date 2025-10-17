@@ -177,6 +177,10 @@ jobs:
         ref: nsz-fix-paths
         path: dl-streamer-tests-repo
 
+    - name: Link DL Streamer tests repo to home directory
+      run: |
+        ln -s $PWD/dl-streamer-tests-repo $HOME
+
     - name: Init test environemtnt
       run: |
         sudo apt install -y libcairo2-dev libgirepository1.0-dev
