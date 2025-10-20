@@ -38,6 +38,14 @@ jobs:
       run: |
         sudo rm -rf edge-ai-libraries-repo
 
+    - name: Check out test repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #4.2.2
+      with:
+        repository: open-edge-platform/dl-streamer-tests
+        persist-credentials: false
+        ref: nsz-fix-paths
+        path: dl-streamer-tests-repo
+
     - name: Check out edge-ai-libraries repository
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #4.2.2
       with:
@@ -169,14 +177,6 @@ jobs:
       run: |
         ln -s $PWD/$DLS_REL_PATH $HOME
 
-    - name: Check out test repository
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #4.2.2
-      with:
-        repository: open-edge-platform/dl-streamer-tests
-        persist-credentials: false
-        ref: nsz-fix-paths
-        path: dl-streamer-tests-repo
-
     - name: Link DL Streamer tests repo to home directory
       run: |
         ln -s $PWD/dl-streamer-tests-repo $HOME
@@ -243,9 +243,10 @@ jobs:
       if: always()
       run: |
         rm -rf $HOME/.virtualenvs
-        docker rmi ${deb_img} || true
+        docker rmi ${deb_final_img} || true
         sudo rm -f $HOME/dl-streamer
         rm -rf edge-ai-libraries-repo
+        rm -rf $HOME/dl-streamer-tests-repo 
 
     # - name: Schedule reboot
     #   if: always()
