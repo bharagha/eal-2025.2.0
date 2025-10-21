@@ -173,13 +173,13 @@ jobs:
           exit 1
         fi
 
+    - name: Copy DL Streamer tests repo
+      run: |
+        cp -r dl-streamer-tests-repo/functional_tests $PWD/$DLS_REL_PATH/tests
+
     - name: Link DL Streamer to home directory
       run: |
         ln -s $PWD/$DLS_REL_PATH $HOME
-
-    - name: Link DL Streamer tests repo to home directory
-      run: |
-        cp -r dl-streamer-tests-repo/functional_tests $PWD/$DLS_REL_PATH/tests
 
     - name: Init test environemtnt
       run: |
