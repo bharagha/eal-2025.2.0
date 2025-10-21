@@ -179,7 +179,7 @@ jobs:
 
     - name: Link DL Streamer tests repo to home directory
       run: |
-        ln -s $PWD/dl-streamer-tests-repo $HOME
+        cp -r dl-streamer-tests-repo/functional_tests $PWD/$DLS_REL_PATH/tests
 
     - name: Init test environemtnt
       run: |
@@ -200,7 +200,7 @@ jobs:
       env:
         TEST_CONFIGS: ${{ env.TEST_CONFIGS }}
       run: |
-        cd dl-streamer-tests-repo
+        cd $PWD/$DLS_REL_PATH/tests
         mkdir functional_tests_results
         cd functional_tests_results
         DLS_TESTS_RESULTS_PATH=$PWD
