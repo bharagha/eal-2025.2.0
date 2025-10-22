@@ -727,9 +727,9 @@ esac
 
 if [ $intel_gpu_state -ne 0 ]; then
 
-    configure_repository "$INTEL_ONEAPI_KEY_URL" "$INTEL_ONEAPI_KEYRING_PATH" "$INTEL_ONEAPI_REPO_URL" "$INTEL_ONEAPI_LIST"
-    echo_color "\n Intel® One API repository has been configured.\n" "green"
-    update_package_lists
+    #configure_repository "$INTEL_ONEAPI_KEY_URL" "$INTEL_ONEAPI_KEYRING_PATH" "$INTEL_ONEAPI_REPO_URL" "$INTEL_ONEAPI_LIST"
+    echo_color "\n !!!! NOT setting up Intel® One API repository !!!!.\n" "green"
+    #update_package_lists
 
     setup_gpu
 
