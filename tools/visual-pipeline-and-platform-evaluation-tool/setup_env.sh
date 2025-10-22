@@ -18,6 +18,7 @@ elif compgen -G "/dev/dri/render*" > /dev/null; then
     RENDER_GROUP_ID=$(getent group render | awk -F: '{printf "%s\n", $3}')
 else
     # No NPU or GPU device found, falling back to CPU
+    echo "No GPU or NPU device was found in the system, so only CPU will be used. This may be because the appropriate drivers have not been installed."
     COMPOSE_PROFILES="cpu"
     RENDER_GROUP_ID=""
 fi
