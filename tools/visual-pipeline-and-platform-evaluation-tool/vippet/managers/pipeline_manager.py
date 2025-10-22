@@ -14,9 +14,11 @@ class PipelineManager:
             raise ValueError(
                 f"Pipeline with name '{new_pipeline.name}' and version '{new_pipeline.version}' already exists."
             )
-        
-        launch_cfg = {"converted_launch_string": new_pipeline.launch_string}  # TODO: Convert launch_string to launch_config in JSON format
-        
+
+        launch_cfg = {
+            "converted_launch_string": new_pipeline.launch_string
+        }  # TODO: Convert launch_string to launch_config in JSON format
+
         pipeline = Pipeline(
             name=new_pipeline.name,
             version=new_pipeline.version,
@@ -52,13 +54,19 @@ class PipelineManager:
         predefined_pipelines = []
         for pipeline_name in PipelineLoader.list():
             pipeline_gst, config = PipelineLoader.load(pipeline_name)
-            launch_string = pipeline_gst.get_default_gst_launch(gst_inspector.get_elements())
-            launch_cfg = {"converted_launch_string": launch_string}  # TODO: Convert launch_string to launch_config in JSON format
+            launch_string = pipeline_gst.get_default_gst_launch(
+                gst_inspector.get_elements()
+            )
+            launch_cfg = {
+                "converted_launch_string": launch_string
+            }  # TODO: Convert launch_string to launch_config in JSON format
 
             predefined_pipelines.append(
                 Pipeline(
                     name="predefined_pipelines",
-                    version=config.get("metadata", {}).get("classname", "Unnamed Pipeline"),
+                    version=config.get("metadata", {}).get(
+                        "classname", "Unnamed Pipeline"
+                    ),
                     description=config.get("name", "Unnamed Pipeline"),
                     type=PipelineType.GSTREAMER,
                     launch_config=launch_cfg,

@@ -94,7 +94,9 @@ def run_pipeline(name: str, version: str, body: schemas.PipelineRequestRun):
         file_name,
     )
 
-    launch_string = body.parameters.launch_config # TODO: Convert launch_config in JSON format to launch_string
+    launch_string = (
+        body.parameters.launch_config
+    )  # TODO: Convert launch_config in JSON format to launch_string
 
     # Replace file path in launch string if needed
     launch_string = replace_file_path(launch_string, file_path)
@@ -143,7 +145,9 @@ def benchmark_pipeline(name: str, version: str, body: schemas.PipelineRequestBen
         file_name,
     )
 
-    launch_string = body.parameters.launch_config # TODO: Convert launch_config in JSON format to launch_string
+    launch_string = (
+        body.parameters.launch_config
+    )  # TODO: Convert launch_config in JSON format to launch_string
 
     # Replace file path in launch string if needed
     launch_string = replace_file_path(launch_string, file_path)
