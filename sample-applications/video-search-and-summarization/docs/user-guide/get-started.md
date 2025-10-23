@@ -3,7 +3,7 @@
 <!--
 **Sample Description**: Provide a brief overview of the application and its purpose.
 -->
-The Video Search and Summary (VSS) sample application helps developers create summary of long form video, search for the right video, and combine both search and summary pipelines. This guide will help you set up, run, and modify the sample application on local and Edge AI systems.
+The Video Search and Summarization (VSS) sample application helps developers create a summary of long form video, search for the right video, and combine both search and summarization pipelines. This guide will help you set up, run, and modify the sample application on local and Edge AI systems.
 
 <!--
 **What You Can Do**: Highlight the developer workflows supported by the guide.
@@ -11,7 +11,7 @@ The Video Search and Summary (VSS) sample application helps developers create su
 This guide shows how to:
 
 - **Set up the sample application**: Use Setup script to quickly deploy the application in your environment.
-- **Run different application stacks**: Execute different application stacks available in the application to perform video search and summary.
+- **Run different application stacks**: Execute different application stacks available in the application to perform video search and summarization.
 - **Modify application parameters**: Customize settings like inference models and deployment configurations to adapt the application to your specific requirements.
 
 
@@ -83,13 +83,13 @@ Before running the application, you need to set several environment variables:
     You **must** set these environment variables on your current shell. Setting these variables help you customize the models used for deployment.
 
     ```bash
-    # For VLM-based chunk captioning and video summary on CPU
+    # For VLM-based chunk captioning and video summarization on CPU
     export VLM_MODEL_NAME="Qwen/Qwen2.5-VL-3B-Instruct"  # or any other supported VLM model on CPU
 
-    # For VLM-based chunk captioning and video summary on GPU
+    # For VLM-based chunk captioning and video summarization on GPU
     export VLM_MODEL_NAME="microsoft/Phi-3.5-vision-instruct"  # or any other supported VLM model on GPU
 
-    # (Optional) For OVMS-based video summary (when using with ENABLE_OVMS_LLM_SUMMARY=true or ENABLE_OVMS_LLM_SUMMARY_GPU=true)
+    # (Optional) For OVMS-based video summarization (when using with ENABLE_OVMS_LLM_SUMMARY=true or ENABLE_OVMS_LLM_SUMMARY_GPU=true)
     export OVMS_LLM_MODEL_NAME="Intel/neural-chat-7b-v3-3"  # or any other supported LLM model
 
     # Model used by Audio Analyzer service. Only Whisper models variants are supported.
@@ -152,23 +152,23 @@ Once exported, run the setup script as mentioned [here](#running-the-application
 
 ## 📊 Application Stacks Overview
 
-The Video Summary application offers multiple stacks and deployment options:
+The Video Summarization application offers multiple stacks and deployment options:
 
 | Stack | Description | Flag (used with setup script) |
 |-------|-------------|------|
-| Video Summary | Video frame captioning and summarization | `--summary` |
+| Video Summarization | Video frame captioning and summarization | `--summary` |
 | Video Search | Video indexing and semantic search | `--search` |
-| Video Search + Summary | Both search and summarization capabilities | `--all` |
+| Video Search + Summarization | Both search and summarization capabilities | `--all` |
 
 > **📁 Automated Video Ingestion**: The Video Search stack includes an optional Directory Watcher service for automated video processing. See the [Directory Watcher Service Guide](./directory-watcher-guide.md) for details on setting up automatic video monitoring and ingestion.
 
-### 🧩 Deployment Options for Video Summary
+### 🧩 Deployment Options for Video Summarization
 
 | Deployment Option | Chunk-Wise Summary<sup>(1)</sup> Configuration | Final Summary<sup>2</sup> Configuration | Environment Variables to Set | Recommended Models | Recommended Usage Model
 |--------|--------------------|---------------------|-----------------------|----------------|----------------|
 | VLM-CPU |vlm-openvino-serving on CPU | vlm-openvino-serving on CPU | Default | VLM: `Qwen/Qwen2.5-VL-3B-Instruct` | For usage with CPUs only; when inference speed is not a priority. |
 | VLM-GPU | vlm-openvino-serving |vlm-openvino-serving GPU | `ENABLE_VLM_GPU=true` | VLM: `microsoft/Phi-3.5-vision-instruct` | For usage with CPUs and GPUs; when inference speed is a priority. |
-| VLM-OVMS-CPU | vlm-openvino-serving on CPU | OVMS Microservice on CPU | `ENABLE_OVMS_LLM_SUMMARY=true` | VLM: `Qwen/Qwen2.5-VL-3B-Instruct`<br>LLM: `Intel/neural-chat-7b-v3-3` | For usage with CPUs and microservices; when inference speed is not a priority. |
+| VLM-CPU-OVMS-CPU | vlm-openvino-serving on CPU | OVMS Microservice on CPU | `ENABLE_OVMS_LLM_SUMMARY=true` | VLM: `Qwen/Qwen2.5-VL-3B-Instruct`<br>LLM: `Intel/neural-chat-7b-v3-3` | For usage with CPUs and microservices; when inference speed is not a priority. |
 | VLM-CPU-OVMS-GPU | vlm-openvino-serving on CPU | OVMS Microservice on GPU | `ENABLE_OVMS_LLM_SUMMARY_GPU=true` | VLM: `Qwen/Qwen2.5-VL-3B-Instruct`<br>LLM: `Intel/neural-chat-7b-v3-3` | For usage with CPUs, GPUs, and microservices; when inference speed is a priority. |
 
 > Notes: 1) Chunk-Wise Summary is a method of summarization where it breaks videos into chunks and then summarizes each chunk. 2) Final Summary is a method of summarization where it summarizes the whole video.
@@ -211,7 +211,7 @@ Follow these steps to run the application:
 
    > **💡 Clean-up Tip**: If you encounter issues or want to completely reset the application data, use `source setup.sh --clean-data` to stop all containers and remove all Docker volumes including user data. This provides a fresh start for troubleshooting.
 
-- **To run Video Summary only:**
+- **To run Video Summarization only:**
 
     ```bash
     source setup.sh --summary
@@ -231,7 +231,7 @@ Follow these steps to run the application:
     source setup.sh --all
     ```
 
-- **To run Video Summarization with OpenVINO model server microservice for final summary :**
+- **To run Video Summarization with OpenVINO model server microservice for a final summary :**
 
     ```bash
     ENABLE_OVMS_LLM_SUMMARY=true source setup.sh --summary
@@ -243,16 +243,16 @@ Follow these steps to run the application:
     # To just set environment variables without starting containers
     source setup.sh --setenv
 
-    # To see resolved configurations for summary services without starting containers
+    # To see resolved configurations for summarization services without starting containers
     source setup.sh --summary config
 
     # To see resolved configurations for search services without starting containers
     source setup.sh --search config
 
-    # To see resolved configurations for both search and summary services combined without starting containers
+    # To see resolved configurations for both search and summarization services combined without starting containers
     source setup.sh --all config
 
-    # To see resolved configurations for summary services with OpenVINO model server setup on CPU without starting containers
+    # To see resolved configurations for summarization services with OpenVINO model server setup on CPU without starting containers
     ENABLE_OVMS_LLM_SUMMARY=true source setup.sh --summary config
     ```
 
@@ -270,7 +270,7 @@ To use GPU acceleration for VLM inference:
 ENABLE_VLM_GPU=true source setup.sh --summary
 ```
 
-To use GPU acceleration for OVMS-based summary:
+To use GPU acceleration for OpenVINO model server-based summarization:
 
 ```bash
 ENABLE_OVMS_LLM_SUMMARY_GPU=true source setup.sh --summary
@@ -357,7 +357,7 @@ For alternative ways to set up the sample application, see:
 
 3. Restart the application (the volume will be recreated with correct permissions):
    ```bash
-   # For Video Summary
+   # For Video Summarization
    source setup.sh --summary
    
    # Or for Video Search
@@ -376,10 +376,10 @@ For alternative ways to set up the sample application, see:
 
 **Symptoms**:
 
-- Final summary contains information not present in the video
-- Summary describes events, objects, or activities that don't actually occur in the video
+- The final summary contains information not present in the video
+- The Summary describes events, objects, or activities that don't actually occur in the video
 - Inconsistent or contradictory information in the generated summary
-- Summary quality is poor despite chunk-wise summaries being accurate
+- The Summary quality is poor despite chunk-wise summaries being accurate
 
 **Solution**:
 Try using a larger, more capable VLM model by updating the `VLM_MODEL_NAME` environment variable:
