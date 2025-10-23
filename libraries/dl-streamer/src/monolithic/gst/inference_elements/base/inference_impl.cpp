@@ -805,7 +805,7 @@ InferenceImpl::Model InferenceImpl::CreateModel(GvaBaseInference *gva_base_infer
                 ie_config[KEY_BASE][KEY_IMAGE_FORMAT] = "NV12";
             }
         }
-    } else if (memory_type == MemoryType::D3D11) { 
+    } else if (memory_type == MemoryType::D3D11) {
         va_dpy = gva_base_inference->priv->d3d11_device;
     }
 

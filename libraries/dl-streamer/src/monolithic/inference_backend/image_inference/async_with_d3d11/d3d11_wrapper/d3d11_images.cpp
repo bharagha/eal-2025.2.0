@@ -6,20 +6,20 @@
 
 #include "d3d11_images.h"
 #include "d3d11_image_map.h"
+#include "inference_backend/logger.h"
 #include <dxgi.h>
 #include <thread>
-#include "inference_backend/logger.h"
 
 using namespace InferenceBackend;
-
 
 namespace {
 
 // Forward declaration
 DXGI_FORMAT ConvertToDXGIFormat(int pixel_format);
 
-Microsoft::WRL::ComPtr<ID3D11Texture2D> CreateID3D11Texture2D(ID3D11Device* device, uint32_t width, uint32_t height, int pixel_format,  MemoryType memory_type) {
-    D3D11_TEXTURE2D_DESC texture2d_desc = {};  // Zero-initialize the entire structure
+Microsoft::WRL::ComPtr<ID3D11Texture2D> CreateID3D11Texture2D(ID3D11Device *device, uint32_t width, uint32_t height,
+                                                              int pixel_format, MemoryType memory_type) {
+    D3D11_TEXTURE2D_DESC texture2d_desc = {}; // Zero-initialize the entire structure
     texture2d_desc.Width = width;
     texture2d_desc.Height = height;
     texture2d_desc.MipLevels = 1;
@@ -29,7 +29,7 @@ Microsoft::WRL::ComPtr<ID3D11Texture2D> CreateID3D11Texture2D(ID3D11Device* devi
     texture2d_desc.SampleDesc.Quality = 0;
     texture2d_desc.Usage = D3D11_USAGE_DEFAULT;
     texture2d_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-    texture2d_desc.CPUAccessFlags = 0;  // No CPU access for render targets
+    texture2d_desc.CPUAccessFlags = 0; // No CPU access for render targets
     texture2d_desc.MiscFlags = 0;
 
     Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
@@ -42,16 +42,20 @@ Microsoft::WRL::ComPtr<ID3D11Texture2D> CreateID3D11Texture2D(ID3D11Device* devi
 
 DXGI_FORMAT ConvertToDXGIFormat(int pixel_format) {
     switch (pixel_format) {
-        case InferenceBackend::FourCC::FOURCC_BGRA: return DXGI_FORMAT_B8G8R8A8_UNORM;
-        case InferenceBackend::FourCC::FOURCC_BGRX: return DXGI_FORMAT_B8G8R8X8_UNORM;
-        case InferenceBackend::FourCC::FOURCC_RGBA: return DXGI_FORMAT_R8G8B8A8_UNORM;
-        case InferenceBackend::FourCC::FOURCC_NV12: return DXGI_FORMAT_NV12;
-        default: return DXGI_FORMAT_UNKNOWN;
+    case InferenceBackend::FourCC::FOURCC_BGRA:
+        return DXGI_FORMAT_B8G8R8A8_UNORM;
+    case InferenceBackend::FourCC::FOURCC_BGRX:
+        return DXGI_FORMAT_B8G8R8X8_UNORM;
+    case InferenceBackend::FourCC::FOURCC_RGBA:
+        return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case InferenceBackend::FourCC::FOURCC_NV12:
+        return DXGI_FORMAT_NV12;
+    default:
+        return DXGI_FORMAT_UNKNOWN;
     }
 }
 
-
-}
+} // namespace
 
 struct Format {
     DXGI_FORMAT dxgi_format;
@@ -81,7 +85,7 @@ D3D11Image::D3D11Image() {
 D3D11Image::~D3D11Image() {
     // Release the D3D11 texture if it was created
     if (image.d3d11_texture) {
-        auto texture = static_cast<ID3D11Texture2D*>(image.d3d11_texture);
+        auto texture = static_cast<ID3D11Texture2D *>(image.d3d11_texture);
         texture->Release();
         image.d3d11_texture = nullptr;
     }
@@ -104,11 +108,11 @@ D3D11Image::D3D11Image(D3D11Context *context_, uint32_t width, uint32_t height, 
     if (!texture) {
         throw std::runtime_error("Failed to create D3D11 texture");
     }
-    image.d3d11_texture = texture.Detach();  // Transfer ownership to raw pointer
+    image.d3d11_texture = texture.Detach(); // Transfer ownership to raw pointer
     image_map = std::unique_ptr<ImageMap>(ImageMap::Create(memory_type));
 
     if (memory_type == MemoryType::SYSTEM) {
-        auto* sys_map = dynamic_cast<D3D11ImageMap_SystemMemory*>(image_map.get());
+        auto *sys_map = dynamic_cast<D3D11ImageMap_SystemMemory *>(image_map.get());
         if (sys_map) {
             sys_map->SetContext(context);
         }
@@ -134,7 +138,7 @@ void D3D11Image::WaitForGPU() {
         context->Unlock();
 
         if (hr == S_OK && event_data) {
-            return;  // GPU finished
+            return; // GPU finished
         }
 
         if (FAILED(hr)) {
@@ -144,13 +148,13 @@ void D3D11Image::WaitForGPU() {
 
         // Tight polling - no sleep to minimize latency
         // Yield CPU to other threads to avoid 100% CPU usage
-        _mm_pause();  // CPU pause instruction - minimal overhead
+        _mm_pause(); // CPU pause instruction - minimal overhead
     }
     GVA_ERROR("WaitForGPU: TIMEOUT - GPU work did not complete");
 }
 
 Image D3D11Image::Map() {
-    //WaitForGPU();
+    // WaitForGPU();
     return image_map->Map(image);
 }
 

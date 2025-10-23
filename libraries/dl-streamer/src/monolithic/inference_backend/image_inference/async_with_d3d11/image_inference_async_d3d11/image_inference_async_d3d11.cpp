@@ -27,9 +27,8 @@ using namespace InferenceBackend;
 
 namespace {
 
-
 std::unique_ptr<D3D11ImagePool> create_d3d11_image_pool(D3D11ImagePool::ImageInfo info, size_t pool_size,
-                                                         D3D11Context *context, float vdbox_sfc_pipe_part) {
+                                                        D3D11Context *context, float vdbox_sfc_pipe_part) {
 
     D3D11ImagePool::SizeParams size_params;
     // vdbox_sfc_pipe_part is checked below to be in range [0,1]
@@ -69,7 +68,7 @@ getImagePreProcInfo(const std::map<std::string, InferenceBackend::InputLayerDesc
 } // namespace
 
 ImageInferenceAsyncD3D11::ImageInferenceAsyncD3D11(const InferenceBackend::InferenceConfig &config,
-                                         dlstreamer::ContextPtr d3d11_context, ImageInference::Ptr inference)
+                                                   dlstreamer::ContextPtr d3d11_context, ImageInference::Ptr inference)
     : _inference(inference) {
 
     const auto &pre_process_config = config.at(KEY_PRE_PROCESSOR);
@@ -90,17 +89,16 @@ ImageInferenceAsyncD3D11::ImageInferenceAsyncD3D11(const InferenceBackend::Infer
     size_t image_pool_size = std::max(inference_buffers, pool_threads);
 
     GVA_INFO("D3D11 async preprocessing configuration:");
-    GVA_INFO("-- Inference buffers needed: %lu (nireq=%u, batch=%u)",
-             inference_buffers, _inference->GetNireq(), inference_image_info.batch);
+    GVA_INFO("-- Inference buffers needed: %lu (nireq=%u, batch=%u)", inference_buffers, _inference->GetNireq(),
+             inference_image_info.batch);
     GVA_INFO("-- Thread pool size: %lu", thread_pool_size);
     GVA_INFO("-- D3D11 image pool size: %lu (ensures enough buffering for pipelining)", image_pool_size);
 
-    _d3d11_image_pool =
-        create_d3d11_image_pool(inference_image_info, image_pool_size, _d3d11_context.get(), 0.0f);
+    _d3d11_image_pool = create_d3d11_image_pool(inference_image_info, image_pool_size, _d3d11_context.get(), 0.0f);
 }
 
 void ImageInferenceAsyncD3D11::SubmitInference(D3D11Image *d3d11_image, IFrameBase::Ptr frame,
-                                          const std::map<std::string, InputLayerDesc::Ptr> &input_preprocessors) {
+                                               const std::map<std::string, InputLayerDesc::Ptr> &input_preprocessors) {
     if (!d3d11_image)
         throw std::invalid_argument("Invalid D3D11Image object");
     if (!frame)
@@ -122,15 +120,13 @@ void ImageInferenceAsyncD3D11::SubmitInference(D3D11Image *d3d11_image, IFrameBa
 }
 
 void ImageInferenceAsyncD3D11::SubmitImage(IFrameBase::Ptr frame,
-                                      const std::map<std::string, InputLayerDesc::Ptr> &input_preprocessors) {
+                                           const std::map<std::string, InputLayerDesc::Ptr> &input_preprocessors) {
     assert(frame && "Expected valid IFrameBase pointer");
     D3D11Image *d3d11_image = _d3d11_image_pool->AcquireBuffer();
 
     try {
-        _d3d11_converter->Convert(
-            *frame->GetImage(), *d3d11_image,
-            getImagePreProcInfo(input_preprocessors),
-            frame->GetImageTransformationParams());
+        _d3d11_converter->Convert(*frame->GetImage(), *d3d11_image, getImagePreProcInfo(input_preprocessors),
+                                  frame->GetImageTransformationParams());
     } catch (std::exception &e) {
         GVA_ERROR("D3D11 SubmitImage: Convert failed: %s", e.what());
         _d3d11_image_pool->ReleaseBuffer(d3d11_image);
@@ -160,7 +156,7 @@ size_t ImageInferenceAsyncD3D11::GetNireq() const {
 }
 
 void ImageInferenceAsyncD3D11::GetModelImageInputInfo(size_t &width, size_t &height, size_t &batch_size, int &format,
-                                                 int &memory_type) const {
+                                                      int &memory_type) const {
     _inference->GetModelImageInputInfo(width, height, batch_size, format, memory_type);
 }
 

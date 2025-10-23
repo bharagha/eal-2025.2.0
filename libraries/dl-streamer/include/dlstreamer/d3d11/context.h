@@ -7,11 +7,10 @@
 #pragma once
 
 #include "dlstreamer/base/context.h"
-#include "dlstreamer/utils.h"
 #include "dlstreamer/d3d11/tensor.h"
+#include "dlstreamer/utils.h"
 #include <d3d11.h>
 #include <gst/d3d11/gstd3d11device.h>
-
 
 namespace dlstreamer {
 
@@ -30,16 +29,16 @@ class D3D11Context : public BaseContext {
     }
 
     D3D11Context(void *d3d_device) : BaseContext(MemoryType::D3D11) {
-        _d3d_device = static_cast<GstD3D11Device*>(d3d_device);
+        _d3d_device = static_cast<GstD3D11Device *>(d3d_device);
     }
 
     D3D11Context(const ContextPtr &another_context) : BaseContext(MemoryType::D3D11) {
         DLS_CHECK(another_context);
-        DLS_CHECK(_d3d_device = static_cast<GstD3D11Device*>(another_context->handle(key::d3d_device)));
+        DLS_CHECK(_d3d_device = static_cast<GstD3D11Device *>(another_context->handle(key::d3d_device)));
         _parent = another_context;
     }
 
-    GstD3D11Device* d3d_device() {
+    GstD3D11Device *d3d_device() {
         return _d3d_device;
     }
 
@@ -62,7 +61,7 @@ class D3D11Context : public BaseContext {
     }
 
   protected:
-    GstD3D11Device* _d3d_device = nullptr;
+    GstD3D11Device *_d3d_device = nullptr;
 };
 
 } // namespace dlstreamer

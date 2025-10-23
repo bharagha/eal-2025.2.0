@@ -10,10 +10,10 @@
 #include "safe_arithmetic.hpp"
 #include "utils.h"
 
+#include <algorithm>
 #include <cstring>
 #include <stdexcept>
 #include <string>
-#include <algorithm>
 
 using namespace InferenceBackend;
 
@@ -24,15 +24,11 @@ D3D11Converter::D3D11Converter(D3D11Context *context) : _context(context) {
         throw std::runtime_error("D3D11Context is null. D3D11Converter requires not nullptr context.");
 }
 
-void D3D11Converter::SetupProcessorStreamsWithCustomParams(
-        const InputImageLayerDesc::Ptr& pre_proc_info,
-        uint16_t src_width, uint16_t src_height,
-        uint16_t dst_width, uint16_t dst_height,
-        RECT& src_rect,
-        RECT& dst_rect,
-        D3D11_VIDEO_PROCESSOR_STREAM& stream_params,
-        const ImageTransformationParams::Ptr& image_transform_info
-    ) {
+void D3D11Converter::SetupProcessorStreamsWithCustomParams(const InputImageLayerDesc::Ptr &pre_proc_info,
+                                                           uint16_t src_width, uint16_t src_height, uint16_t dst_width,
+                                                           uint16_t dst_height, RECT &src_rect, RECT &dst_rect,
+                                                           D3D11_VIDEO_PROCESSOR_STREAM &stream_params,
+                                                           const ImageTransformationParams::Ptr &image_transform_info) {
 
     // Get current source dimensions from RECT
     uint16_t src_rect_width = safe_convert<uint16_t>(src_rect.right - src_rect.left);
@@ -69,8 +65,8 @@ void D3D11Converter::SetupProcessorStreamsWithCustomParams(
     // Resize preparations
     double resize_scale_param_x = 1;
     double resize_scale_param_y = 1;
-    if (pre_proc_info->doNeedResize() && (src_rect_width != input_width_except_padding ||
-                                          src_rect_height != input_height_except_padding)) {
+    if (pre_proc_info->doNeedResize() &&
+        (src_rect_width != input_width_except_padding || src_rect_height != input_height_except_padding)) {
         double additional_crop_scale_param = 1;
         if (pre_proc_info->doNeedCrop() && pre_proc_info->doNeedResize()) {
             additional_crop_scale_param = 1.125;
@@ -98,8 +94,8 @@ void D3D11Converter::SetupProcessorStreamsWithCustomParams(
     }
 
     // Crop preparations
-    if (pre_proc_info->doNeedCrop() && (dst_region_width != input_width_except_padding ||
-                                        dst_region_height != input_height_except_padding)) {
+    if (pre_proc_info->doNeedCrop() &&
+        (dst_region_width != input_width_except_padding || dst_region_height != input_height_except_padding)) {
         uint16_t cropped_border_x = 0;
         uint16_t cropped_border_y = 0;
 
@@ -177,8 +173,7 @@ void D3D11Converter::SetupProcessorStreamsWithCustomParams(
     dst_rect.bottom = dst_rect.top + safe_convert<LONG>(dst_region_height);
 
     if (image_transform_info)
-        image_transform_info->PaddingHasDone(safe_convert<size_t>(dst_rect.left),
-                                             safe_convert<size_t>(dst_rect.top));
+        image_transform_info->PaddingHasDone(safe_convert<size_t>(dst_rect.left), safe_convert<size_t>(dst_rect.top));
 
     // Setup D3D11 video processor stream parameters
     ZeroMemory(&stream_params, sizeof(stream_params));
@@ -189,7 +184,7 @@ void D3D11Converter::SetupProcessorStreamsWithCustomParams(
 
 void D3D11Converter::Convert(const Image &src, D3D11Image &d3d11_dst, const InputImageLayerDesc::Ptr &pre_proc_info,
                              const ImageTransformationParams::Ptr &image_transform_info) {
-    
+
     if (!_context || !_context->VideoContext() || !_context->VideoDevice()) {
         throw std::runtime_error("D3D11Converter::Convert: Invalid D3D11 context");
     }
@@ -206,22 +201,23 @@ void D3D11Converter::Convert(const Image &src, D3D11Image &d3d11_dst, const Inpu
     // Get cached processor (reuse if dimensions match, create if new)
     Microsoft::WRL::ComPtr<ID3D11VideoProcessor> video_processor;
     Microsoft::WRL::ComPtr<ID3D11VideoProcessorEnumerator> video_processor_enumerator;
-    _context->GetCachedVideoProcessor(input_width, input_height, output_width, output_height,
-                                      video_processor, video_processor_enumerator);
-    
+    _context->GetCachedVideoProcessor(input_width, input_height, output_width, output_height, video_processor,
+                                      video_processor_enumerator);
+
     // Get source and destination textures
-    ID3D11Texture2D* src_texture = nullptr;
-    ID3D11Texture2D* dst_texture = reinterpret_cast<ID3D11Texture2D*>(d3d11_dst.image.d3d11_texture);
-    
+    ID3D11Texture2D *src_texture = nullptr;
+    ID3D11Texture2D *dst_texture = reinterpret_cast<ID3D11Texture2D *>(d3d11_dst.image.d3d11_texture);
+
     if (!dst_texture) {
         throw std::runtime_error("D3D11Converter::Convert: Invalid destination texture");
     }
 
     if (src.type == MemoryType::D3D11) {
         // Source is already a D3D11 texture
-        src_texture = reinterpret_cast<ID3D11Texture2D*>(src.d3d11_texture);
+        src_texture = reinterpret_cast<ID3D11Texture2D *>(src.d3d11_texture);
     } else {
-        throw std::runtime_error("D3D11Converter::Convert: Unsupported source memory type. Only D3D11 textures supported.");
+        throw std::runtime_error(
+            "D3D11Converter::Convert: Unsupported source memory type. Only D3D11 textures supported.");
     }
 
     if (!src_texture) {
@@ -238,8 +234,8 @@ void D3D11Converter::Convert(const Image &src, D3D11Image &d3d11_dst, const Inpu
     input_desc.Texture2D.MipSlice = 0;
     input_desc.Texture2D.ArraySlice = 0;
 
-    HRESULT hr = video_device->CreateVideoProcessorInputView(
-        src_texture, video_processor_enumerator.Get(), &input_desc, &input_view);
+    HRESULT hr = video_device->CreateVideoProcessorInputView(src_texture, video_processor_enumerator.Get(), &input_desc,
+                                                             &input_view);
     if (FAILED(hr)) {
         throw std::runtime_error("D3D11Converter::Convert: Failed to create video processor input view");
     }
@@ -248,32 +244,26 @@ void D3D11Converter::Convert(const Image &src, D3D11Image &d3d11_dst, const Inpu
     output_desc.ViewDimension = D3D11_VPOV_DIMENSION_TEXTURE2D;
     output_desc.Texture2D.MipSlice = 0;
 
-    hr = video_device->CreateVideoProcessorOutputView(
-        dst_texture, video_processor_enumerator.Get(), &output_desc, &output_view);
+    hr = video_device->CreateVideoProcessorOutputView(dst_texture, video_processor_enumerator.Get(), &output_desc,
+                                                      &output_view);
     if (FAILED(hr)) {
         throw std::runtime_error("D3D11Converter::Convert: Failed to create video processor output view");
     }
 
     // Setup rectangles and stream parameters
-    RECT src_rect = {
-        safe_convert<LONG>(src.rect.x),
-        safe_convert<LONG>(src.rect.y), 
-        safe_convert<LONG>(src.rect.x + src.rect.width),
-        safe_convert<LONG>(src.rect.y + src.rect.height)
-    };
-    
+    RECT src_rect = {safe_convert<LONG>(src.rect.x), safe_convert<LONG>(src.rect.y),
+                     safe_convert<LONG>(src.rect.x + src.rect.width), safe_convert<LONG>(src.rect.y + src.rect.height)};
+
     RECT dst_rect = {0, 0, safe_convert<LONG>(d3d11_dst.image.width), safe_convert<LONG>(d3d11_dst.image.height)};
-    
+
     D3D11_VIDEO_PROCESSOR_STREAM stream_params = {};
 
     if (pre_proc_info && pre_proc_info->isDefined()) {
         // Use custom preprocessing parameters
         SetupProcessorStreamsWithCustomParams(
-            pre_proc_info,
-            safe_convert<uint16_t>(src.width), safe_convert<uint16_t>(src.height),
-            safe_convert<uint16_t>(d3d11_dst.image.width), safe_convert<uint16_t>(d3d11_dst.image.height),
-            src_rect, dst_rect, stream_params, image_transform_info
-        );
+            pre_proc_info, safe_convert<uint16_t>(src.width), safe_convert<uint16_t>(src.height),
+            safe_convert<uint16_t>(d3d11_dst.image.width), safe_convert<uint16_t>(d3d11_dst.image.height), src_rect,
+            dst_rect, stream_params, image_transform_info);
     } else {
         // Simple resize - setup basic stream parameters
         ZeroMemory(&stream_params, sizeof(stream_params));
@@ -285,7 +275,7 @@ void D3D11Converter::Convert(const Image &src, D3D11Image &d3d11_dst, const Inpu
     // Set source and destination rectangles for the video processor
     video_context->VideoProcessorSetStreamSourceRect(video_processor.Get(), 0, TRUE, &src_rect);
     video_context->VideoProcessorSetStreamDestRect(video_processor.Get(), 0, TRUE, &dst_rect);
-    
+
     // Set output target rectangle
     RECT output_rect = {0, 0, safe_convert<LONG>(d3d11_dst.image.width), safe_convert<LONG>(d3d11_dst.image.height)};
     video_context->VideoProcessorSetOutputTargetRect(video_processor.Get(), TRUE, &output_rect);
@@ -300,7 +290,6 @@ void D3D11Converter::Convert(const Image &src, D3D11Image &d3d11_dst, const Inpu
 
     D3D11_VIDEO_PROCESSOR_STREAM streams[1] = {stream_params};
     streams[0].pInputSurface = input_view.Get();
-
 
     // Prepare query for checking conversion completion
     Microsoft::WRL::ComPtr<ID3D11Query> query;
@@ -318,13 +307,11 @@ void D3D11Converter::Convert(const Image &src, D3D11Image &d3d11_dst, const Inpu
     _context->Lock();
 
     //_context->DeviceContext()->Begin(query.Get());
-    hr = video_context->VideoProcessorBlt(
-        video_processor.Get(),
-        output_view.Get(),  // Output directly to destination texture
-        0, // Output frame
-        1, // Number of input streams
-        streams
-    );
+    hr = video_context->VideoProcessorBlt(video_processor.Get(),
+                                          output_view.Get(), // Output directly to destination texture
+                                          0,                 // Output frame
+                                          1,                 // Number of input streams
+                                          streams);
     if (FAILED(hr)) {
         _context->Unlock();
         throw std::runtime_error("D3D11Converter::Convert: VideoProcessorBlt failed");

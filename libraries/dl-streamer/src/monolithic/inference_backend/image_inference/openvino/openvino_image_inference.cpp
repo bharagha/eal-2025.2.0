@@ -1208,7 +1208,8 @@ class OpenVinoNewApiImpl {
         GVA_DEBUG("%s", pp_type_string.c_str());
 
         // OPENCV and VAAPI pre-processors handle color coversion and scaling, input tensors in NCHW format
-        if (pp_type == ImagePreprocessorType::OPENCV || pp_type == ImagePreprocessorType::VAAPI_SYSTEM || pp_type == ImagePreprocessorType::D3D11) {
+        if (pp_type == ImagePreprocessorType::OPENCV || pp_type == ImagePreprocessorType::VAAPI_SYSTEM ||
+            pp_type == ImagePreprocessorType::D3D11) {
             input.tensor().set_layout("NCHW");
         }
 

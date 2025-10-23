@@ -26,7 +26,7 @@ class ImageInferenceAsyncD3D11 : public ImageInference {
     constexpr static size_t DEFAULT_THREAD_POOL_SIZE = 12;
 
     ImageInferenceAsyncD3D11(const InferenceBackend::InferenceConfig &config, dlstreamer::ContextPtr d3d11_context,
-                        ImageInference::Ptr inference);
+                             ImageInference::Ptr inference);
 
     ~ImageInferenceAsyncD3D11() override;
 

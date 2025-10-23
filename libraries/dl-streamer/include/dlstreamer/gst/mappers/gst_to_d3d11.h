@@ -1,9 +1,9 @@
 #pragma once
 
 #include "dlstreamer/base/memory_mapper.h"
-#include "dlstreamer/gst/frame.h"
 #include "dlstreamer/d3d11/context.h"
 #include "dlstreamer/d3d11/tensor.h"
+#include "dlstreamer/gst/frame.h"
 
 #include <gst/d3d11/gstd3d11.h>
 
@@ -17,8 +17,8 @@ class MemoryMapperGSTToD3D11 : public BaseMemoryMapper {
         auto src_gst = ptr_cast<GSTTensor>(src);
 
         // Extract D3D11 texture handle from GstMemory
-        void* d3d11_texture_ptr = get_d3d11_texture(src_gst->gst_memory());
-        ID3D11Texture2D* d3d11_texture = static_cast<ID3D11Texture2D*>(d3d11_texture_ptr);
+        void *d3d11_texture_ptr = get_d3d11_texture(src_gst->gst_memory());
+        ID3D11Texture2D *d3d11_texture = static_cast<ID3D11Texture2D *>(d3d11_texture_ptr);
 
         auto ret = std::make_shared<D3D11Tensor>(d3d11_texture, src_gst->plane_index(), src->info(), _output_context);
 
@@ -29,7 +29,7 @@ class MemoryMapperGSTToD3D11 : public BaseMemoryMapper {
     }
 
   protected:
-    void* get_d3d11_texture(GstMemory *mem) {
+    void *get_d3d11_texture(GstMemory *mem) {
         GstMapInfo map_info;
         GstMapFlags flags = GST_MAP_READ;
         gst_memory_map(mem, &map_info, flags);
@@ -38,7 +38,7 @@ class MemoryMapperGSTToD3D11 : public BaseMemoryMapper {
             gst_memory_unmap(mem, &map_info);
             throw std::runtime_error("MemoryMapperGSTToD3D11: GstMemory is not D3D11 memory");
         }
-        void* d3d11_texture = reinterpret_cast<void*>(gst_d3d11_memory_get_resource_handle((GstD3D11Memory *) mem));
+        void *d3d11_texture = reinterpret_cast<void *>(gst_d3d11_memory_get_resource_handle((GstD3D11Memory *)mem));
         gst_memory_unmap(mem, &map_info);
         return d3d11_texture;
     }

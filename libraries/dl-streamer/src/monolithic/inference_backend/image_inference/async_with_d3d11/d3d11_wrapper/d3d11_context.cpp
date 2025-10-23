@@ -10,9 +10,9 @@
 #include "inference_backend/logger.h"
 
 #include <cassert>
+#include <map>
 #include <mutex>
 #include <vector>
-#include <map>
 
 #include <fcntl.h>
 #include <gst/d3d11/gstd3d11device.h>
@@ -22,11 +22,11 @@ using namespace InferenceBackend;
 // Static mutex for thread-safe D3D11 context operations
 static std::mutex g_d3d11_context_mutex;
 
-std::mutex& D3D11Context::GetContextMutex() {
+std::mutex &D3D11Context::GetContextMutex() {
     return g_d3d11_context_mutex;
 }
 
-D3D11Context::D3D11Context(ID3D11Device* d3d11_device) : _device(d3d11_device) {
+D3D11Context::D3D11Context(ID3D11Device *d3d11_device) : _device(d3d11_device) {
     create_config_and_contexts();
     create_supported_pixel_formats();
     // Initialize texture pool
@@ -34,13 +34,12 @@ D3D11Context::D3D11Context(ID3D11Device* d3d11_device) : _device(d3d11_device) {
     D3D11ImageMap_SystemMemory::SetTexturePool(_texture_pool);
 }
 
-D3D11Context::D3D11Context(dlstreamer::ContextPtr display_context)
-    : _device_context_storage(display_context) {
+D3D11Context::D3D11Context(dlstreamer::ContextPtr display_context) : _device_context_storage(display_context) {
 
-    auto gst_device = static_cast<GstD3D11Device*>(display_context->handle(dlstreamer::D3D11Context::key::d3d_device));
+    auto gst_device = static_cast<GstD3D11Device *>(display_context->handle(dlstreamer::D3D11Context::key::d3d_device));
     _gst_device = gst_device; // Store for Lock/Unlock
     _device = gst_d3d11_device_get_device_handle(gst_device);
-    
+
     create_config_and_contexts();
     create_supported_pixel_formats();
     // Initialize texture pool
@@ -103,15 +102,14 @@ void D3D11Context::create_config_and_contexts() {
 }
 
 void D3D11Context::CreateVideoProcessorAndEnumerator(
-    uint32_t input_width, uint32_t input_height,
-    uint32_t output_width, uint32_t output_height,
-    Microsoft::WRL::ComPtr<ID3D11VideoProcessor>& video_processor,
-    Microsoft::WRL::ComPtr<ID3D11VideoProcessorEnumerator>& video_processor_enumerator) {
-    
+    uint32_t input_width, uint32_t input_height, uint32_t output_width, uint32_t output_height,
+    Microsoft::WRL::ComPtr<ID3D11VideoProcessor> &video_processor,
+    Microsoft::WRL::ComPtr<ID3D11VideoProcessorEnumerator> &video_processor_enumerator) {
+
     if (!_video_device) {
         throw std::runtime_error("Video device not initialized");
     }
-    
+
     D3D11_VIDEO_PROCESSOR_CONTENT_DESC content_desc = {};
     content_desc.InputFrameFormat = D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE;
     content_desc.InputWidth = input_width;
@@ -119,19 +117,20 @@ void D3D11Context::CreateVideoProcessorAndEnumerator(
     content_desc.OutputWidth = output_width;
     content_desc.OutputHeight = output_height;
     content_desc.Usage = D3D11_VIDEO_USAGE_OPTIMAL_SPEED;
-    
+
     // Set frame rates (200 fps as default)
     content_desc.InputFrameRate.Numerator = 0;
     content_desc.InputFrameRate.Denominator = 0;
     content_desc.OutputFrameRate.Numerator = 0;
     content_desc.OutputFrameRate.Denominator = 0;
-    
+
     // Create enumerator
-    HRESULT hr = _video_device->CreateVideoProcessorEnumerator(&content_desc, video_processor_enumerator.GetAddressOf());
+    HRESULT hr =
+        _video_device->CreateVideoProcessorEnumerator(&content_desc, video_processor_enumerator.GetAddressOf());
     if (FAILED(hr)) {
         throw std::runtime_error("Failed to create video processor enumerator");
     }
-    
+
     // Create processor using the same enumerator
     hr = _video_device->CreateVideoProcessor(video_processor_enumerator.Get(), 0, video_processor.GetAddressOf());
     if (FAILED(hr)) {
@@ -140,10 +139,9 @@ void D3D11Context::CreateVideoProcessorAndEnumerator(
 }
 
 void D3D11Context::GetCachedVideoProcessor(
-    uint32_t input_width, uint32_t input_height,
-    uint32_t output_width, uint32_t output_height,
-    Microsoft::WRL::ComPtr<ID3D11VideoProcessor>& video_processor,
-    Microsoft::WRL::ComPtr<ID3D11VideoProcessorEnumerator>& video_processor_enumerator) {
+    uint32_t input_width, uint32_t input_height, uint32_t output_width, uint32_t output_height,
+    Microsoft::WRL::ComPtr<ID3D11VideoProcessor> &video_processor,
+    Microsoft::WRL::ComPtr<ID3D11VideoProcessorEnumerator> &video_processor_enumerator) {
 
     ProcessorCacheKey key = {input_width, input_height, output_width, output_height};
 
@@ -153,17 +151,17 @@ void D3D11Context::GetCachedVideoProcessor(
         if (it != _processor_cache.end()) {
             video_processor = it->second.processor;
             video_processor_enumerator = it->second.enumerator;
-            GVA_DEBUG("D3D11 VideoProcessor cache HIT: %ux%u -> %ux%u",
-                     input_width, input_height, output_width, output_height);
+            GVA_DEBUG("D3D11 VideoProcessor cache HIT: %ux%u -> %ux%u", input_width, input_height, output_width,
+                      output_height);
             return;
         }
     }
 
     // Cache miss - create new processor
-    GVA_DEBUG("D3D11 VideoProcessor cache MISS: %ux%u -> %ux%u, creating new",
-             input_width, input_height, output_width, output_height);
-    CreateVideoProcessorAndEnumerator(input_width, input_height, output_width, output_height,
-                                      video_processor, video_processor_enumerator);
+    GVA_DEBUG("D3D11 VideoProcessor cache MISS: %ux%u -> %ux%u, creating new", input_width, input_height, output_width,
+              output_height);
+    CreateVideoProcessorAndEnumerator(input_width, input_height, output_width, output_height, video_processor,
+                                      video_processor_enumerator);
 
     // Store in cache
     {
@@ -195,29 +193,27 @@ void D3D11Context::create_supported_pixel_formats() {
     CreateVideoProcessorAndEnumerator(1920, 1080, 1920, 1080, temp_processor, temp_enumerator);
 
     // List of common DXGI formats to test for video processing support
-    std::vector<DXGI_FORMAT> formats_to_test = {
-        DXGI_FORMAT_NV12,
-        DXGI_FORMAT_YUY2,
-        DXGI_FORMAT_AYUV,
-        DXGI_FORMAT_Y410,
-        DXGI_FORMAT_Y416,
-        DXGI_FORMAT_P010,
-        DXGI_FORMAT_P016,
-        DXGI_FORMAT_420_OPAQUE,
-        DXGI_FORMAT_B8G8R8A8_UNORM,
-        DXGI_FORMAT_R8G8B8A8_UNORM,
-        DXGI_FORMAT_B8G8R8X8_UNORM,
-        DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
-        DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
-        DXGI_FORMAT_R10G10B10A2_UNORM,
-        DXGI_FORMAT_R16G16B16A16_FLOAT
-    };
+    std::vector<DXGI_FORMAT> formats_to_test = {DXGI_FORMAT_NV12,
+                                                DXGI_FORMAT_YUY2,
+                                                DXGI_FORMAT_AYUV,
+                                                DXGI_FORMAT_Y410,
+                                                DXGI_FORMAT_Y416,
+                                                DXGI_FORMAT_P010,
+                                                DXGI_FORMAT_P016,
+                                                DXGI_FORMAT_420_OPAQUE,
+                                                DXGI_FORMAT_B8G8R8A8_UNORM,
+                                                DXGI_FORMAT_R8G8B8A8_UNORM,
+                                                DXGI_FORMAT_B8G8R8X8_UNORM,
+                                                DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+                                                DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
+                                                DXGI_FORMAT_R10G10B10A2_UNORM,
+                                                DXGI_FORMAT_R16G16B16A16_FLOAT};
 
     // Check each format for video processor support
     for (DXGI_FORMAT format : formats_to_test) {
         UINT flags = 0;
         HRESULT hr = temp_enumerator->CheckVideoProcessorFormat(format, &flags);
-        
+
         if (SUCCEEDED(hr) && (flags & D3D11_VIDEO_PROCESSOR_FORMAT_SUPPORT_INPUT)) {
             _supported_pixel_formats.insert(format);
         }

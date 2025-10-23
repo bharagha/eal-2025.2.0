@@ -86,4 +86,3 @@ class D3D11ImagePool {
 };
 
 } // namespace InferenceBackend
-

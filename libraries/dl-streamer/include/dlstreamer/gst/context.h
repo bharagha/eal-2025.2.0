@@ -67,7 +67,7 @@ class GSTContextQuery : public BaseContext {
             GstD3D11Device *d3d11_device = NULL;
             if (gst_structure_get(_structure, "device", GST_TYPE_D3D11_DEVICE, &d3d11_device, NULL)) {
                 value = reinterpret_cast<handle_t>(d3d11_device);
-                //gst_clear_object(&d3d11_device);
+                // gst_clear_object(&d3d11_device);
             }
         }
 #endif
@@ -92,7 +92,6 @@ class GSTContextQuery : public BaseContext {
     static constexpr auto VA_DISPLAY_PROPERTY_NAME = "va-display";
 
     static constexpr auto D3D11_CONTEXT_NAME = "gst.d3d11.device.handle";
-
 
     const char *get_context_name(MemoryType memory_type) {
         if (memory_type == MemoryType::VA) {

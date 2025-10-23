@@ -14,7 +14,7 @@ using namespace InferenceBackend;
 std::shared_ptr<D3D11TexturePool> D3D11ImageMap_SystemMemory::s_texture_pool = nullptr;
 
 // Thread-safe texture pool implementation
-D3D11TexturePool::TexturePtr D3D11TexturePool::acquire(ID3D11Device* device, const D3D11_TEXTURE2D_DESC& desc) {
+D3D11TexturePool::TexturePtr D3D11TexturePool::acquire(ID3D11Device *device, const D3D11_TEXTURE2D_DESC &desc) {
     PoolKey key = std::make_tuple(desc.Width, desc.Height, desc.Format);
     {
         std::lock_guard<std::mutex> lock(pool_mutex);
@@ -22,7 +22,8 @@ D3D11TexturePool::TexturePtr D3D11TexturePool::acquire(ID3D11Device* device, con
         if (it != pool.end()) {
             TexturePtr tex = it->second;
             pool.erase(it);
-            GVA_DEBUG("Texture pool HIT: size=%d W=%dx%d Format=%d", pool.size(), desc.Width, desc.Height, (int)desc.Format);
+            GVA_DEBUG("Texture pool HIT: size=%d W=%dx%d Format=%d", pool.size(), desc.Width, desc.Height,
+                      (int)desc.Format);
             return tex;
         }
     }
@@ -43,8 +44,9 @@ D3D11TexturePool::TexturePtr D3D11TexturePool::acquire(ID3D11Device* device, con
     return tex;
 }
 
-void D3D11TexturePool::release(ID3D11Texture2D* tex) {
-    if (!tex) return;
+void D3D11TexturePool::release(ID3D11Texture2D *tex) {
+    if (!tex)
+        return;
 
     D3D11_TEXTURE2D_DESC desc;
     tex->GetDesc(&desc);
@@ -97,7 +99,7 @@ Image D3D11ImageMap_SystemMemory::Map(const Image &image) {
     image_sys.format = image.format;
 
     // Get device and context from D3D11Context if available, otherwise fall back to GetImmediateContext
-    ID3D11Device* device = static_cast<ID3D11Device*>(image.d3d11_device);
+    ID3D11Device *device = static_cast<ID3D11Device *>(image.d3d11_device);
     if (!d3d11_device_context) {
         if (d3d11_context) {
             d3d11_device_context = d3d11_context->DeviceContext();
@@ -107,7 +109,7 @@ Image D3D11ImageMap_SystemMemory::Map(const Image &image) {
         }
     }
 
-    d3d11_texture = static_cast<ID3D11Texture2D*>(image.d3d11_texture);
+    d3d11_texture = static_cast<ID3D11Texture2D *>(image.d3d11_texture);
     D3D11_TEXTURE2D_DESC desc;
     d3d11_texture->GetDesc(&desc);
 
@@ -146,7 +148,6 @@ Image D3D11ImageMap_SystemMemory::Map(const Image &image) {
         }
     }
 
-
     // Lock only for critical D3D11 operations (CopyResource and Map)
     // All DeviceContext calls must be under lock per D3D11/GStreamer requirements
     if (d3d11_context) {
@@ -165,13 +166,7 @@ Image D3D11ImageMap_SystemMemory::Map(const Image &image) {
     // We must keep lock held for all DeviceContext operations
     for (int plane = 0; plane < num_planes; ++plane) {
         D3D11_MAPPED_SUBRESOURCE mapped_resource = {};
-        HRESULT hr = d3d11_device_context->Map(
-            staging_texture.Get(),
-            plane,
-            D3D11_MAP_READ,
-            0,
-            &mapped_resource
-        );
+        HRESULT hr = d3d11_device_context->Map(staging_texture.Get(), plane, D3D11_MAP_READ, 0, &mapped_resource);
         if (FAILED(hr)) {
             if (d3d11_context) {
                 d3d11_context->Unlock();
@@ -179,7 +174,7 @@ Image D3D11ImageMap_SystemMemory::Map(const Image &image) {
             Unmap();
             throw std::runtime_error("Failed to map staging texture subresource to system memory");
         }
-        image_sys.planes[plane] = static_cast<uint8_t*>(mapped_resource.pData);
+        image_sys.planes[plane] = static_cast<uint8_t *>(mapped_resource.pData);
         image_sys.stride[plane] = mapped_resource.RowPitch;
     }
 

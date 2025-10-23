@@ -17,13 +17,13 @@ static constexpr auto d3d11_texture_ptr = "d3d11_texture_ptr"; // ID3D11Texture2
 
 class D3D11Tensor : public BaseTensor {
   public:
-    D3D11Tensor(ID3D11Texture2D* texture, int plane_index, const TensorInfo &info, ContextPtr context)
+    D3D11Tensor(ID3D11Texture2D *texture, int plane_index, const TensorInfo &info, ContextPtr context)
         : BaseTensor(MemoryType::D3D11, info, tensor::key::d3d11_texture_ptr, context), _texture(texture) {
         set_handle(tensor::key::d3d11_texture_ptr, reinterpret_cast<handle_t>(_texture));
         set_handle(tensor::key::plane_index, plane_index);
     }
 
-    ID3D11Texture2D* d3d11_texture() {
+    ID3D11Texture2D *d3d11_texture() {
         return _texture;
     }
 
@@ -40,7 +40,7 @@ class D3D11Tensor : public BaseTensor {
     }
 
   protected:
-    ID3D11Texture2D* _texture;
+    ID3D11Texture2D *_texture;
 };
 
 using D3D11TensorPtr = std::shared_ptr<D3D11Tensor>;
