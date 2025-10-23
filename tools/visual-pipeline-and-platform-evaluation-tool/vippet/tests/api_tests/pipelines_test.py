@@ -56,8 +56,6 @@ class TestPipelinesAPI(unittest.TestCase):
 
         response = self.client.get("/pipelines")
 
-        print(response.json())
-
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIsInstance(data, list)
