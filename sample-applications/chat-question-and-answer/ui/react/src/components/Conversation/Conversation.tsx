@@ -129,8 +129,7 @@ const Conversation = ({ title }: ConversationProps) => {
 
             {!selectedConversation && (
               <>
-                <div className="infoMessage">Start by asking a question</div>
-                <div className="infoMessage">You can also upload your Document by clicking on Document icon on top right corner</div>
+                <div className="infoMessage">To get started, upload your Document by clicking on Document icon on top right corner</div>
               </>
             )}
 
