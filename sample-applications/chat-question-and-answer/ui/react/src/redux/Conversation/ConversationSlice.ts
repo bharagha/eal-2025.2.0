@@ -40,8 +40,7 @@ export const ConversationSlice = createSlice({
     },
     newConversation: (state) => {
       state.selectedConversationId = "";
-      state.onGoingResults = {};
-      state.isGenerating = {};
+      //allow multiple conversations to generate simultaneously by not clearing ongoing and generating state
     },
     createNewConversation: (state, action: PayloadAction<{ title: string; id: string; message: Message }>) => {
       state.conversations.push({
@@ -57,8 +56,11 @@ export const ConversationSlice = createSlice({
       const conversationId = action.payload;
       if (state.selectedConversationId === conversationId) {
         state.selectedConversationId = "";
-        state.onGoingResults = {};
       }
+      // Clean up only the specific conversation's ongoing state
+      delete state.onGoingResults[conversationId];
+      delete state.isGenerating[conversationId];
+      // Remove the conversation from the list
       state.conversations = state.conversations.filter(conv => conv.conversationId !== conversationId);
     },
     updateConversationTitle: (state, action: PayloadAction<{ id: string; updatedTitle: string }>) => {
@@ -513,8 +515,7 @@ export const doConversation = createAsyncThunk(
         onmessage(msg) {
           if (msg?.data != "[DONE]") {
             try {
-              // Stop the blinking indicator on first message received
-              dispatch(setIsGenerating({ conversationId: activeConversationId, isGenerating: false }));
+              // Keep blinking indicator active throughout streaming - it will stop in onclose() once streaming ends
 
               const match = msg.data.match(/b'([^']*)'/);
               if (match && match[1] != "</s>") {

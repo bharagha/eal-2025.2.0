@@ -3,6 +3,7 @@
 
 import { IconAi, IconUser } from "@tabler/icons-react"
 import style from "./conversationMessage.module.scss"
+import conversationStyles from "../../styles/components/conversation.module.scss"
 import { Group, Text } from "@mantine/core"
 import { DateTime } from "luxon"
 
@@ -10,24 +11,17 @@ export interface ConversationMessageProps {
   message: string
   human: boolean
   date: number
+  showBlinkingIndicator?: boolean
 }
 
-export function ConversationMessage({ human, message, date }: ConversationMessageProps) {
+export function ConversationMessage({ human, message, date, showBlinkingIndicator = false }: ConversationMessageProps) {
   const dateFormat = () => {
-    // console.log(date)
-    // console.log(new Date(date))
     return DateTime.fromJSDate(new Date(date)).toLocaleString(DateTime.DATETIME_MED)
   }
 
   return (
     <div className={style.conversationMessage}>
       <Group>
-        {/* <Avatar
-          src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-1.png"
-          alt="Jacob Warnhalter"
-          radius="xl"
-        /> */}
-
         {human && <IconUser />}
         {!human && <IconAi />}
 
@@ -40,16 +34,17 @@ export function ConversationMessage({ human, message, date }: ConversationMessag
           </Text>
         </div>
       </Group>
-      <Text pl={54} pt="sm" size="sm">
-        {message}
-      </Text>
-
-      {/* <div className={style.header}>
-        {human && <IconUser />}
-        {!human && <IconAi />}
+      <div style={{ paddingLeft: 54, paddingTop: 'var(--mantine-spacing-sm)' }}>
+        <Text size="sm" component="span">
+          {message}
+        </Text>
+        {showBlinkingIndicator && (
+          <span
+            className={conversationStyles.blinkingIndicator}
+            style={{ marginLeft: '4px', display: 'inline-block', verticalAlign: 'baseline' }}
+          />
+        )}
       </div>
-
-      <div className={style.message}>{message}</div> */}
     </div>
   )
 }

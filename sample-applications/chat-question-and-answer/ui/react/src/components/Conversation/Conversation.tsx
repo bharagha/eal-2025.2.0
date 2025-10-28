@@ -138,17 +138,15 @@ const Conversation = ({ title }: ConversationProps) => {
             })
             }
 
-            {/* Show blinking indicator when waiting for AI response */}
-            {isGenerating[selectedConversationId] && (
-              <div className={styleClasses.conversationMessage}>
-                <Group>
-                  <div className={styleClasses.blinkingIndicator} />
-                </Group>
-              </div>
-            )}
-
-            {onGoingResults?.[selectedConversationId] && (
-              <ConversationMessage key={`_ai`} date={Date.now()} human={false} message={onGoingResults[selectedConversationId]} />
+            {/* Show ongoing AI response with blinking indicator inline with streaming text */}
+            {(isGenerating[selectedConversationId] || onGoingResults?.[selectedConversationId]) && (
+              <ConversationMessage
+                key={`ongoing_${selectedConversationId}`}
+                date={Date.now()}
+                human={false}
+                message={onGoingResults?.[selectedConversationId] || ""}
+                showBlinkingIndicator={isGenerating[selectedConversationId]}
+              />
             )}
 
             {hasLLMResponse && (
