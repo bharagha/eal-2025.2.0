@@ -72,7 +72,7 @@ ImageInferenceAsyncD3D11::ImageInferenceAsyncD3D11(const InferenceBackend::Infer
     : _inference(inference) {
 
     const auto &pre_process_config = config.at(KEY_PRE_PROCESSOR);
-    auto thread_pool_size_it = pre_process_config.find(KEY_VAAPI_THREAD_POOL_SIZE);
+    auto thread_pool_size_it = pre_process_config.find(KEY_D3D11_THREAD_POOL_SIZE);
     size_t thread_pool_size = thread_pool_size_it == pre_process_config.end()
                                   ? DEFAULT_THREAD_POOL_SIZE
                                   : std::stoull(thread_pool_size_it->second);
