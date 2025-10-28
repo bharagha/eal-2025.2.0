@@ -46,99 +46,93 @@ class InstanceManager:
         self.lock = threading.Lock()
         self.logger = logging.getLogger(__name__)
 
-    def _generate_instance_id(self) -> str:
+    @staticmethod
+    def _generate_instance_id() -> str:
         """Generate a unique instance ID using UUID."""
         return uuid.uuid1().hex
+
+    def _start_instance(
+        self,
+        name: str,
+        version: str,
+        pipeline_request: PipelineRequestRun | PipelineRequestBenchmark,
+        target_func,
+    ) -> str:
+        """Helper to start a pipeline run or benchmark and return the instance ID."""
+        instance_id = self._generate_instance_id()
+
+        # Create instance record
+        instance = PipelineInstance(
+            id=instance_id,
+            name=name,
+            version=version,
+            request=pipeline_request,
+            state=PipelineInstanceState.RUNNING,
+            start_time=int(time.time() * 1000),  # milliseconds
+        )
+
+        with self.lock:
+            self.instances[instance_id] = instance
+
+        # Start execution in background thread
+        thread = threading.Thread(
+            target=target_func,
+            args=(instance_id, name, version, pipeline_request),
+            daemon=True,
+        )
+        thread.start()
+
+        self.logger.info(
+            f"{'Pipeline benchmark' if target_func == self._execute_benchmark else 'Pipeline run'} started for instance {instance_id}"
+        )
+
+        return instance_id
 
     def run_pipeline(
         self, name: str, version: str, pipeline_request: PipelineRequestRun
     ) -> str:
         """Start a pipeline run and return the instance ID."""
-        instance_id = self._generate_instance_id()
-
-        # Create instance record
-        instance = PipelineInstance(
-            id=instance_id,
-            name=name,
-            version=version,
-            request=pipeline_request,
-            state=PipelineInstanceState.RUNNING,
-            start_time=int(time.time() * 1000),  # milliseconds
+        return self._start_instance(
+            name, version, pipeline_request, self._execute_pipeline
         )
-
-        with self.lock:
-            self.instances[instance_id] = instance
-
-        # Start pipeline execution in background thread
-        thread = threading.Thread(
-            target=self._execute_pipeline,
-            args=(instance_id, name, version, pipeline_request),
-            daemon=True,
-        )
-        thread.start()
-
-        self.logger.info(f"Pipeline run started for instance {instance_id}")
-
-        return instance_id
 
     def benchmark_pipeline(
         self, name: str, version: str, pipeline_request: PipelineRequestBenchmark
     ) -> str:
         """Start a pipeline benchmark and return the instance ID."""
-        instance_id = self._generate_instance_id()
-
-        # Create instance record
-        instance = PipelineInstance(
-            id=instance_id,
-            name=name,
-            version=version,
-            request=pipeline_request,
-            state=PipelineInstanceState.RUNNING,
-            start_time=int(time.time() * 1000),  # milliseconds
+        return self._start_instance(
+            name, version, pipeline_request, self._execute_benchmark
         )
 
-        with self.lock:
-            self.instances[instance_id] = instance
-
-        # Start benchmark execution in background thread
-        thread = threading.Thread(
-            target=self._execute_benchmark,
-            args=(instance_id, name, version, pipeline_request),
-            daemon=True,
+    def _build_instance_status(
+        self, instance: PipelineInstance
+    ) -> PipelineInstanceStatus:
+        """Helper to build PipelineInstanceStatus from a PipelineInstance."""
+        current_time = int(time.time() * 1000)
+        elapsed_time = (
+            instance.end_time - instance.start_time
+            if instance.end_time
+            else current_time - instance.start_time
         )
-        thread.start()
-
-        self.logger.info(f"Pipeline benchmark started for instance {instance_id}")
-
-        return instance_id
+        return PipelineInstanceStatus(
+            id=instance.id,
+            start_time=instance.start_time,
+            elapsed_time=elapsed_time,
+            state=instance.state,
+            total_fps=instance.total_fps,
+            per_stream_fps=instance.per_stream_fps,
+            ai_streams=instance.ai_streams,
+            non_ai_streams=instance.non_ai_streams,
+        )
 
     def get_all_instance_statuses(self) -> list[PipelineInstanceStatus]:
         """Get status of all pipeline instances."""
         with self.lock:
-            statuses = []
-            current_time = int(time.time() * 1000)
-
-            for instance in self.instances.values():
-                elapsed_time = (
-                    instance.end_time - instance.start_time
-                    if instance.end_time
-                    else current_time - instance.start_time
-                )
-
-                status = PipelineInstanceStatus(
-                    id=instance.id,
-                    start_time=instance.start_time,
-                    elapsed_time=elapsed_time,
-                    state=instance.state,
-                    total_fps=instance.total_fps,
-                    per_stream_fps=instance.per_stream_fps,
-                    ai_streams=instance.ai_streams,
-                    non_ai_streams=instance.non_ai_streams,
-                )
-                statuses.append(status)
-
+            statuses = [
+                self._build_instance_status(instance)
+                for instance in self.instances.values()
+            ]
             self.logger.debug(f"Current pipeline instance statuses: {statuses}")
-
             return statuses
 
     def get_instance_status(self, instance_id: str) -> Optional[PipelineInstanceStatus]:
@@ -146,31 +140,11 @@ class InstanceManager:
         with self.lock:
             if instance_id not in self.instances:
                 return None
-
             instance = self.instances[instance_id]
-            current_time = int(time.time() * 1000)
-
-            elapsed_time = (
-                instance.end_time - instance.start_time
-                if instance.end_time
-                else current_time - instance.start_time
-            )
-
-            pipeline_instance_status = PipelineInstanceStatus(
-                id=instance.id,
-                start_time=instance.start_time,
-                elapsed_time=elapsed_time,
-                state=instance.state,
-                total_fps=instance.total_fps,
-                per_stream_fps=instance.per_stream_fps,
-                ai_streams=instance.ai_streams,
-                non_ai_streams=instance.non_ai_streams,
-            )
-
+            pipeline_instance_status = self._build_instance_status(instance)
             self.logger.info(
                 f"Pipeline instance status for {instance_id}: {pipeline_instance_status}"
             )
-
             return pipeline_instance_status
 
     def get_instance_summary(
