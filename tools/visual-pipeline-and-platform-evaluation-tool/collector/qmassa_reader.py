@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 
-import fcntl
 import json
 import logging
 import os
 import re
-import subprocess
 import sys
 import time
 
 # === Constants ===
-LOG_FILE = "/app/qmassa_log.json"
+FIFO_FILE = "/tmp/qmassa.fifo"
 DEBUG_LOG = "/tmp/qmassa_reader_trace.log"
-LOCK_FILE = "/tmp/qmassa_reader.lock"
 HOSTNAME = os.uname()[1]
 
 # Configure logger
@@ -21,46 +18,6 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s (line %(lineno)d)",
 )
-
-
-def execute_qmassa_command():
-    qmassa_command = [
-        # Run qmassa with a 100ms interval and 2 iterations to calculate power as the delta between iterations
-        "qmassa",
-        "--ms-interval",
-        "100",
-        "--no-tui",
-        "--nr-iterations",
-        "2",
-        "--to-json",
-        LOG_FILE,
-    ]
-
-    try:
-        subprocess.run(
-            qmassa_command,
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-    except Exception as e:
-        logging.error(
-            f"Error running qmassa command: {' '.join(qmassa_command)}. Exception: {e}"
-        )
-        sys.exit(1)
-
-
-def load_log_file():
-    try:
-        with open(LOG_FILE, "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        logging.error(f"Log file {LOG_FILE} not found.")
-    except json.JSONDecodeError as e:
-        logging.error(f"Failed to decode JSON from log file: {e}")
-    except Exception as e:
-        logging.error(f"Unexpected error while loading log file: {e}")
-    sys.exit(1)
 
 
 def emit_engine_usage(eng_usage, gpu_id, ts):
@@ -99,18 +56,13 @@ def process_device_metrics(dev, gpu_id, current_ts_ns):
     emit_power(power, gpu_id, current_ts_ns)
 
 
-def process_states(data):
+def process_state_line(state_line):
     try:
-        states = data.get("states", [])
-        if not states:
-            logging.error("No states found in the log file")
-            return
-
+        state = json.loads(state_line)
         current_ts_ns = int(time.time() * 1e9)
-
-        devs_state = states[-1].get("devs_state", [])
+        devs_state = state.get("devs_state", [])
         if not devs_state:
-            logging.warning("No devs_state found in the log file")
+            logging.warning("No devs_state found in state line")
             return
 
         # Process all devices in devs_state
@@ -130,22 +82,28 @@ def process_states(data):
             gpu_id = number - 128
             process_device_metrics(dev, gpu_id, current_ts_ns)
     except Exception as e:
-        logging.error(f"Error processing log file: {e}")
+        logging.error(f"Error processing state line: {e}")
 
 
-# === Lock to prevent multiple instances ===
-with open(LOCK_FILE, "w") as lock_fp:
-    try:
-        fcntl.flock(lock_fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError:
-        logging.error("Another instance is running")
-        sys.exit(1)
+def main():
+    while True:
+        try:
+            # Open the FIFO for reading (blocks until a writer is available)
+            with open(FIFO_FILE, "r") as fifo:
+                # Read lines from the FIFO, blocking until data is available
+                for state_line in fifo:
+                    state_line = state_line.strip()
+                    if not state_line:
+                        continue
+                    # Only process lines that contain the "timestamps" field
+                    if '"timestamps"' not in state_line:
+                        continue
+                    process_state_line(state_line)
+            # If we reach here, the writer closed the FIFO. Loop to reopen and wait for new writers.
+        except Exception as e:
+            logging.error(f"Error reading from FIFO: {e}")
+            sys.exit(1)
 
-    # Execute the qmassa command to generate the log file
-    execute_qmassa_command()
 
-    # Load the log file
-    data = load_log_file()
-
-    # Process the states from the log file
-    process_states(data)
+if __name__ == "__main__":
+    main()

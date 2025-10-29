@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN cargo install --locked qmassa@1.0.1
+RUN cargo install --git https://github.com/ulissesf/qmassa --branch new_json
 
 FROM docker.io/library/telegraf:1.36.3 AS collector
 
@@ -24,6 +24,8 @@ COPY telegraf.conf /etc/telegraf
 COPY qmassa_reader.py qmassa_reader.py
 COPY read_cpu_freq.sh read_cpu_freq.sh
 RUN chmod +x read_cpu_freq.sh
+
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

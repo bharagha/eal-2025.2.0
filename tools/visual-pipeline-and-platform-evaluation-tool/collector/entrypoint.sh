@@ -4,5 +4,11 @@
 echo "0.0" > /app/.collector-signals/fps.txt
 chmod o+w /app/.collector-signals/fps.txt
 
-# Start telegraf with the specified configuration file
-/usr/bin/telegraf --config /etc/telegraf/telegraf.conf
+# Ensure the named pipe for qmassa exists and is writable
+if [ ! -p /tmp/qmassa.fifo ]; then
+    mkfifo /tmp/qmassa.fifo
+fi
+chmod 666 /tmp/qmassa.fifo
+
+# Telegraf and qmassa are started and managed by supervisord
+/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
