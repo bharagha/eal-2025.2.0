@@ -31,8 +31,7 @@ class CustomReranker:
             raise ValueError("Context is required for reranker")
 
     def rerank(self, retrieved_docs: Dict[str, Any]) -> Dict[str, Any]:
-        print("inside rerank method, retrieved_docs:", retrieved_docs)
-        print("type of retrieved_docs:", type(retrieved_docs))
+        logging.info(f"Reranking documents: {retrieved_docs}")
         self.validate_retrieved_docs(retrieved_docs=retrieved_docs)
         if len(retrieved_docs["context"]) > 0:
             return self.rerank_tei(retrieved_docs=retrieved_docs)

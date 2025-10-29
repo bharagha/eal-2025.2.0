@@ -156,13 +156,11 @@ def format_docs(docs):
     return "\n\n".join(formatted_docs)
 
 async def process_chunks(conversation_messages, max_tokens):
-    print(f"Inside process_chunks, conversation_messages: {conversation_messages}, max_tokens: {max_tokens}")
     # Combine all messages for context
     if len(conversation_messages) > 1:
         history = "\n".join([f"{msg.role}: {msg.content}" for msg in conversation_messages[:-1]])
     else:
         history = ""
-    print(f"history inside process_chunks: {history}")
 
     question_text = conversation_messages[-1].content
     if not question_text or not question_text.strip():

@@ -1,6 +1,9 @@
 // Copyright (C) 2024 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+import client from "./client";
+import { HEALTH_CHECK_URL } from "../config";
+
 export const getCurrentTimeStamp = () => {
   return Math.floor(Date.now() / 1000);
 };
@@ -47,4 +50,25 @@ export const extractOriginalFilename = (dbFilename: string): string => {
 
   // 4. Attach with extension
   return originalFilename + extension;
+};
+
+export const checkHealth = async () => {
+  try {
+    const response = await client.get(HEALTH_CHECK_URL);
+    if (response.status === 200) {
+      return { status: response.status };
+    } else {
+      return {
+        status: response.status,
+        message:
+          'LLM model server is not ready to accept connections. Please try after a few minutes.',
+      };
+    }
+  } catch (error) {
+    return {
+      status: 503,
+      message:
+        'LLM model server is not ready to accept connections. Please try after a few minutes.',
+    };
+  }
 };

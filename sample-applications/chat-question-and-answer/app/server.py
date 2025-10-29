@@ -1,6 +1,7 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import logging
 import os
 import uvicorn
 from fastapi import FastAPI
@@ -126,8 +127,10 @@ async def query_chain(payload: QuestionRequest):
         # conversation_messages contain conversation history with roles and content along with current question
         conversation_messages = payload.conversation_messages
         question_text = conversation_messages[-1].content  # latest user message
-        print(f"Received question: {question_text}")
-        print(f"conversation_messages: {conversation_messages}")
+
+        logging.info(f"Received question: {question_text}")
+        logging.info(f"conversation_messages: {conversation_messages}")
+
         max_tokens = payload.max_tokens if payload.max_tokens else 512
         if max_tokens > 1024:
             raise HTTPException(status_code=422, detail="max tokens cannot be greater than 1024")

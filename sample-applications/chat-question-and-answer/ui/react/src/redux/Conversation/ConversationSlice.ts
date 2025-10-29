@@ -5,7 +5,7 @@ import { PayloadAction, createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { Message, MessageRole, ConversationReducer, ConversationRequest, File } from "./Conversation";
-import { getCurrentTimeStamp, uuidv4 } from "../../utils/util";
+import { getCurrentTimeStamp, uuidv4, checkHealth } from "../../utils/util";
 import { createAsyncThunkWrapper } from "../thunkUtil";
 import client from "../../utils/client";
 import { notifications } from "@mantine/notifications";
@@ -141,7 +141,6 @@ export const ConversationSlice = createSlice({
       state.links = [];
     });
     builder.addCase(submitDataSourceURL.fulfilled, () => {
-      console.log('URL submission fulfilled - showing success notification');
       // Hide the loading notification first
       notifications.hide("submit-url");
       // Show a new success notification
@@ -152,7 +151,6 @@ export const ConversationSlice = createSlice({
       });
     });
     builder.addCase(submitDataSourceURL.rejected, () => {
-      console.log('URL submission rejected - showing error notification');
       // Hide the loading notification first
       notifications.hide("submit-url");
       // Show a new error notification
@@ -440,7 +438,6 @@ export default ConversationSlice.reducer;
 export const doConversation = createAsyncThunk(
   "conversation/doConversation",
   async (conversationRequest: ConversationRequest, { dispatch, getState }) => {
-    console.log("doConversation");
     const { conversationId, userPrompt } = conversationRequest;
     let selectedConversation;
     let activeConversationId: string;
@@ -550,12 +547,23 @@ export const doConversation = createAsyncThunk(
           console.log("error", err);
           dispatch(clearOnGoingResultForConversation(activeConversationId));
           dispatch(setIsGenerating({ conversationId: activeConversationId, isGenerating: false }));
-          //notify here
+
+          (async () => {
+            const healthStatus = await checkHealth();
+            const errorMessage = healthStatus.status !== 200
+              ? healthStatus.message
+              : err.message || 'Could not connect to backend at this moment';
+
+            notifications.show({
+              color: "red",
+              message: errorMessage,
+              autoClose: 5000,
+            });
+          })();
+
           throw err;
-          //handle error
         },
         onclose() {
-          //handle close
           dispatch(clearOnGoingResultForConversation(activeConversationId));
           dispatch(setIsGenerating({ conversationId: activeConversationId, isGenerating: false }));
 
