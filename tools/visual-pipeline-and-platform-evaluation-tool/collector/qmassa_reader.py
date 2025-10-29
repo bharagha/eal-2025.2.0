@@ -8,8 +8,8 @@ import sys
 import time
 
 # === Constants ===
-FIFO_FILE = "/tmp/qmassa.fifo"
-DEBUG_LOG = "/tmp/qmassa_reader_trace.log"
+FIFO_FILE = "/app/qmassa.fifo"
+DEBUG_LOG = "/app/qmassa_reader_trace.log"
 HOSTNAME = os.uname()[1]
 
 # Configure logger
