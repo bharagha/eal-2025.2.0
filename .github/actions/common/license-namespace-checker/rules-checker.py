@@ -17,10 +17,17 @@ COPYRIGHT_YEAR = "2025"
 
 def check_copyright_year(copyright_patterns):
     def check(content):
-        for pattern in copyright_patterns:
+        print(f"DEBUG: Checking for year {COPYRIGHT_YEAR}")
+        for i, pattern in enumerate(copyright_patterns):
             match = re.search(pattern[0], content, re.DOTALL)
-            if match and COPYRIGHT_YEAR not in match.group(1):
-                return f"Year {COPYRIGHT_YEAR} is missing" 
+            print(f"DEBUG: Pattern {i}: match = {match is not None}")
+            if match:
+                print(f"DEBUG: Found year: '{match.group(1)}'")
+                if COPYRIGHT_YEAR not in match.group(1):
+                    print(f"DEBUG: Year {COPYRIGHT_YEAR} is MISSING!")
+                    return f"Year {COPYRIGHT_YEAR} is missing" 
+                else:
+                    print(f"DEBUG: Year {COPYRIGHT_YEAR} is present")
         return None
     return check
         
