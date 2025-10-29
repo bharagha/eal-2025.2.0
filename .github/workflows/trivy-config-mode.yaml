@@ -134,7 +134,7 @@ jobs:
             echo "Failures found: $FAILURE_COUNT"
 
             if [ "$FAILURE_COUNT" -gt 0 ]; then
-              echo "❌ Found $FAILURE_COUNT failures! Failing the job.
+              echo "❌ Found $FAILURE_COUNT failures! Failing the job."
               cat "${output_report_path}"
               exit 1
             else
