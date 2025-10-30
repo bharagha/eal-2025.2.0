@@ -271,11 +271,12 @@ def add_nireq_suggestions(suggestions, _):
 # Steps of pipeline optimization:
 # 1. Measure the baseline pipeline's performace.
 # 2. Pre-process the pipeline to cover cases where we're certain of the best alternative.
-# 3. Run the pipeline through generators that provide suggestions for element alternatives.
-# 4. Create a cartesian product of the suggestions
+# 3. Prepare a set of processors providing alternatives for elements.
+# 3. Run the processors in sequence and test their effect on the pipeline.
+# 5. For every processor create a cartesian product of the suggestions
 #    and start running the combinations to measure performance.
-# 5. Any time a better pipeline is found, save it and its performance information.
-# 6. Return the best discovered pipeline.
+# 6. Any time a better pipeline is found, save it and its performance information.
+# 7. Return the best discovered pipeline.
 def get_optimized_pipeline(pipeline, search_duration = 300, sample_duration = 10):
     context = scan_system()
 
