@@ -74,7 +74,7 @@
 
 #define DEFAULT_OV_EXTENSION_LIB nullptr
 
-#define DEFAULT_SHARE_VADISPLAY_CTX FALSE // by default do not share VADisplay context
+#define DEFAULT_SHARE_VADISPLAY_CTX TRUE
 
 G_DEFINE_TYPE_WITH_PRIVATE(GvaBaseInference, gva_base_inference, GST_TYPE_BASE_TRANSFORM);
 
