@@ -17,23 +17,15 @@ COPYRIGHT_YEAR = "2025"
 
 def check_copyright_year(copyright_patterns):
     def check(content):
-        print(f"DEBUG: Checking for year {COPYRIGHT_YEAR}")
         for i, pattern in enumerate(copyright_patterns):
             match = re.search(pattern[0], content, re.DOTALL)
-            print(f"DEBUG: Pattern {i}: match = {match is not None}")
             if match:
-                print(f"DEBUG: Found year: '{match.group(1)}'")
                 if COPYRIGHT_YEAR not in match.group(1):
-                    print(f"DEBUG: Year {COPYRIGHT_YEAR} is MISSING!")
                     return f"Year {COPYRIGHT_YEAR} is missing" 
                 else:
                     print(f"DEBUG: Year {COPYRIGHT_YEAR} is present")
         return None
     return check
-        
-def line_length_check(string):
-    if len(string) > 120:
-        return "Line string length is great than 120"
 
 def regular_expression_check(regexp, error_msg, result_checker, content):
     re_check = re.compile(regexp, re.DOTALL)
