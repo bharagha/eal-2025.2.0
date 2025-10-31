@@ -644,6 +644,88 @@
           }
         }
       }
+    },
+    "/convert/to-config": {
+      "post": {
+        "tags": [
+          "convert"
+        ],
+        "summary": "Convert launch string to launch config",
+        "operationId": "to_config",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaunchString"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchConfig"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/convert/to-string": {
+      "post": {
+        "tags": [
+          "convert"
+        ],
+        "summary": "Convert launch config to launch string",
+        "operationId": "to_string",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaunchConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchString"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -703,6 +785,29 @@
         ],
         "title": "DeviceType"
       },
+      "Edge": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "target": {
+            "type": "string",
+            "title": "Target"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "target"
+        ],
+        "title": "Edge"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -715,6 +820,43 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "LaunchConfig": {
+        "properties": {
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/Node"
+            },
+            "type": "array",
+            "title": "Nodes"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/Edge"
+            },
+            "type": "array",
+            "title": "Edges"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nodes",
+          "edges"
+        ],
+        "title": "LaunchConfig"
+      },
+      "LaunchString": {
+        "properties": {
+          "launch_string": {
+            "type": "string",
+            "title": "Launch String"
+          }
+        },
+        "type": "object",
+        "required": [
+          "launch_string"
+        ],
+        "title": "LaunchString"
       },
       "MetricSample": {
         "properties": {
@@ -786,6 +928,32 @@
         ],
         "title": "ModelCategory"
       },
+      "Node": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "data": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "data"
+        ],
+        "title": "Node"
+      },
       "Pipeline": {
         "properties": {
           "name": {
@@ -804,9 +972,7 @@
             "$ref": "#/components/schemas/PipelineType"
           },
           "launch_config": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Launch Config"
+            "$ref": "#/components/schemas/LaunchConfig"
           },
           "parameters": {
             "anyOf": [
@@ -993,7 +1159,6 @@
           "default": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -1009,7 +1174,7 @@
         ],
         "title": "PipelineParameters"
       },
-      "PipelineParametersBenchmark": {
+      "PipelineParametersBenchmark-Input": {
         "properties": {
           "fps_floor": {
             "type": "integer",
@@ -1022,8 +1187,7 @@
             "default": 100
           },
           "launch_config": {
-            "type": "string",
-            "title": "Launch Config"
+            "$ref": "#/components/schemas/LaunchConfig"
           }
         },
         "type": "object",
@@ -1032,7 +1196,29 @@
         ],
         "title": "PipelineParametersBenchmark"
       },
-      "PipelineParametersRun": {
+      "PipelineParametersBenchmark-Output": {
+        "properties": {
+          "fps_floor": {
+            "type": "integer",
+            "title": "Fps Floor",
+            "default": 30
+          },
+          "ai_stream_rate": {
+            "type": "integer",
+            "title": "Ai Stream Rate",
+            "default": 100
+          },
+          "launch_config": {
+            "$ref": "#/components/schemas/LaunchConfig"
+          }
+        },
+        "type": "object",
+        "required": [
+          "launch_config"
+        ],
+        "title": "PipelineParametersBenchmark"
+      },
+      "PipelineParametersRun-Input": {
         "properties": {
           "inferencing_channels": {
             "type": "integer",
@@ -1045,8 +1231,29 @@
             "default": 0
           },
           "launch_config": {
-            "type": "string",
-            "title": "Launch Config"
+            "$ref": "#/components/schemas/LaunchConfig"
+          }
+        },
+        "type": "object",
+        "required": [
+          "launch_config"
+        ],
+        "title": "PipelineParametersRun"
+      },
+      "PipelineParametersRun-Output": {
+        "properties": {
+          "inferencing_channels": {
+            "type": "integer",
+            "title": "Inferencing Channels",
+            "default": 1
+          },
+          "recording_channels": {
+            "type": "integer",
+            "title": "Recording Channels",
+            "default": 0
+          },
+          "launch_config": {
+            "$ref": "#/components/schemas/LaunchConfig"
           }
         },
         "type": "object",
@@ -1073,7 +1280,7 @@
             "$ref": "#/components/schemas/Source"
           },
           "parameters": {
-            "$ref": "#/components/schemas/PipelineParametersBenchmark"
+            "$ref": "#/components/schemas/PipelineParametersBenchmark-Input"
           },
           "tags": {
             "anyOf": [
@@ -1116,7 +1323,7 @@
             "$ref": "#/components/schemas/Source"
           },
           "parameters": {
-            "$ref": "#/components/schemas/PipelineParametersBenchmark"
+            "$ref": "#/components/schemas/PipelineParametersBenchmark-Output"
           },
           "tags": {
             "anyOf": [
@@ -1161,7 +1368,6 @@
           "parameters": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -1211,7 +1417,7 @@
             "$ref": "#/components/schemas/Source"
           },
           "parameters": {
-            "$ref": "#/components/schemas/PipelineParametersRun"
+            "$ref": "#/components/schemas/PipelineParametersRun-Input"
           },
           "tags": {
             "anyOf": [
@@ -1254,7 +1460,7 @@
             "$ref": "#/components/schemas/Source"
           },
           "parameters": {
-            "$ref": "#/components/schemas/PipelineParametersRun"
+            "$ref": "#/components/schemas/PipelineParametersRun-Output"
           },
           "tags": {
             "anyOf": [

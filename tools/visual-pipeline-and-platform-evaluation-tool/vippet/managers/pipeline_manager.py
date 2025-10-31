@@ -1,8 +1,9 @@
 import logging
 
 from gstpipeline import PipelineLoader
-from api.api_schemas import PipelineType, Pipeline, PipelineDefinition
+from api.api_schemas import PipelineType, Pipeline, PipelineDefinition, LaunchConfig
 from explore import GstInspector
+from convert import string_to_config
 
 gst_inspector = GstInspector()
 
@@ -18,16 +19,14 @@ class PipelineManager:
                 f"Pipeline with name '{new_pipeline.name}' and version '{new_pipeline.version}' already exists."
             )
 
-        launch_cfg = {
-            "converted_launch_string": new_pipeline.launch_string
-        }  # TODO: Convert launch_string to launch_config in JSON format
+        cfg = string_to_config(new_pipeline.launch_string)
 
         pipeline = Pipeline(
             name=new_pipeline.name,
             version=new_pipeline.version,
             description=new_pipeline.description,
             type=new_pipeline.type,
-            launch_config=launch_cfg,
+            launch_config=LaunchConfig(nodes=cfg["nodes"], edges=cfg["edges"]),
             parameters=new_pipeline.parameters,
         )
 
@@ -61,9 +60,7 @@ class PipelineManager:
             launch_string = pipeline_gst.get_default_gst_launch(
                 gst_inspector.get_elements()
             )
-            launch_cfg = {
-                "converted_launch_string": launch_string
-            }  # TODO: Convert launch_string to launch_config in JSON format
+            cfg = string_to_config(launch_string)
 
             predefined_pipelines.append(
                 Pipeline(
@@ -73,7 +70,7 @@ class PipelineManager:
                     ),
                     description=config.get("name", "Unnamed Pipeline"),
                     type=PipelineType.GSTREAMER,
-                    launch_config=launch_cfg,
+                    launch_config=LaunchConfig(nodes=cfg["nodes"], edges=cfg["edges"]),
                     parameters=None,
                 )
             )

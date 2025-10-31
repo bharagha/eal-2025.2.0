@@ -19,6 +19,7 @@ from optimize import PipelineOptimizer
 from explore import GstInspector
 from benchmark import Benchmark
 from utils import download_file, replace_file_path
+from convert import config_to_string
 
 
 @dataclass
@@ -196,9 +197,9 @@ class InstanceManager:
                 file_name,
             )
 
-            launch_string = (
-                pipeline_request.parameters.launch_config
-            )  # TODO: Convert launch_config in JSON format to launch_string
+            launch_string = config_to_string(
+                pipeline_request.parameters.launch_config.model_dump()
+            )
 
             # Replace file path in launch string if needed
             launch_string = replace_file_path(launch_string, file_path)
@@ -264,9 +265,9 @@ class InstanceManager:
                 file_name,
             )
 
-            launch_string = (
-                pipeline_request.parameters.launch_config
-            )  # TODO: Convert launch_config in JSON format to launch_string
+            launch_string = config_to_string(
+                pipeline_request.parameters.launch_config.model_dump()
+            )
 
             # Replace file path in launch string if needed
             launch_string = replace_file_path(launch_string, file_path)

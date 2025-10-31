@@ -44,6 +44,27 @@ class Source(BaseModel):
     uri: Optional[str]
 
 
+class LaunchString(BaseModel):
+    launch_string: str
+
+
+class Node(BaseModel):
+    id: str
+    type: str
+    data: Dict[str, str]
+
+
+class Edge(BaseModel):
+    id: str
+    source: str
+    target: str
+
+
+class LaunchConfig(BaseModel):
+    nodes: list[Node]
+    edges: list[Edge]
+
+
 class PipelineParameters(BaseModel):
     default: Optional[Dict[str, Any]]
 
@@ -51,13 +72,13 @@ class PipelineParameters(BaseModel):
 class PipelineParametersRun(BaseModel):
     inferencing_channels: int = 1
     recording_channels: int = 0
-    launch_config: str
+    launch_config: LaunchConfig
 
 
 class PipelineParametersBenchmark(BaseModel):
     fps_floor: int = 30
     ai_stream_rate: int = 100
-    launch_config: str
+    launch_config: LaunchConfig
 
 
 class Pipeline(BaseModel):
@@ -65,7 +86,7 @@ class Pipeline(BaseModel):
     version: str
     description: str
     type: PipelineType
-    launch_config: Dict[str, Any]
+    launch_config: LaunchConfig
     parameters: Optional[PipelineParameters]
 
 

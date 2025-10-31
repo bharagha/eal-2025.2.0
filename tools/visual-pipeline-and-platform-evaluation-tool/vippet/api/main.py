@@ -2,7 +2,7 @@ import os
 import logging
 from fastapi import FastAPI
 
-from api.routes import pipelines, devices, models, metrics
+from api.routes import pipelines, devices, models, metrics, convert
 
 # Configure logging
 loglevel = os.environ.get("LOG_LEVEL", "INFO").upper()
@@ -20,3 +20,4 @@ app.include_router(pipelines.router, prefix="/pipelines", tags=["pipelines"])
 app.include_router(devices.router, prefix="/devices", tags=["devices"])
 app.include_router(models.router, prefix="/models", tags=["models"])
 app.include_router(metrics.router, prefix="/metrics", tags=["metrics"])
+app.include_router(convert.router, prefix="/convert", tags=["convert"])
