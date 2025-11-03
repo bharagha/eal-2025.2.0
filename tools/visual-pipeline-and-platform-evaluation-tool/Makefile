@@ -59,7 +59,7 @@ pyright: $(VENV_DIR) ## Run pyright type checker
 generate_openapi: $(VENV_DIR) ## Generate OpenAPI schema file
 	set +u; . ./$</bin/activate; set -u ;\
 	cd $(PROJECT_NAME) ;\
-	PYTHONPATH=. python ../generate_openapi.py
+	PYTHONPATH=. SUPPORTED_MODELS_FILE=../shared/models/supported_models.yaml RECORDINGS_PATH=../shared/videos/input python ../generate_openapi.py
 
 env-setup: ## Environment setup target: always run before build/run targets that need .env and shared dirs
 	mkdir -p shared/collector-signals && chmod o+w shared/collector-signals
