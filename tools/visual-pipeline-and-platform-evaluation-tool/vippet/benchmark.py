@@ -7,9 +7,8 @@ based on configurable parameters and stream counts.
 import logging
 from dataclasses import dataclass
 import math
-from typing import Dict, Tuple
 
-from pipeline_runner import PipelineRunner
+from pipeline_runner import PipelineRunner, PipelineRunResult
 from gstpipeline import GstPipeline
 
 
@@ -19,9 +18,6 @@ class BenchmarkResult:
     ai_streams: int
     non_ai_streams: int
     per_stream_fps: float
-    exit_code: int
-    stdout: str = ""
-    stderr: str = ""
 
     def __repr__(self):
         return (
@@ -29,8 +25,7 @@ class BenchmarkResult:
             f"n_streams={self.n_streams}, "
             f"ai_streams={self.ai_streams}, "
             f"non_ai_streams={self.non_ai_streams}, "
-            f"per_stream_fps={self.per_stream_fps}, "
-            f"exit_code={self.exit_code}"
+            f"per_stream_fps={self.per_stream_fps}"
             f")"
         )
 
@@ -48,6 +43,7 @@ class Benchmark:
     ) -> BenchmarkResult:
         """Run the benchmark and return the best configuration."""
         n_streams = 1
+        per_stream_fps = 0.0
         exponential = True
         lower_bound = 1
         # We'll set this once we fall below the fps_floor
@@ -65,8 +61,11 @@ class Benchmark:
                 self.logger.info("Benchmark cancelled.")
                 break
 
+            if results is None or not isinstance(results, PipelineRunResult):
+                raise RuntimeError("Pipeline runner returned invalid results.")
+
             try:
-                total_fps = float(results.total_fps)
+                total_fps = results.total_fps
                 per_stream_fps = total_fps / n_streams if n_streams > 0 else 0.0
             except (ValueError, TypeError, ZeroDivisionError):
                 raise RuntimeError("Failed to parse FPS metrics from pipeline results.")
@@ -125,9 +124,6 @@ class Benchmark:
                 ai_streams=best_config[1],
                 non_ai_streams=best_config[2],
                 per_stream_fps=best_config[3],
-                exit_code=results.exit_code,
-                stdout=results.stdout,
-                stderr=results.stderr,
             )
         else:
             bm_result = BenchmarkResult(
@@ -135,9 +131,6 @@ class Benchmark:
                 ai_streams=ai_streams,
                 non_ai_streams=non_ai_streams,
                 per_stream_fps=per_stream_fps,
-                exit_code=results.exit_code,
-                stdout=results.stdout,
-                stderr=results.stderr,
             )
 
         return bm_result

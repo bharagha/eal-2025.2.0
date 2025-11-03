@@ -3,24 +3,14 @@ import os
 import random
 import re
 import requests
-import select
 import string
-import subprocess
-from subprocess import Popen, PIPE
 from typing import Any
 
 import cv2
-import psutil as ps
 
-from gstpipeline import GstPipeline
-
-cancelled = False
 logger = logging.getLogger("utils")
 
 TEMP_DIR = "/tmp/"
-UINT8_DTYPE_SIZE = 1
-DEFAULT_FRAME_RATE = 30.0
-VIDEO_STREAM_META_PATH = "/tmp/shared_memory/video_stream.meta"
 
 # Path to the directory where models are stored
 MODELS_PATH = os.environ.get("MODELS_PATH", "/models/output")

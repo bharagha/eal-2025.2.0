@@ -1,7 +1,6 @@
-import importlib
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import List
 import yaml
 
 
@@ -43,7 +42,7 @@ class PipelineLoader:
 
     @staticmethod
     def list(pipeline_path: str = "pipelines") -> List[str]:
-        """Return available pipeline folder names (not display names)."""
+        """Return available predefined pipeline folder names (not display names)."""
         pipelines_dir = Path(pipeline_path)
         return [
             name.name
@@ -53,7 +52,7 @@ class PipelineLoader:
 
     @staticmethod
     def config(pipeline_name: str, pipeline_path: str = "pipelines") -> dict:
-        """Return full config dict for a pipeline."""
+        """Return full config dict for a predefined pipeline."""
         PipelineLoader._validate_pipeline_name(pipeline_name, pipeline_path)
         config_path = Path(pipeline_path) / pipeline_name / "config.yaml"
         # Validate that config_path is within the intended pipelines directory using realpath
@@ -72,37 +71,14 @@ class PipelineLoader:
             return yaml.safe_load(f.read())
 
     @staticmethod
-    def load(
-        pipeline_name: str, pipeline_path: str = "pipelines"
-    ) -> Tuple[GstPipeline, Dict]:
-        """Load pipeline class and config, or just metadata.name"""
-        PipelineLoader._validate_pipeline_name(pipeline_name, pipeline_path)
-        config = PipelineLoader.config(pipeline_name, pipeline_path)
-        classname = config.get("metadata", {}).get("classname")
-        if not classname:
-            raise ValueError(
-                f"Pipeline '{pipeline_name}' does not have a classname defined in config.yaml"
-            )
-
-        # NOTE: This code always imports from the pipelines directory.
-        module = importlib.import_module(f"pipelines.{pipeline_name}.pipeline")
-        pipeline_cls = getattr(module, classname)
-        return pipeline_cls(), config
-
-    @staticmethod
-    def load_from_launch_string(launch_string: str) -> GstPipeline:
+    def load(launch_string: str) -> GstPipeline:
         """
         Load a custom pipeline from a launch string.
 
         Args:
-            launch_string: The launch command string
-            name: Display name for the pipeline
-            diagram_path: Optional path to pipeline diagram
-            bounding_boxes: Optional list of bounding boxes for UI interaction
+            launch_string: The launch command string.
 
         Returns:
-            GstPipeline instance
+            GstPipeline: An instance of GstPipeline initialized with the launch string.
         """
-        pipeline = GstPipeline(launch_string)
-
-        return pipeline
+        return GstPipeline(launch_string)

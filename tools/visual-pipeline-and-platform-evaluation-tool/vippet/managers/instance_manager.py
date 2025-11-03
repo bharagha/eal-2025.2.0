@@ -252,7 +252,7 @@ class InstanceManager:
             launch_string = replace_file_path(launch_string, file_path)
 
             # Initialize pipeline object from launch string
-            gst_pipeline = PipelineLoader.load_from_launch_string(launch_string)
+            gst_pipeline = PipelineLoader.load(launch_string)
 
             inferencing_channels = pipeline_request.parameters.inferencing_channels
             recording_channels = pipeline_request.parameters.recording_channels
@@ -328,7 +328,7 @@ class InstanceManager:
             launch_string = replace_file_path(launch_string, file_path)
 
             # Initialize pipeline object from launch string
-            gst_pipeline = PipelineLoader.load_from_launch_string(launch_string)
+            gst_pipeline = PipelineLoader.load(launch_string)
 
             # Initialize Benchmark
             benchmark = Benchmark()

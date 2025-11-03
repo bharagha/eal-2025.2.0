@@ -2,9 +2,6 @@ import logging
 
 from gstpipeline import PipelineLoader
 from api.api_schemas import PipelineType, Pipeline, PipelineDefinition
-from explore import GstInspector
-
-gst_inspector = GstInspector()
 
 
 class PipelineManager:

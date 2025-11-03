@@ -8,11 +8,9 @@ import logging
 import os
 import re
 import select
+import psutil as ps
 from dataclasses import dataclass
 from subprocess import PIPE, Popen
-from typing import Dict, Tuple
-
-import psutil as ps
 
 from gstpipeline import GstPipeline
 
@@ -21,17 +19,13 @@ from gstpipeline import GstPipeline
 class PipelineRunResult:
     """Result of a pipeline run with FPS metrics."""
 
-    exit_code: int
     total_fps: float
     per_stream_fps: float
     num_streams: int
-    stdout: str = ""
-    stderr: str = ""
 
     def __repr__(self):
         return (
             f"PipelineRunResult("
-            f"exit_code={self.exit_code}, "
             f"total_fps={self.total_fps}, "
             f"per_stream_fps={self.per_stream_fps}, "
             f"num_streams={self.num_streams}"
@@ -255,7 +249,7 @@ class PipelineRunner:
                 self.logger.error("STDOUT:\n%s", stdout_str)
                 self.logger.error("STDERR:\n%s", stderr_str)
                 # Only raise an error if the failure was not due to cancellation
-                if not self.is_cancelled:
+                if not self.is_cancelled():
                     raise RuntimeError(
                         f"Pipeline execution failed: {stderr_str.strip()}"
                     )
@@ -266,12 +260,9 @@ class PipelineRunner:
             self.logger.info("Num of Streams is {}".format(num_streams))
 
             return PipelineRunResult(
-                exit_code=exit_code,
                 total_fps=total_fps,
                 per_stream_fps=per_stream_fps,
                 num_streams=num_streams,
-                stdout=stdout_str,
-                stderr=stderr_str,
             )
 
         except Exception as e:
