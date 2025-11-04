@@ -20,6 +20,7 @@ const initialState: ConversationReducer = {
   files: [],
   links: [],
   isGenerating: {},
+  isUploading: false,
 };
 
 export const ConversationSlice = createSlice({
@@ -87,14 +88,19 @@ export const ConversationSlice = createSlice({
     builder.addCase(fetchInitialFiles.rejected, (state) => {
       state.files = [];
     });
-    builder.addCase(uploadFile.fulfilled, () => {
+    builder.addCase(uploadFile.pending, (state) => {
+      state.isUploading = true;
+    });
+    builder.addCase(uploadFile.fulfilled, (state) => {
+      state.isUploading = false;
       notifications.show({
         message: "File Uploaded Successfully",
         color: "green",
         autoClose: 3000,
       });
     });
-    builder.addCase(uploadFile.rejected, () => {
+    builder.addCase(uploadFile.rejected, (state) => {
+      state.isUploading = false;
       notifications.show({
         color: "red",
         message: "Failed to Upload file",
@@ -140,7 +146,11 @@ export const ConversationSlice = createSlice({
     builder.addCase(fetchInitialLinks.rejected, (state) => {
       state.links = [];
     });
-    builder.addCase(submitDataSourceURL.fulfilled, () => {
+    builder.addCase(submitDataSourceURL.pending, (state) => {
+      state.isUploading = true;
+    });
+    builder.addCase(submitDataSourceURL.fulfilled, (state) => {
+      state.isUploading = false;
       // Hide the loading notification first
       notifications.hide("submit-url");
       // Show a new success notification
@@ -150,7 +160,8 @@ export const ConversationSlice = createSlice({
         autoClose: 3000,
       });
     });
-    builder.addCase(submitDataSourceURL.rejected, () => {
+    builder.addCase(submitDataSourceURL.rejected, (state) => {
+      state.isUploading = false;
       // Hide the loading notification first
       notifications.hide("submit-url");
       // Show a new error notification
@@ -432,6 +443,7 @@ export const conversationSelector = (state: RootState) => ({
   files: state.conversationReducer.files,
   links: state.conversationReducer.links,
   isGenerating: state.conversationReducer.isGenerating,
+  isUploading: state.conversationReducer.isUploading,
 });
 export default ConversationSlice.reducer;
 

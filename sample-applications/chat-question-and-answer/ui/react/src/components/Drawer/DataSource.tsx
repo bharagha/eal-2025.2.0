@@ -26,11 +26,8 @@ export default function DataSource({ opened, onClose }: Props) {
   const [selectedLinks, setSelectedLinks] = useState<string[]>([])
   
   const dispatch = useAppDispatch()
-  const { files, links, isGenerating } = useAppSelector(conversationSelector)
+  const { files, links, isUploading } = useAppSelector(conversationSelector)
   
-  // Check if any conversation is currently generating
-  const isAnyConversationGenerating = Object.keys(isGenerating).length > 0
-
   // Fetch initial data when component opens
   useEffect(() => {
     if (opened) {
@@ -235,15 +232,15 @@ export default function DataSource({ opened, onClose }: Props) {
               />
               <Button 
                 onClick={handleFileUpload} 
-                disabled={!file || isAnyConversationGenerating}
+                disabled={!file || isUploading}
                 size="sm"
-                loading={isAnyConversationGenerating}
+                loading={isUploading}
               >
                 Upload File
               </Button>
-              {isAnyConversationGenerating && (
+              {isUploading && (
                 <Text size="xs" c="dimmed" ta="center">
-                  Waiting for AI response to complete...
+                  Upload in progress...
                 </Text>
               )}
             </Stack>
@@ -257,15 +254,15 @@ export default function DataSource({ opened, onClose }: Props) {
               />
               <Button 
                 onClick={handleURLSubmit} 
-                disabled={!url || isAnyConversationGenerating}
+                disabled={!url || isUploading}
                 size="sm"
-                loading={isAnyConversationGenerating}
+                loading={isUploading}
               >
                 Submit URLs
               </Button>
-              {isAnyConversationGenerating && (
+              {isUploading && (
                 <Text size="xs" c="dimmed" ta="center">
-                  Waiting for AI response to complete...
+                  Upload in progress...
                 </Text>
               )}
             </Stack>
