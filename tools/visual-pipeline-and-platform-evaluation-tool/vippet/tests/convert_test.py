@@ -1,6 +1,7 @@
 import re
 import unittest
 from dataclasses import dataclass
+from unittest.mock import MagicMock, patch
 
 from convert import config_to_string, string_to_config, _tokenize
 
@@ -1294,6 +1295,122 @@ class TestTokenize(unittest.TestCase):
         self.assertEqual(tokens[0].value, "tee")
         self.assertEqual(tokens[1].kind, "PROPERTY")
         self.assertEqual(tokens[1].value, "name=t")
+
+
+class TestParseLaunchStringWithModels(unittest.TestCase):
+    def _setup_mock_models(self, mock_manager):
+        """Set up mock models for testing"""
+        mock_yolov8 = MagicMock()
+        mock_yolov8.display_name = "YOLOv8 Detector"
+        mock_yolov8.model_path_full = "/models/output/yolov8_detector.xml"
+        mock_yolov8.model_proc_full = "/models/output/yolov8_detector.json"
+
+        mock_detection = MagicMock()
+        mock_detection.display_name = "Detection Model"
+        mock_detection.model_path_full = "/models/output/detection_model.xml"
+        mock_detection.model_proc_full = ""
+
+        mock_classification = MagicMock()
+        mock_classification.display_name = "Classification Model"
+        mock_classification.model_path_full = "/models/output/classification_model.xml"
+        mock_classification.model_proc_full = ""
+
+        def find_by_path(path):
+            if "yolov8_detector" in path:
+                return mock_yolov8
+            if "detection_model" in path:
+                return mock_detection
+            if "classification_model" in path:
+                return mock_classification
+            return None
+
+        def find_by_name(name):
+            if name == "YOLOv8 Detector":
+                return mock_yolov8
+            if name == "Detection Model":
+                return mock_detection
+            if name == "Classification Model":
+                return mock_classification
+            return None
+
+        mock_manager.find_installed_model_by_model_path_full.side_effect = find_by_path
+        mock_manager.find_installed_model_by_display_name.side_effect = find_by_name
+
+    @patch("convert.models_manager")
+    def test_string_to_config_converts_model_path_to_display_name(
+        self, mock_manager
+    ):
+        self._setup_mock_models(mock_manager)
+
+        launch_string = (
+            "filesrc location=/tmp/input.mp4 ! decodebin3 ! gvadetect "
+            "model=/models/output/yolov8_detector.xml model-proc=/models/output/yolov8_detector.json "
+            "device=GPU ! fakesink"
+        )
+
+        result = string_to_config(launch_string)
+
+        self.assertEqual(len(result["nodes"]), 4)
+        gvadetect_node = result["nodes"][2]
+        self.assertEqual(gvadetect_node["type"], "gvadetect")
+        self.assertEqual(gvadetect_node["data"]["model"], "YOLOv8 Detector")
+        self.assertNotIn("model-proc", gvadetect_node["data"])
+
+    @patch("convert.models_manager")
+    def test_config_to_string_converts_display_name_to_model_path(
+        self, mock_manager
+    ):
+        self._setup_mock_models(mock_manager)
+
+        config = {
+            "nodes": [
+                {"id": "0", "type": "filesrc", "data": {"location": "/tmp/input.mp4"}},
+                {"id": "1", "type": "decodebin3", "data": {}},
+                {
+                    "id": "2",
+                    "type": "gvadetect",
+                    "data": {"model": "YOLOv8 Detector", "device": "GPU"},
+                },
+                {"id": "3", "type": "fakesink", "data": {}},
+            ],
+            "edges": [
+                {"id": "0", "source": "0", "target": "1"},
+                {"id": "1", "source": "1", "target": "2"},
+                {"id": "2", "source": "2", "target": "3"},
+            ],
+        }
+
+        result = config_to_string(config)
+
+        self.assertIn("model=/models/output/yolov8_detector.xml", result)
+        self.assertIn("model-proc=/models/output/yolov8_detector.json", result)
+        self.assertNotIn("YOLOv8 Detector", result)
+
+    @patch("convert.models_manager")
+    def test_multiple_models_conversion(self, mock_manager):
+        self._setup_mock_models(mock_manager)
+
+        launch_string = (
+            "filesrc location=/tmp/input.mp4 ! decodebin3 ! gvadetect "
+            "model=/models/output/detection_model.xml device=GPU ! gvaclassify "
+            "model=/models/output/classification_model.xml device=GPU ! fakesink"
+        )
+
+        result = string_to_config(launch_string)
+
+        self.assertEqual(len(result["nodes"]), 5)
+        gvadetect_node = result["nodes"][2]
+        gvaclassify_node = result["nodes"][3]
+
+        self.assertEqual(gvadetect_node["data"]["model"], "Detection Model")
+        self.assertEqual(gvaclassify_node["data"]["model"], "Classification Model")
+
+        config_string = config_to_string(result)
+
+        self.assertIn("model=/models/output/detection_model.xml", config_string)
+        self.assertIn(
+            "model=/models/output/classification_model.xml", config_string
+        )
 
 
 if __name__ == "__main__":

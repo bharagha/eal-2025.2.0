@@ -4,6 +4,11 @@ from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from models import get_supported_models_manager
+
+
+models_manager = get_supported_models_manager()
+
 
 @dataclass
 class _Token:
@@ -30,6 +35,29 @@ def _tokenize(element: str) -> Iterator[_Token]:
         if kind == "SKIP":
             continue
         yield _Token(kind, value)
+
+
+def _model_path_to_display_name(nodes):
+    if not nodes:
+        return nodes
+
+    for node in nodes:
+        path = node.get("data", {}).get("model", None)
+        if not path:
+            continue
+
+        model = models_manager.find_installed_model_by_model_path_full(path)
+        # TODO handle case where model is not found by path
+        if not model:
+            continue
+
+        node["data"]["model"] = model.display_name
+        # TODO does model-proc also needs display name?
+        if "model-proc" in node["data"]:
+            del node["data"]["model-proc"]
+
+    return nodes
+
 
 def string_to_config(launch_string: str) -> Mapping:
     nodes: list[dict[str, Any]] = []
@@ -63,22 +91,47 @@ def string_to_config(launch_string: str) -> Mapping:
                         tee_indices.append(str(i))
 
                 case "PROPERTY":
-                    k, v = re.split(r"\s*=\s*", token.value, maxsplit=1)
+                    key, value = re.split(r"\s*=\s*", token.value, maxsplit=1)
                     if nodes:
-                        nodes[-1]["data"][k] = v
+                        nodes[-1]["data"][key] = value
 
                 case "MISMATCH":  # TODO
                     print(f"MISMATCH: {token}")
 
             prev_token = token
 
+    nodes = _model_path_to_display_name(nodes)
+
     return {"nodes": nodes, "edges": edges}
+
+
+def _model_name_to_path(nodes):
+    if not nodes:
+        return nodes
+
+    for node in nodes:
+        name = node.get("data", {}).get("model", None)
+        if not name:
+            continue
+
+        model = models_manager.find_installed_model_by_display_name(name)
+        # TODO handle case where model is not found by display name
+        if not model:
+            continue
+
+        node["data"]["model"] = model.model_path_full
+        if model.model_proc_full:
+            node["data"]["model-proc"] = model.model_proc_full
+
+    return nodes
 
 
 def config_to_string(pipeline: Mapping) -> str:
     nodes = pipeline.get("nodes", [])
     if not nodes:
         return ""
+
+    nodes = _model_name_to_path(nodes)
 
     edges = pipeline.get("edges", [])
     node_by_id = {node["id"]: node for node in nodes}
@@ -99,14 +152,12 @@ def config_to_string(pipeline: Mapping) -> str:
 
     # Find start nodes (nodes with no incoming edges)
     all_node_ids = set(node_by_id.keys())
-    target_node_ids = {edge["target"] for edge in edges}
+    target_node_ids = set(edge["target"] for edge in edges)
     start_nodes = all_node_ids - target_node_ids
 
     # TODO log error for circular graphs
     if not start_nodes:
-        print(
-            "Warning: Circular graph detected or no start nodes found. Starting from the first node."
-        )
+        print("Warning: Circular graph detected or no start nodes found.")
         return ""
 
     result_parts: list[str] = []
