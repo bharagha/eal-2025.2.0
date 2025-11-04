@@ -620,31 +620,6 @@
         }
       }
     },
-    "/metrics": {
-      "get": {
-        "tags": [
-          "metrics"
-        ],
-        "summary": "Get Metrics",
-        "operationId": "get_metrics",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/MetricSample"
-                  },
-                  "type": "array",
-                  "title": "Response Get Metrics"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/convert/to-config": {
       "post": {
         "tags": [
@@ -858,34 +833,6 @@
         ],
         "title": "LaunchString"
       },
-      "MetricSample": {
-        "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description"
-          },
-          "timestamp": {
-            "type": "integer",
-            "title": "Timestamp"
-          },
-          "value": {
-            "type": "number",
-            "title": "Value"
-          }
-        },
-        "type": "object",
-        "required": [
-          "name",
-          "description",
-          "timestamp",
-          "value"
-        ],
-        "title": "MetricSample"
-      },
       "Model": {
         "properties": {
           "name": {
@@ -897,7 +844,14 @@
             "title": "Display Name"
           },
           "category": {
-            "$ref": "#/components/schemas/ModelCategory"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelCategory"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "precision": {
             "anyOf": [
