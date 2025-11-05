@@ -1,9 +1,9 @@
-import os
-import sys
 import json
 import logging
+import os
+import sys
 import time
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 import cv2
 
@@ -23,7 +23,9 @@ VIDEO_EXTENSIONS = (
 )
 
 # Read RECORDINGS_PATH from environment variable
-RECORDINGS_PATH: str = os.environ.get("RECORDINGS_PATH", "/videos/input")
+RECORDINGS_PATH: str = os.path.normpath(
+    os.environ.get("RECORDINGS_PATH", "/videos/input")
+)
 
 logger = logging.getLogger("videos")
 
@@ -239,3 +241,38 @@ class VideosManager:
             Optional[Video]: The Video object if found, else None.
         """
         return self._videos.get(filename)
+
+    def get_video_filename(self, path: str) -> str:
+        """
+        Returns the Video filename for the given path, or "" if not found.
+
+        Args:
+            path (str): Path to the video file.
+
+        Returns:
+            str: The Video filename if found, else "".
+        """
+        directory, filename = os.path.split(os.path.normpath(path))
+
+        if directory != RECORDINGS_PATH:
+            return ""
+
+        if filename not in self._videos:
+            return ""
+
+        return filename
+
+    def get_video_path(self, filename: str) -> str:
+        """
+        Returns the path for the given Video filename, or "" if not found.
+
+        Args:
+            filename (str): The Video filename.
+
+        Returns:
+            str: Path to the Video filename if found, else "".
+        """
+        if filename not in self._videos:
+            return ""
+
+        return os.path.join(RECORDINGS_PATH, filename)

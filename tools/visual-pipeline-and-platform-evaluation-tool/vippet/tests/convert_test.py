@@ -3,7 +3,7 @@ import unittest
 from dataclasses import dataclass
 from unittest.mock import MagicMock, patch
 
-from convert import config_to_string, string_to_config, _tokenize
+from convert import _tokenize, config_to_string, string_to_config
 
 
 @dataclass
@@ -1337,9 +1337,7 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
         mock_manager.find_installed_model_by_display_name.side_effect = find_by_name
 
     @patch("convert.models_manager")
-    def test_string_to_config_converts_model_path_to_display_name(
-        self, mock_manager
-    ):
+    def test_string_to_config_converts_model_path_to_display_name(self, mock_manager):
         self._setup_mock_models(mock_manager)
 
         launch_string = (
@@ -1357,9 +1355,7 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
         self.assertNotIn("model-proc", gvadetect_node["data"])
 
     @patch("convert.models_manager")
-    def test_config_to_string_converts_display_name_to_model_path(
-        self, mock_manager
-    ):
+    def test_config_to_string_converts_display_name_to_model_path(self, mock_manager):
         self._setup_mock_models(mock_manager)
 
         config = {
@@ -1408,9 +1404,165 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
         config_string = config_to_string(result)
 
         self.assertIn("model=/models/output/detection_model.xml", config_string)
-        self.assertIn(
-            "model=/models/output/classification_model.xml", config_string
+        self.assertIn("model=/models/output/classification_model.xml", config_string)
+
+
+class TestParseLaunchStringWithVideos(unittest.TestCase):
+    def _setup_mock_videos(self, mock_manager):
+        """Set up mock videos for testing"""
+
+        def get_filename(path):
+            if path == "/videos/input/sample_video.mp4":
+                return "sample_video.mp4"
+            if path == "/videos/input/test_recording.mp4":
+                return "test_recording.mp4"
+            return ""
+
+        def get_path(filename):
+            if filename == "sample_video.mp4":
+                return "/videos/input/sample_video.mp4"
+            if filename == "test_recording.mp4":
+                return "/videos/input/test_recording.mp4"
+            return ""
+
+        mock_manager.get_video_filename = get_filename
+        mock_manager.get_video_path = get_path
+
+    @patch("convert.videos_manager")
+    def test_string_to_config_converts_video_path_to_filename(
+        self, mock_videos_manager
+    ):
+        self._setup_mock_videos(mock_videos_manager)
+
+        launch_string = (
+            "filesrc location=/videos/input/sample_video.mp4 ! decodebin3 ! fakesink"
         )
+
+        result = string_to_config(launch_string)
+
+        self.assertEqual(len(result["nodes"]), 3)
+        filesrc_node = result["nodes"][0]
+        self.assertEqual(filesrc_node["type"], "filesrc")
+        self.assertEqual(filesrc_node["data"]["location"], "sample_video.mp4")
+
+    @patch("convert.videos_manager")
+    def test_config_to_string_converts_video_filename_to_path(
+        self, mock_videos_manager
+    ):
+        self._setup_mock_videos(mock_videos_manager)
+
+        config = {
+            "nodes": [
+                {
+                    "id": "0",
+                    "type": "filesrc",
+                    "data": {"location": "sample_video.mp4"},
+                },
+                {"id": "1", "type": "decodebin3", "data": {}},
+                {"id": "2", "type": "fakesink", "data": {}},
+            ],
+            "edges": [
+                {"id": "0", "source": "0", "target": "1"},
+                {"id": "1", "source": "1", "target": "2"},
+            ],
+        }
+
+        result = config_to_string(config)
+
+        self.assertIn("location=/videos/input/sample_video.mp4", result)
+        self.assertNotIn("location=sample_video.mp4", result)
+
+    @patch("convert.videos_manager")
+    def test_multiple_video_properties_conversion(self, mock_videos_manager):
+        self._setup_mock_videos(mock_videos_manager)
+
+        launch_string = (
+            "filesrc location=/videos/input/sample_video.mp4 ! decodebin3 ! "
+            "filesink location=/videos/input/test_recording.mp4"
+        )
+
+        result = string_to_config(launch_string)
+
+        self.assertEqual(len(result["nodes"]), 3)
+        filesrc_node = result["nodes"][0]
+        filesink_node = result["nodes"][2]
+
+        self.assertEqual(filesrc_node["data"]["location"], "sample_video.mp4")
+        self.assertEqual(filesink_node["data"]["location"], "test_recording.mp4")
+
+        config_string = config_to_string(result)
+
+        self.assertIn("location=/videos/input/sample_video.mp4", config_string)
+        self.assertIn("location=/videos/input/test_recording.mp4", config_string)
+
+    @patch("convert.videos_manager")
+    def test_video_path_not_in_recordings_path_unchanged(self, mock_videos_manager):
+        mock_videos_manager.get_video_filename.return_value = ""
+        mock_videos_manager.get_video_path.return_value = ""
+
+        launch_string = (
+            "filesrc location=/tmp/external_video.mp4 ! decodebin3 ! fakesink"
+        )
+
+        result = string_to_config(launch_string)
+
+        filesrc_node = result["nodes"][0]
+        self.assertEqual(filesrc_node["data"]["location"], "/tmp/external_video.mp4")
+
+    @patch("convert.videos_manager")
+    @patch("convert.models_manager")
+    def test_combined_models_and_videos_conversion(
+        self, mock_models_manager, mock_videos_manager
+    ):
+        # Setup videos
+        self._setup_mock_videos(mock_videos_manager)
+
+        # Setup models
+        mock_model = MagicMock()
+        mock_model.display_name = "Detection Model"
+        mock_model.model_path_full = "/models/output/detection.xml"
+        mock_model.model_proc_full = ""
+
+        def find_by_path(path):
+            if "detection.xml" in path:
+                return mock_model
+            return None
+
+        def find_by_name(name):
+            if name == "Detection Model":
+                return mock_model
+            return None
+
+        mock_models_manager.find_installed_model_by_model_path_full.side_effect = (
+            find_by_path
+        )
+        mock_models_manager.find_installed_model_by_display_name.side_effect = (
+            find_by_name
+        )
+
+        launch_string = (
+            "filesrc location=/videos/input/sample_video.mp4 ! decodebin3 ! "
+            "gvadetect model=/models/output/detection.xml ! "
+            "filesink location=/videos/input/test_recording.mp4"
+        )
+
+        result = string_to_config(launch_string)
+
+        # Check conversions: video paths -> filenames, model path -> display name
+        filesrc_node = result["nodes"][0]
+        gvadetect_node = result["nodes"][2]
+        filesink_node = result["nodes"][3]
+
+        self.assertEqual(filesrc_node["data"]["location"], "sample_video.mp4")
+        self.assertEqual(gvadetect_node["data"]["model"], "Detection Model")
+        self.assertEqual(filesink_node["data"]["location"], "test_recording.mp4")
+
+        # Round-trip: convert back to string
+        config_string = config_to_string(result)
+
+        self.assertIn("location=/videos/input/sample_video.mp4", config_string)
+        self.assertIn("model=/models/output/detection.xml", config_string)
+        self.assertIn("location=/videos/input/test_recording.mp4", config_string)
 
 
 if __name__ == "__main__":

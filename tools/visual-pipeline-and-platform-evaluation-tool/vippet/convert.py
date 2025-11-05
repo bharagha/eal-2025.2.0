@@ -5,9 +5,11 @@ from dataclasses import dataclass
 from typing import Any
 
 from models import get_supported_models_manager
+from videos import get_videos_manager
 
 
 models_manager = get_supported_models_manager()
+videos_manager = get_videos_manager()
 
 
 @dataclass
@@ -38,9 +40,6 @@ def _tokenize(element: str) -> Iterator[_Token]:
 
 
 def _model_path_to_display_name(nodes):
-    if not nodes:
-        return nodes
-
     for node in nodes:
         path = node.get("data", {}).get("model", None)
         if not path:
@@ -55,6 +54,18 @@ def _model_path_to_display_name(nodes):
         # TODO does model-proc also needs display name?
         if "model-proc" in node["data"]:
             del node["data"]["model-proc"]
+
+    return nodes
+
+
+def _video_path_to_display_name(nodes):
+    for node in nodes:
+        for k, v in node["data"].items():
+            filename = videos_manager.get_video_filename(v)
+            if not filename:
+                continue
+
+            node["data"][k] = filename
 
     return nodes
 
@@ -101,14 +112,12 @@ def string_to_config(launch_string: str) -> Mapping:
             prev_token = token
 
     nodes = _model_path_to_display_name(nodes)
+    nodes = _video_path_to_display_name(nodes)
 
     return {"nodes": nodes, "edges": edges}
 
 
-def _model_name_to_path(nodes):
-    if not nodes:
-        return nodes
-
+def _model_display_name_to_path(nodes):
     for node in nodes:
         name = node.get("data", {}).get("model", None)
         if not name:
@@ -126,12 +135,25 @@ def _model_name_to_path(nodes):
     return nodes
 
 
+def _video_name_to_path(nodes):
+    for node in nodes:
+        for k, v in node["data"].items():
+            path = videos_manager.get_video_path(v)
+            if not path:
+                continue
+
+            node["data"][k] = path
+
+    return nodes
+
+
 def config_to_string(pipeline: Mapping) -> str:
     nodes = pipeline.get("nodes", [])
     if not nodes:
         return ""
 
-    nodes = _model_name_to_path(nodes)
+    nodes = _model_display_name_to_path(nodes)
+    nodes = _video_name_to_path(nodes)
 
     edges = pipeline.get("edges", [])
     node_by_id = {node["id"]: node for node in nodes}

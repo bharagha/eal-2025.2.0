@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import struct
 
+from videos import RECORDINGS_PATH
 from gstpipeline import GstPipeline
 from utils import UINT8_DTYPE_SIZE, VIDEO_STREAM_META_PATH, is_yolov10_model
 
@@ -426,7 +427,7 @@ class SmartNVRPipeline(GstPipeline):
 
         # Provide default constants for a basic pipeline
         default_constants = {
-            "VIDEO_PATH": "/tmp/dummy-video.mp4",
+            "VIDEO_PATH": os.path.join(RECORDINGS_PATH, "people.mp4"),
             "VIDEO_CODEC": "h264",
             "VIDEO_OUTPUT_PATH": "/tmp/dummy-video-output.mp4",
             "OBJECT_DETECTION_MODEL_PATH": "/models/output/public/yolov8_license_plate_detector/FP32/yolov8_license_plate_detector.xml",
