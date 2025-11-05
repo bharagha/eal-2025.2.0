@@ -102,6 +102,9 @@ export const ConversationSlice = createSlice({
     });
     builder.addCase(uploadFile.fulfilled, (state) => {
       state.isUploading = false;
+      // Hide the loading notification first
+      notifications.hide("upload-file");
+      // Show a new success notification
       notifications.show({
         message: "File Uploaded Successfully",
         color: "green",
@@ -110,6 +113,9 @@ export const ConversationSlice = createSlice({
     });
     builder.addCase(uploadFile.rejected, (state) => {
       state.isUploading = false;
+      // Hide the loading notification first
+      notifications.hide("upload-file");
+      // Show a new error notification
       notifications.show({
         color: "red",
         message: "Failed to Upload file",
@@ -423,10 +429,9 @@ export const uploadFile = createAsyncThunkWrapper("conversation/uploadFile", asy
   const body = new FormData();
   body.append("files", file);
 
-  const notificationId = `upload-file-${Date.now()}`;
   notifications.show({
-    id: notificationId,
-    message: "Uploading File",
+    id: "upload-file",
+    message: "Uploading File...",
     loading: true,
   });
   const response = await client.post(DATA_PREP_URL, body);
