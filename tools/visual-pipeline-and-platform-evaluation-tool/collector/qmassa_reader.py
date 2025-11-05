@@ -63,7 +63,9 @@ def process_line(state_line):
 
         # If parsed JSON is not an object, skip and log.
         if not isinstance(state, dict):
-            logging.debug("Skipping line: parsed JSON is not an object (expected top-level dict)")
+            logging.debug(
+                "Skipping line: parsed JSON is not an object (expected top-level dict)"
+            )
             return
 
         # Use state.get with a safe default list and treat missing/empty as skip.
@@ -117,7 +119,9 @@ def main():
             raise
         except Exception as e:
             # Log full traceback for diagnostics and retry after a delay for recoverable errors.
-            logging.exception(f"Error reading from FIFO (will retry after {RETRY_DELAY}s): {e}")
+            logging.exception(
+                f"Error reading from FIFO (will retry after {RETRY_DELAY}s): {e}"
+            )
             time.sleep(RETRY_DELAY)
             continue
 
