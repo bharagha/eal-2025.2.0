@@ -40,7 +40,7 @@ This is a stable release.
 
 #### Deploy using Docker Compose
 ---
-For more details on deployment, refer to the [documentation](https://docs.openedgeplatform.intel.com/2025.1/edge-ai-libraries/time-series-analytics/get-started.html#).
+For more details on deployment, refer to the [documentation](https://docs.openedgeplatform.intel.com/2025.1/edge-ai-libraries/time-series-analytics/get-started.html).
 
 #### Deploy on Kubernetes cluster using Helm Charts
 ---
