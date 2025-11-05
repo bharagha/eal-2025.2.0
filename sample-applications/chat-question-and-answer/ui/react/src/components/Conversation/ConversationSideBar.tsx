@@ -45,6 +45,12 @@ export function ConversationSideBar({ title }: ConversationContextProps) {
     }
 
     const handleDelete = (conversationId: string) => {
+        const confirmDelete = window.confirm(
+            'Are you sure you want to delete this conversation? This action cannot be undone.'
+        );
+        if (!confirmDelete) {
+            return;
+        }
         dispatch(deleteConversation(conversationId))
     }
 

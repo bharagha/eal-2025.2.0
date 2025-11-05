@@ -139,6 +139,13 @@ export default function DataSource({ opened, onClose }: Props) {
   const handleDeleteSelectedFiles = async () => {
     if (selectedFiles.length === 0) return
 
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedFiles.length} selected file(s)? This action cannot be undone.`
+    );
+    if (!confirmDelete) {
+      return;
+    }
+
     try {
       for (const fileName of selectedFiles) {
         const file = files.find((f: any) => f.file_name === fileName)
@@ -158,6 +165,13 @@ export default function DataSource({ opened, onClose }: Props) {
 
   const handleDeleteAllFiles = async () => {
     if (files.length === 0) return
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ALL file(s)? This action cannot be undone.`
+    );
+    if (!confirmDelete) {
+      return;
+    }
 
     try {
       const bucketName = files[0]?.bucket_name || 'default'
@@ -180,6 +194,13 @@ export default function DataSource({ opened, onClose }: Props) {
   const handleDeleteSelectedLinks = async () => {
     if (selectedLinks.length === 0) return
 
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedLinks.length} selected URL(s)? This action cannot be undone.`
+    );
+    if (!confirmDelete) {
+      return;
+    }
+
     try {
       for (const linkName of selectedLinks) {
         await dispatch(removeLink({ linkName })).unwrap()
@@ -193,6 +214,13 @@ export default function DataSource({ opened, onClose }: Props) {
 
   const handleDeleteAllLinks = async () => {
     if (links.length === 0) return
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ALL URL(s)? This action cannot be undone.`
+    );
+    if (!confirmDelete) {
+      return;
+    }
 
     try {
       await dispatch(removeAllLinks({})).unwrap()
