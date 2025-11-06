@@ -20,8 +20,7 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_API_URL || "http://localhost:7860",
           changeOrigin: true,
           secure: false,
-          ws: true,
-          rewrite: (path) => path.replace(/^\/api/, ""),
+          ws: false,
         },
         "/metrics/ws": {
           target: env.VITE_API_URL || "http://localhost:7860",
