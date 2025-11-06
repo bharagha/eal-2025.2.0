@@ -23,20 +23,7 @@ Gst.init(None)
 
 
 class TestGenericPipelineRunner(unittest.TestCase):
-    def set_pipeline(
-        # pylint: disable=unused-argument
-        self,
-        pipeline,
-        image_path,
-        ground_truth,
-        check_only_bbox_number=False,
-        check_additional_info=True,
-        check_frame_data=True,
-        ground_truth_per_frame=False,
-        image_repeat_num=7,
-        check_first_skip=0,
-        check_format=True,
-    ):
+    def set_pipeline(self, pipeline):
         self.exceptions = []
 
         self._mainloop = GLib.MainLoop()
