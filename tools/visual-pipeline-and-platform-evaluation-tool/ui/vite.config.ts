@@ -23,6 +23,12 @@ export default defineConfig(({ mode }) => {
           ws: true,
           rewrite: (path) => path.replace(/^\/api/, ""),
         },
+        "/metrics/ws": {
+          target: env.VITE_API_URL || "http://localhost:7860",
+          changeOrigin: true,
+          secure: false,
+          ws: true,
+        },
       },
     },
   };

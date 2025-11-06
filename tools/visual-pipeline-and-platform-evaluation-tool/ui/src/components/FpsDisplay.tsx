@@ -9,24 +9,28 @@ interface FpsDisplayProps {
 const FpsDisplay = ({ className = "" }: FpsDisplayProps) => {
   const [lastMessage, setLastMessage] = useState<string>("");
 
-  const { readyState } = useWebSocket(
-    "ws://10.123.233.214:7860/metrics/ws/clients",
-    {
-      onOpen: () => {
-        console.log("WebSocket connected");
-      },
-      onMessage: (event) => {
-        setLastMessage(event.data);
-      },
-      onError: (error) => {
-        console.error("WebSocket error:", error);
-      },
-      onClose: () => {
-        console.log("WebSocket disconnected");
-      },
-      shouldReconnect: () => true, // Automatically reconnect on close
+  // Construct WebSocket URL based on current location
+  const getWebSocketUrl = () => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const host = window.location.host;
+    return `${protocol}//${host}/metrics/ws/clients`;
+  };
+
+  const { readyState } = useWebSocket(getWebSocketUrl(), {
+    onOpen: () => {
+      console.log("WebSocket connected");
     },
-  );
+    onMessage: (event) => {
+      setLastMessage(event.data);
+    },
+    onError: (error) => {
+      console.error("WebSocket error:", error);
+    },
+    onClose: () => {
+      console.log("WebSocket disconnected");
+    },
+    shouldReconnect: () => true, // Automatically reconnect on close
+  });
 
   const getStatusColor = () => {
     switch (readyState) {
