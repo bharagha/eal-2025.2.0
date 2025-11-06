@@ -1,4 +1,4 @@
-from convert import config_to_string, string_to_config
+from convert import Config, config_to_string, string_to_config
 from fastapi import APIRouter
 
 from api.api_schemas import LaunchConfig, LaunchString
@@ -13,11 +13,7 @@ router = APIRouter()
 )
 def to_config(request: LaunchString) -> LaunchConfig:
     response = string_to_config(request.launch_string)
-
-    return LaunchConfig(
-        nodes=response["nodes"],
-        edges=response["edges"],
-    )
+    return LaunchConfig.model_validate(response.to_dict())
 
 
 @router.post(
@@ -26,6 +22,6 @@ def to_config(request: LaunchString) -> LaunchConfig:
     summary="Convert launch config to launch string",
 )
 def to_string(request: LaunchConfig) -> LaunchString:
-    response = config_to_string(request.model_dump())
-
+    d = request.model_dump()
+    response = config_to_string(Config.from_dict(d))
     return LaunchString(launch_string=response)

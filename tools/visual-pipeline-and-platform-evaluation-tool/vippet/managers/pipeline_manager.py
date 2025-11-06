@@ -16,14 +16,14 @@ class PipelineManager:
                 f"Pipeline with name '{new_pipeline.name}' and version '{new_pipeline.version}' already exists."
             )
 
-        cfg = string_to_config(new_pipeline.launch_string)
+        cfg = string_to_config(new_pipeline.launch_string).to_dict()
 
         pipeline = Pipeline(
             name=new_pipeline.name,
             version=new_pipeline.version,
             description=new_pipeline.description,
             type=new_pipeline.type,
-            launch_config=LaunchConfig(nodes=cfg["nodes"], edges=cfg["edges"]),
+            launch_config=LaunchConfig.model_validate(cfg),
             parameters=new_pipeline.parameters,
         )
 
@@ -56,7 +56,7 @@ class PipelineManager:
             config = PipelineLoader.config(pipeline_name)
 
             pipeline_description = config.get("pipeline_description", "")
-            cfg = string_to_config(pipeline_description)
+            cfg = string_to_config(pipeline_description).to_dict()
 
             predefined_pipelines.append(
                 Pipeline(
@@ -64,7 +64,7 @@ class PipelineManager:
                     version=config.get("name", "UnnamedPipeline"),
                     description=config.get("display_name", "Unnamed Pipeline"),
                     type=PipelineType.GSTREAMER,
-                    launch_config=LaunchConfig(nodes=cfg["nodes"], edges=cfg["edges"]),
+                    launch_config=LaunchConfig.model_validate(cfg),
                     parameters=None,
                 )
             )

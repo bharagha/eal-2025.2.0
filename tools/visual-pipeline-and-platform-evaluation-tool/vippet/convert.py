@@ -1,8 +1,7 @@
 import re
 from collections import defaultdict
-from collections.abc import Iterator, Mapping
-from dataclasses import dataclass
-from typing import Any
+from collections.abc import Iterator
+from dataclasses import dataclass, asdict
 
 from models import get_supported_models_manager
 from videos import get_videos_manager
@@ -10,6 +9,42 @@ from videos import get_videos_manager
 
 models_manager = get_supported_models_manager()
 videos_manager = get_videos_manager()
+
+
+@dataclass
+class Node:
+    id: str
+    type: str
+    data: dict[str, str]
+
+
+@dataclass
+class Edge:
+    id: str
+    source: str
+    target: str
+
+
+@dataclass
+class Config:
+    nodes: list[Node]
+    edges: list[Edge]
+
+    def to_dict(self) -> dict[str, list[dict[str, str | dict[str, str]]]]:
+        return asdict(self)
+
+    @staticmethod
+    def from_dict(data: dict) -> "Config":
+        nodes = [
+            Node(id=node["id"], type=node["type"], data=node["data"])
+            for node in data["nodes"]
+        ]
+        edges = [
+            Edge(id=edge["id"], source=edge["source"], target=edge["target"])
+            for edge in data["edges"]
+        ]
+
+        return Config(nodes=nodes, edges=edges)
 
 
 @dataclass
@@ -41,7 +76,7 @@ def _tokenize(element: str) -> Iterator[_Token]:
 
 def _model_path_to_display_name(nodes):
     for node in nodes:
-        path = node.get("data", {}).get("model", None)
+        path = node.data.get("model", None)
         if not path:
             continue
 
@@ -50,29 +85,29 @@ def _model_path_to_display_name(nodes):
         if not model:
             continue
 
-        node["data"]["model"] = model.display_name
+        node.data["model"] = model.display_name
         # TODO does model-proc also needs display name?
-        if "model-proc" in node["data"]:
-            del node["data"]["model-proc"]
+        if "model-proc" in node.data:
+            del node.data["model-proc"]
 
     return nodes
 
 
 def _video_path_to_display_name(nodes):
     for node in nodes:
-        for k, v in node["data"].items():
+        for k, v in node.data.items():
             filename = videos_manager.get_video_filename(v)
             if not filename:
                 continue
 
-            node["data"][k] = filename
+            node.data[k] = filename
 
     return nodes
 
 
-def string_to_config(launch_string: str) -> Mapping:
-    nodes: list[dict[str, Any]] = []
-    edges: list[dict[str, str]] = []
+def string_to_config(launch_string: str) -> Config:
+    nodes: list[Node] = []
+    edges: list[Edge] = []
 
     tee_indices: list[str] = []
     prev_token = _Token("", "")
@@ -83,19 +118,19 @@ def string_to_config(launch_string: str) -> Mapping:
         for token in _tokenize(element):
             match token.kind:
                 case "TYPE":
-                    nodes.append({"id": str(i), "type": token.value, "data": {}})
+                    nodes.append(Node(id=str(i), type=token.value, data={}))
 
                     if i > 0:
                         edges.append(
-                            {
-                                "id": str(i - 1),
-                                "source": (
+                            Edge(
+                                id=str(i - 1),
+                                source=(
                                     str(i - 1)
                                     if prev_token.kind != "TEE_END"
                                     else tee_indices.pop()
                                 ),
-                                "target": str(i),
-                            }
+                                target=str(i),
+                            )
                         )
 
                     if token.value == "tee":
@@ -104,7 +139,7 @@ def string_to_config(launch_string: str) -> Mapping:
                 case "PROPERTY":
                     key, value = re.split(r"\s*=\s*", token.value, maxsplit=1)
                     if nodes:
-                        nodes[-1]["data"][key] = value
+                        nodes[-1].data[key] = value
 
                 case "MISMATCH":  # TODO
                     print(f"MISMATCH: {token}")
@@ -114,12 +149,12 @@ def string_to_config(launch_string: str) -> Mapping:
     nodes = _model_path_to_display_name(nodes)
     nodes = _video_path_to_display_name(nodes)
 
-    return {"nodes": nodes, "edges": edges}
+    return Config(nodes, edges)
 
 
 def _model_display_name_to_path(nodes):
     for node in nodes:
-        name = node.get("data", {}).get("model", None)
+        name = node.data.get("model", None)
         if not name:
             continue
 
@@ -128,53 +163,51 @@ def _model_display_name_to_path(nodes):
         if not model:
             continue
 
-        node["data"]["model"] = model.model_path_full
+        node.data["model"] = model.model_path_full
         if model.model_proc_full:
-            node["data"]["model-proc"] = model.model_proc_full
+            node.data["model-proc"] = model.model_proc_full
 
     return nodes
 
 
 def _video_name_to_path(nodes):
     for node in nodes:
-        for k, v in node["data"].items():
+        for k, v in node.data.items():
             path = videos_manager.get_video_path(v)
             if not path:
                 continue
 
-            node["data"][k] = path
+            node.data[k] = path
 
     return nodes
 
 
-def config_to_string(pipeline: Mapping) -> str:
-    nodes = pipeline.get("nodes", [])
+def config_to_string(pipeline: Config) -> str:
+    nodes = pipeline.nodes
     if not nodes:
         return ""
 
     nodes = _model_display_name_to_path(nodes)
     nodes = _video_name_to_path(nodes)
 
-    edges = pipeline.get("edges", [])
-    node_by_id = {node["id"]: node for node in nodes}
+    edges = pipeline.edges
+    node_by_id = {node.id: node for node in nodes}
 
     # Build adjacency map for efficient edge lookup
     edges_from: dict[str, list[str]] = defaultdict(list)
     for edge in edges:
-        source = edge["source"]
-        target = edge["target"]
-        edges_from[source].append(target)
+        edges_from[edge.source].append(edge.target)
 
     # Find tee elements and their names
     tee_names = {
-        node["id"]: node["data"]["name"]
+        node.id: node.data["name"]
         for node in nodes
-        if node["type"] == "tee" and "name" in node["data"]
+        if node.type == "tee" and "name" in node.data
     }
 
     # Find start nodes (nodes with no incoming edges)
     all_node_ids = set(node_by_id.keys())
-    target_node_ids = set(edge["target"] for edge in edges)
+    target_node_ids = set(edge.target for edge in edges)
     start_nodes = all_node_ids - target_node_ids
 
     # TODO log error for circular graphs
@@ -194,9 +227,9 @@ def config_to_string(pipeline: Mapping) -> str:
             if not node:
                 break
 
-            result_parts.append(node["type"])
+            result_parts.append(node.type)
 
-            for key, value in node["data"].items():
+            for key, value in node.data.items():
                 result_parts.append(f"{key}={value}")
 
             targets = edges_from.get(current_id, [])

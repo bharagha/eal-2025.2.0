@@ -3,18 +3,18 @@ import unittest
 from dataclasses import dataclass
 from unittest.mock import MagicMock, patch
 
-from convert import _tokenize, config_to_string, string_to_config
+from convert import Config, Edge, Node, _tokenize, config_to_string, string_to_config
 
 
 @dataclass
 class ParseTestCase:
     launch_string: str
-    launch_dict: dict
+    launch_dict: Config
 
 
 parse_test_cases = [
+    # old simplevs
     ParseTestCase(
-        # old simplevs
         r"filesrc location=/tmp/license-plate-detection.mp4 ! decodebin3 ! vapostproc ! "
         r"video/x-raw(memory:VAMemory) ! gvafpscounter starting-frame=500 ! "
         r"gvadetect model=/yolov8_license_plate_detector.xml model-instance-id=detect0 device=GPU "
@@ -26,25 +26,21 @@ parse_test_cases = [
         r"gvametaconvert format=json json-indent=4 source=/tmp/license-plate-detection.mp4 ! "
         r"gvametapublish method=file file-path=/dev/null ! vah264enc ! h264parse ! mp4mux ! "
         r"filesink location=/tmp/license-plate-detection-output.mp4",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "/tmp/license-plate-detection.mp4"},
-                },
-                {"id": "1", "type": "decodebin3", "data": {}},
-                {"id": "2", "type": "vapostproc", "data": {}},
-                {"id": "3", "type": "video/x-raw(memory:VAMemory)", "data": {}},
-                {
-                    "id": "4",
-                    "type": "gvafpscounter",
-                    "data": {"starting-frame": "500"},
-                },
-                {
-                    "id": "5",
-                    "type": "gvadetect",
-                    "data": {
+        Config(
+            nodes=[
+                Node(
+                    id="0",
+                    type="filesrc",
+                    data={"location": "/tmp/license-plate-detection.mp4"},
+                ),
+                Node(id="1", type="decodebin3", data={}),
+                Node(id="2", type="vapostproc", data={}),
+                Node(id="3", type="video/x-raw(memory:VAMemory)", data={}),
+                Node(id="4", type="gvafpscounter", data={"starting-frame": "500"}),
+                Node(
+                    id="5",
+                    type="gvadetect",
+                    data={
                         "model": "/yolov8_license_plate_detector.xml",
                         "model-instance-id": "detect0",
                         "device": "GPU",
@@ -53,18 +49,18 @@ parse_test_cases = [
                         "inference-interval": "3",
                         "nireq": "0",
                     },
-                },
-                {"id": "6", "type": "queue", "data": {}},
-                {
-                    "id": "7",
-                    "type": "gvatrack",
-                    "data": {"tracking-type": "short-term-imageless"},
-                },
-                {"id": "8", "type": "queue", "data": {}},
-                {
-                    "id": "9",
-                    "type": "gvaclassify",
-                    "data": {
+                ),
+                Node(id="6", type="queue", data={}),
+                Node(
+                    id="7",
+                    type="gvatrack",
+                    data={"tracking-type": "short-term-imageless"},
+                ),
+                Node(id="8", type="queue", data={}),
+                Node(
+                    id="9",
+                    type="gvaclassify",
+                    data={
                         "model": "/ch_PP-OCRv4_rec_infer/ch_PP-OCRv4_rec_infer.xml",
                         "model-instance-id": "classify0",
                         "device": "GPU",
@@ -74,201 +70,197 @@ parse_test_cases = [
                         "nireq": "0",
                         "reclassify-interval": "1",
                     },
-                },
-                {"id": "10", "type": "queue", "data": {}},
-                {"id": "11", "type": "gvawatermark", "data": {}},
-                {
-                    "id": "12",
-                    "type": "gvametaconvert",
-                    "data": {
+                ),
+                Node(id="10", type="queue", data={}),
+                Node(id="11", type="gvawatermark", data={}),
+                Node(
+                    id="12",
+                    type="gvametaconvert",
+                    data={
                         "format": "json",
                         "json-indent": "4",
                         "source": "/tmp/license-plate-detection.mp4",
                     },
-                },
-                {
-                    "id": "13",
-                    "type": "gvametapublish",
-                    "data": {"method": "file", "file-path": "/dev/null"},
-                },
-                {"id": "14", "type": "vah264enc", "data": {}},
-                {"id": "15", "type": "h264parse", "data": {}},
-                {"id": "16", "type": "mp4mux", "data": {}},
-                {
-                    "id": "17",
-                    "type": "filesink",
-                    "data": {"location": "/tmp/license-plate-detection-output.mp4"},
-                },
+                ),
+                Node(
+                    id="13",
+                    type="gvametapublish",
+                    data={"method": "file", "file-path": "/dev/null"},
+                ),
+                Node(id="14", type="vah264enc", data={}),
+                Node(id="15", type="h264parse", data={}),
+                Node(id="16", type="mp4mux", data={}),
+                Node(
+                    id="17",
+                    type="filesink",
+                    data={"location": "/tmp/license-plate-detection-output.mp4"},
+                ),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "8", "source": "8", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "11", "source": "11", "target": "12"},
-                {"id": "12", "source": "12", "target": "13"},
-                {"id": "13", "source": "13", "target": "14"},
-                {"id": "14", "source": "14", "target": "15"},
-                {"id": "15", "source": "15", "target": "16"},
-                {"id": "16", "source": "16", "target": "17"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="8", source="8", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="11", source="11", target="12"),
+                Edge(id="12", source="12", target="13"),
+                Edge(id="13", source="13", target="14"),
+                Edge(id="14", source="14", target="15"),
+                Edge(id="15", source="15", target="16"),
+                Edge(id="16", source="16", target="17"),
             ],
-        },
+        ),
     ),
+    # gst docs tee example
     ParseTestCase(
-        # gst docs tee example
         r"filesrc location=song.ogg ! decodebin ! tee name=t ! queue ! audioconvert ! audioresample "
         r"! autoaudiosink t. ! queue ! audioconvert ! goom ! videoconvert ! autovideosink",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "song.ogg"},
-                },
-                {"id": "1", "type": "decodebin", "data": {}},
-                {"id": "2", "type": "tee", "data": {"name": "t"}},
-                {"id": "3", "type": "queue", "data": {}},
-                {"id": "4", "type": "audioconvert", "data": {}},
-                {"id": "5", "type": "audioresample", "data": {}},
-                {"id": "6", "type": "autoaudiosink", "data": {}},
-                {"id": "7", "type": "queue", "data": {}},
-                {"id": "8", "type": "audioconvert", "data": {}},
-                {"id": "9", "type": "goom", "data": {}},
-                {"id": "10", "type": "videoconvert", "data": {}},
-                {"id": "11", "type": "autovideosink", "data": {}},
+        Config(
+            nodes=[
+                Node(
+                    id="0",
+                    type="filesrc",
+                    data={"location": "song.ogg"},
+                ),
+                Node(id="1", type="decodebin", data={}),
+                Node(id="2", type="tee", data={"name": "t"}),
+                Node(id="3", type="queue", data={}),
+                Node(id="4", type="audioconvert", data={}),
+                Node(id="5", type="audioresample", data={}),
+                Node(id="6", type="autoaudiosink", data={}),
+                Node(id="7", type="queue", data={}),
+                Node(id="8", type="audioconvert", data={}),
+                Node(id="9", type="goom", data={}),
+                Node(id="10", type="videoconvert", data={}),
+                Node(id="11", type="autovideosink", data={}),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "2", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "8", "source": "8", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="2", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="8", source="8", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
             ],
-        },
+        ),
     ),
+    # 2 nested tees
     ParseTestCase(
-        # 2 nested tees
         r"filesrc location=song.ogg ! decodebin ! tee name=t ! queue ! audioconvert ! tee name=x ! "
         r"queue ! audiorate ! autoaudiosink x. ! queue ! audioresample ! autoaudiosink t. ! queue "
         r"! audioconvert ! goom ! videoconvert ! autovideosink",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "song.ogg"},
-                },
-                {"id": "1", "type": "decodebin", "data": {}},
-                {"id": "2", "type": "tee", "data": {"name": "t"}},
-                {"id": "3", "type": "queue", "data": {}},
-                {"id": "4", "type": "audioconvert", "data": {}},
-                {"id": "5", "type": "tee", "data": {"name": "x"}},
-                {"id": "6", "type": "queue", "data": {}},
-                {"id": "7", "type": "audiorate", "data": {}},
-                {"id": "8", "type": "autoaudiosink", "data": {}},
-                {"id": "9", "type": "queue", "data": {}},
-                {"id": "10", "type": "audioresample", "data": {}},
-                {"id": "11", "type": "autoaudiosink", "data": {}},
-                {"id": "12", "type": "queue", "data": {}},
-                {"id": "13", "type": "audioconvert", "data": {}},
-                {"id": "14", "type": "goom", "data": {}},
-                {"id": "15", "type": "videoconvert", "data": {}},
-                {"id": "16", "type": "autovideosink", "data": {}},
+        Config(
+            nodes=[
+                Node(id="0", type="filesrc", data={"location": "song.ogg"}),
+                Node(id="1", type="decodebin", data={}),
+                Node(id="2", type="tee", data={"name": "t"}),
+                Node(id="3", type="queue", data={}),
+                Node(id="4", type="audioconvert", data={}),
+                Node(id="5", type="tee", data={"name": "x"}),
+                Node(id="6", type="queue", data={}),
+                Node(id="7", type="audiorate", data={}),
+                Node(id="8", type="autoaudiosink", data={}),
+                Node(id="9", type="queue", data={}),
+                Node(id="10", type="audioresample", data={}),
+                Node(id="11", type="autoaudiosink", data={}),
+                Node(id="12", type="queue", data={}),
+                Node(id="13", type="audioconvert", data={}),
+                Node(id="14", type="goom", data={}),
+                Node(id="15", type="videoconvert", data={}),
+                Node(id="16", type="autovideosink", data={}),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "8", "source": "5", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "11", "source": "2", "target": "12"},
-                {"id": "12", "source": "12", "target": "13"},
-                {"id": "13", "source": "13", "target": "14"},
-                {"id": "14", "source": "14", "target": "15"},
-                {"id": "15", "source": "15", "target": "16"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="8", source="5", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="11", source="2", target="12"),
+                Edge(id="12", source="12", target="13"),
+                Edge(id="13", source="13", target="14"),
+                Edge(id="14", source="14", target="15"),
+                Edge(id="15", source="15", target="16"),
             ],
-        },
+        ),
     ),
+    # template
     ParseTestCase(
-        # template
         r"filesrc location=XXX ! demux ! tee name=t ! queue ! splitmuxsink location=output_%02d.mp4 "
         r"t. ! queue ! h264parse ! vah264dec ! "
         r"gvadetect ! queue ! gvatrack ! gvaclassify ! queue ! "
         r"gvawatermark ! gvafpscounter ! gvametaconvert ! gvametapublish ! "
         r"vah264enc ! h264parse ! mp4mux ! filesink location=YYY",
-        {
-            "nodes": [
-                {"id": "0", "type": "filesrc", "data": {"location": "XXX"}},
-                {"id": "1", "type": "demux", "data": {}},
-                {"id": "2", "type": "tee", "data": {"name": "t"}},
-                {"id": "3", "type": "queue", "data": {}},
-                {
-                    "id": "4",
-                    "type": "splitmuxsink",
-                    "data": {"location": "output_%02d.mp4"},
-                },
-                {"id": "5", "type": "queue", "data": {}},
-                {"id": "6", "type": "h264parse", "data": {}},
-                {"id": "7", "type": "vah264dec", "data": {}},
-                {"id": "8", "type": "gvadetect", "data": {}},
-                {"id": "9", "type": "queue", "data": {}},
-                {"id": "10", "type": "gvatrack", "data": {}},
-                {"id": "11", "type": "gvaclassify", "data": {}},
-                {"id": "12", "type": "queue", "data": {}},
-                {"id": "13", "type": "gvawatermark", "data": {}},
-                {"id": "14", "type": "gvafpscounter", "data": {}},
-                {"id": "15", "type": "gvametaconvert", "data": {}},
-                {"id": "16", "type": "gvametapublish", "data": {}},
-                {"id": "17", "type": "vah264enc", "data": {}},
-                {"id": "18", "type": "h264parse", "data": {}},
-                {"id": "19", "type": "mp4mux", "data": {}},
-                {"id": "20", "type": "filesink", "data": {"location": "YYY"}},
+        Config(
+            nodes=[
+                Node(id="0", type="filesrc", data={"location": "XXX"}),
+                Node(id="1", type="demux", data={}),
+                Node(id="2", type="tee", data={"name": "t"}),
+                Node(id="3", type="queue", data={}),
+                Node(
+                    id="4",
+                    type="splitmuxsink",
+                    data={"location": "output_%02d.mp4"},
+                ),
+                Node(id="5", type="queue", data={}),
+                Node(id="6", type="h264parse", data={}),
+                Node(id="7", type="vah264dec", data={}),
+                Node(id="8", type="gvadetect", data={}),
+                Node(id="9", type="queue", data={}),
+                Node(id="10", type="gvatrack", data={}),
+                Node(id="11", type="gvaclassify", data={}),
+                Node(id="12", type="queue", data={}),
+                Node(id="13", type="gvawatermark", data={}),
+                Node(id="14", type="gvafpscounter", data={}),
+                Node(id="15", type="gvametaconvert", data={}),
+                Node(id="16", type="gvametapublish", data={}),
+                Node(id="17", type="vah264enc", data={}),
+                Node(id="18", type="h264parse", data={}),
+                Node(id="19", type="mp4mux", data={}),
+                Node(id="20", type="filesink", data={"location": "YYY"}),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "2", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "8", "source": "8", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "11", "source": "11", "target": "12"},
-                {"id": "12", "source": "12", "target": "13"},
-                {"id": "13", "source": "13", "target": "14"},
-                {"id": "14", "source": "14", "target": "15"},
-                {"id": "15", "source": "15", "target": "16"},
-                {"id": "16", "source": "16", "target": "17"},
-                {"id": "17", "source": "17", "target": "18"},
-                {"id": "18", "source": "18", "target": "19"},
-                {"id": "19", "source": "19", "target": "20"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="2", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="8", source="8", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="11", source="11", target="12"),
+                Edge(id="12", source="12", target="13"),
+                Edge(id="13", source="13", target="14"),
+                Edge(id="14", source="14", target="15"),
+                Edge(id="15", source="15", target="16"),
+                Edge(id="16", source="16", target="17"),
+                Edge(id="17", source="17", target="18"),
+                Edge(id="18", source="18", target="19"),
+                Edge(id="19", source="19", target="20"),
             ],
-        },
+        ),
     ),
+    # SmartNVR Analytics Branch
     ParseTestCase(
-        # SmartNVR Analytics Branch
         r"filesrc location=${VIDEO} ! qtdemux ! h264parse ! "
         r"tee name=t0 ! queue2 ! splitmuxsink location=/tmp/$(uuid).mp4 "
         r"t0. ! queue2 ! vah264dec ! video/x-raw\(memory:VAMemory\) ! "
@@ -284,38 +276,38 @@ parse_test_cases = [
         r"gvametaconvert format=json json-indent=4 ! "
         r"gvametapublish method=file file-path=/dev/null ! "
         r"vapostproc ! video/x-raw\(memory:VAMemory\),width=320,height=240 ! fakesink",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "${VIDEO}"},
-                },
-                {"id": "1", "type": "qtdemux", "data": {}},
-                {"id": "2", "type": "h264parse", "data": {}},
-                {"id": "3", "type": "tee", "data": {"name": "t0"}},
-                {"id": "4", "type": "queue2", "data": {}},
-                {
-                    "id": "5",
-                    "type": "splitmuxsink",
-                    "data": {"location": "/tmp/$(uuid).mp4"},
-                },
-                {"id": "6", "type": "queue2", "data": {}},
-                {"id": "7", "type": "vah264dec", "data": {}},
-                {
-                    "id": "8",
-                    "type": "video/x-raw\\(memory:VAMemory\\)",
-                    "data": {},
-                },
-                {
-                    "id": "9",
-                    "type": "gvafpscounter",
-                    "data": {"starting-frame": "500"},
-                },
-                {
-                    "id": "10",
-                    "type": "gvadetect",
-                    "data": {
+        Config(
+            nodes=[
+                Node(
+                    id="0",
+                    type="filesrc",
+                    data={"location": "${VIDEO}"},
+                ),
+                Node(id="1", type="qtdemux", data={}),
+                Node(id="2", type="h264parse", data={}),
+                Node(id="3", type="tee", data={"name": "t0"}),
+                Node(id="4", type="queue2", data={}),
+                Node(
+                    id="5",
+                    type="splitmuxsink",
+                    data={"location": "/tmp/$(uuid).mp4"},
+                ),
+                Node(id="6", type="queue2", data={}),
+                Node(id="7", type="vah264dec", data={}),
+                Node(
+                    id="8",
+                    type="video/x-raw\\(memory:VAMemory\\)",
+                    data={},
+                ),
+                Node(
+                    id="9",
+                    type="gvafpscounter",
+                    data={"starting-frame": "500"},
+                ),
+                Node(
+                    id="10",
+                    type="gvadetect",
+                    data={
                         "model": "${MODEL_YOLOv5s_416}",
                         "model-proc": "${MODEL_PROC_YOLOv5s_416}",
                         "model-instance-id": "detect0",
@@ -325,18 +317,18 @@ parse_test_cases = [
                         "inference-interval": "3",
                         "nireq": "0",
                     },
-                },
-                {"id": "11", "type": "queue2", "data": {}},
-                {
-                    "id": "12",
-                    "type": "gvatrack",
-                    "data": {"tracking-type": "short-term-imageless"},
-                },
-                {"id": "13", "type": "queue2", "data": {}},
-                {
-                    "id": "14",
-                    "type": "gvaclassify",
-                    "data": {
+                ),
+                Node(id="11", type="queue2", data={}),
+                Node(
+                    id="12",
+                    type="gvatrack",
+                    data={"tracking-type": "short-term-imageless"},
+                ),
+                Node(id="13", type="queue2", data={}),
+                Node(
+                    id="14",
+                    type="gvaclassify",
+                    data={
                         "model": "${MODEL_RESNET}",
                         "model-proc": "${MODEL_PROC_RESNET}",
                         "model-instance-id": "classify0",
@@ -347,113 +339,101 @@ parse_test_cases = [
                         "nireq": "0",
                         "reclassify-interval": "1",
                     },
-                },
-                {"id": "15", "type": "queue2", "data": {}},
-                {"id": "16", "type": "gvawatermark", "data": {}},
-                {
-                    "id": "17",
-                    "type": "gvametaconvert",
-                    "data": {"format": "json", "json-indent": "4"},
-                },
-                {
-                    "id": "18",
-                    "type": "gvametapublish",
-                    "data": {"method": "file", "file-path": "/dev/null"},
-                },
-                {"id": "19", "type": "vapostproc", "data": {}},
-                {
-                    "id": "20",
-                    "type": "video/x-raw\\(memory:VAMemory\\)",
-                    "data": {"width": "320", "height": "240"},
-                },
-                {"id": "21", "type": "fakesink", "data": {}},
+                ),
+                Node(id="15", type="queue2", data={}),
+                Node(id="16", type="gvawatermark", data={}),
+                Node(
+                    id="17",
+                    type="gvametaconvert",
+                    data={"format": "json", "json-indent": "4"},
+                ),
+                Node(
+                    id="18",
+                    type="gvametapublish",
+                    data={"method": "file", "file-path": "/dev/null"},
+                ),
+                Node(id="19", type="vapostproc", data={}),
+                Node(
+                    id="20",
+                    type="video/x-raw\\(memory:VAMemory\\)",
+                    data={"width": "320", "height": "240"},
+                ),
+                Node(id="21", type="fakesink", data={}),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "3", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "8", "source": "8", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "11", "source": "11", "target": "12"},
-                {"id": "12", "source": "12", "target": "13"},
-                {"id": "13", "source": "13", "target": "14"},
-                {"id": "14", "source": "14", "target": "15"},
-                {"id": "15", "source": "15", "target": "16"},
-                {"id": "16", "source": "16", "target": "17"},
-                {"id": "17", "source": "17", "target": "18"},
-                {"id": "18", "source": "18", "target": "19"},
-                {"id": "19", "source": "19", "target": "20"},
-                {"id": "20", "source": "20", "target": "21"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="3", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="8", source="8", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="11", source="11", target="12"),
+                Edge(id="12", source="12", target="13"),
+                Edge(id="13", source="13", target="14"),
+                Edge(id="14", source="14", target="15"),
+                Edge(id="15", source="15", target="16"),
+                Edge(id="16", source="16", target="17"),
+                Edge(id="17", source="17", target="18"),
+                Edge(id="18", source="18", target="19"),
+                Edge(id="19", source="19", target="20"),
+                Edge(id="20", source="20", target="21"),
             ],
-        },
+        ),
     ),
+    # SmartNVR Media-only Branch
     ParseTestCase(
-        # SmartNVR Media-only Branch
         r"filesrc location=${VIDEO} ! qtdemux ! h264parse ! "
         r"tee name=t0 ! queue2 ! splitmuxsink location=/tmp/$(uuid).mp4 "
         r"t0. ! queue2 ! vah264dec ! video/x-raw\(memory:VAMemory\) ! "
         r"gvafpscounter starting-frame=500 ! "
         r"vapostproc ! video/x-raw\(memory:VAMemory\),width=320,height=240 ! fakesink",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "${VIDEO}"},
-                },
-                {"id": "1", "type": "qtdemux", "data": {}},
-                {"id": "2", "type": "h264parse", "data": {}},
-                {"id": "3", "type": "tee", "data": {"name": "t0"}},
-                {"id": "4", "type": "queue2", "data": {}},
-                {
-                    "id": "5",
-                    "type": "splitmuxsink",
-                    "data": {"location": "/tmp/$(uuid).mp4"},
-                },
-                {"id": "6", "type": "queue2", "data": {}},
-                {"id": "7", "type": "vah264dec", "data": {}},
-                {
-                    "id": "8",
-                    "type": "video/x-raw\\(memory:VAMemory\\)",
-                    "data": {},
-                },
-                {
-                    "id": "9",
-                    "type": "gvafpscounter",
-                    "data": {"starting-frame": "500"},
-                },
-                {"id": "10", "type": "vapostproc", "data": {}},
-                {
-                    "id": "11",
-                    "type": "video/x-raw\\(memory:VAMemory\\)",
-                    "data": {"width": "320", "height": "240"},
-                },
-                {"id": "12", "type": "fakesink", "data": {}},
+        Config(
+            nodes=[
+                Node(id="0", type="filesrc", data={"location": "${VIDEO}"}),
+                Node(id="1", type="qtdemux", data={}),
+                Node(id="2", type="h264parse", data={}),
+                Node(id="3", type="tee", data={"name": "t0"}),
+                Node(id="4", type="queue2", data={}),
+                Node(
+                    id="5",
+                    type="splitmuxsink",
+                    data={"location": "/tmp/$(uuid).mp4"},
+                ),
+                Node(id="6", type="queue2", data={}),
+                Node(id="7", type="vah264dec", data={}),
+                Node(id="8", type="video/x-raw\\(memory:VAMemory\\)", data={}),
+                Node(id="9", type="gvafpscounter", data={"starting-frame": "500"}),
+                Node(id="10", type="vapostproc", data={}),
+                Node(
+                    id="11",
+                    type="video/x-raw\\(memory:VAMemory\\)",
+                    data={"width": "320", "height": "240"},
+                ),
+                Node(id="12", type="fakesink", data={}),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "3", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "8", "source": "8", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "11", "source": "11", "target": "12"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="3", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="8", source="8", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="11", source="11", target="12"),
             ],
-        },
+        ),
     ),
+    # Magic 9 Light
     ParseTestCase(
-        # Magic 9 Light
         r"filesrc location=${VIDEO} ! h265parse ! vah265dec ! "
         r"capsfilter caps=\"video/x-raw(memory:VAMemory)\" ! queue ! "
         r"gvadetect model=${MODEL_YOLOv11n} model-proc=${MODEL_PROC_YOLOv11n} "
@@ -466,25 +446,25 @@ parse_test_cases = [
         r"nireq=2 ie-config=NUM_STREAMS=2 batch-size=8 inference-interval=3 inference-region=1 "
         r"model-instance-id=resnet50 ! queue ! "
         r"gvafpscounter starting-frame=2000 ! fakesink sync=false async=false",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "${VIDEO}"},
-                },
-                {"id": "1", "type": "h265parse", "data": {}},
-                {"id": "2", "type": "vah265dec", "data": {}},
-                {
-                    "id": "3",
-                    "type": "capsfilter",
-                    "data": {"caps": '\\"video/x-raw(memory:VAMemory)\\"'},
-                },
-                {"id": "4", "type": "queue", "data": {}},
-                {
-                    "id": "5",
-                    "type": "gvadetect",
-                    "data": {
+        Config(
+            nodes=[
+                Node(
+                    id="0",
+                    type="filesrc",
+                    data={"location": "${VIDEO}"},
+                ),
+                Node(id="1", type="h265parse", data={}),
+                Node(id="2", type="vah265dec", data={}),
+                Node(
+                    id="3",
+                    type="capsfilter",
+                    data={"caps": '\\"video/x-raw(memory:VAMemory)\\"'},
+                ),
+                Node(id="4", type="queue", data={}),
+                Node(
+                    id="5",
+                    type="gvadetect",
+                    data={
                         "model": "${MODEL_YOLOv11n}",
                         "model-proc": "${MODEL_PROC_YOLOv11n}",
                         "device": "GPU",
@@ -496,21 +476,21 @@ parse_test_cases = [
                         "threshold": "0.5",
                         "model-instance-id": "yolov11n",
                     },
-                },
-                {"id": "6", "type": "queue", "data": {}},
-                {
-                    "id": "7",
-                    "type": "gvatrack",
-                    "data": {
+                ),
+                Node(id="6", type="queue", data={}),
+                Node(
+                    id="7",
+                    type="gvatrack",
+                    data={
                         "tracking-type": "1",
                         "config": "tracking_per_class=false",
                     },
-                },
-                {"id": "8", "type": "queue", "data": {}},
-                {
-                    "id": "9",
-                    "type": "gvaclassify",
-                    "data": {
+                ),
+                Node(id="8", type="queue", data={}),
+                Node(
+                    id="9",
+                    type="gvaclassify",
+                    data={
                         "model": "${MODEL_RESNET}",
                         "model-proc": "${MODEL_PROC_RESNET}",
                         "device": "GPU",
@@ -522,37 +502,37 @@ parse_test_cases = [
                         "inference-region": "1",
                         "model-instance-id": "resnet50",
                     },
-                },
-                {"id": "10", "type": "queue", "data": {}},
-                {
-                    "id": "11",
-                    "type": "gvafpscounter",
-                    "data": {"starting-frame": "2000"},
-                },
-                {
-                    "id": "12",
-                    "type": "fakesink",
-                    "data": {"sync": "false", "async": "false"},
-                },
+                ),
+                Node(id="10", type="queue", data={}),
+                Node(
+                    id="11",
+                    type="gvafpscounter",
+                    data={"starting-frame": "2000"},
+                ),
+                Node(
+                    id="12",
+                    type="fakesink",
+                    data={"sync": "false", "async": "false"},
+                ),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "8", "source": "8", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "11", "source": "11", "target": "12"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="8", source="8", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="11", source="11", target="12"),
             ],
-        },
+        ),
     ),
+    # Magic 9 Medium
     ParseTestCase(
-        # Magic 9 Medium
         r"filesrc location=${VIDEO} ! h265parse ! vah265dec ! "
         r"capsfilter caps=\"video/x-raw(memory:VAMemory)\" ! queue ! "
         r"gvadetect model=${MODEL_YOLOv5m} model-proc=${MODEL_PROC_YOLOv5m} "
@@ -569,25 +549,25 @@ parse_test_cases = [
         r"nireq=2 ie-config=NUM_STREAMS=2 batch-size=8 inference-interval=3 inference-region=1 "
         r"model-instance-id=mobilenetv2 ! queue ! "
         r"gvafpscounter starting-frame=2000 ! fakesink sync=false async=false",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "${VIDEO}"},
-                },
-                {"id": "1", "type": "h265parse", "data": {}},
-                {"id": "2", "type": "vah265dec", "data": {}},
-                {
-                    "id": "3",
-                    "type": "capsfilter",
-                    "data": {"caps": '\\"video/x-raw(memory:VAMemory)\\"'},
-                },
-                {"id": "4", "type": "queue", "data": {}},
-                {
-                    "id": "5",
-                    "type": "gvadetect",
-                    "data": {
+        Config(
+            nodes=[
+                Node(
+                    id="0",
+                    type="filesrc",
+                    data={"location": "${VIDEO}"},
+                ),
+                Node(id="1", type="h265parse", data={}),
+                Node(id="2", type="vah265dec", data={}),
+                Node(
+                    id="3",
+                    type="capsfilter",
+                    data={"caps": '\\"video/x-raw(memory:VAMemory)\\"'},
+                ),
+                Node(id="4", type="queue", data={}),
+                Node(
+                    id="5",
+                    type="gvadetect",
+                    data={
                         "model": "${MODEL_YOLOv5m}",
                         "model-proc": "${MODEL_PROC_YOLOv5m}",
                         "device": "GPU",
@@ -599,21 +579,21 @@ parse_test_cases = [
                         "threshold": "0.5",
                         "model-instance-id": "yolov5m",
                     },
-                },
-                {"id": "6", "type": "queue", "data": {}},
-                {
-                    "id": "7",
-                    "type": "gvatrack",
-                    "data": {
+                ),
+                Node(id="6", type="queue", data={}),
+                Node(
+                    id="7",
+                    type="gvatrack",
+                    data={
                         "tracking-type": "1",
                         "config": "tracking_per_class=false",
                     },
-                },
-                {"id": "8", "type": "queue", "data": {}},
-                {
-                    "id": "9",
-                    "type": "gvaclassify",
-                    "data": {
+                ),
+                Node(id="8", type="queue", data={}),
+                Node(
+                    id="9",
+                    type="gvaclassify",
+                    data={
                         "model": "${MODEL_RESNET}",
                         "model-proc": "${MODEL_PROC_RESNET}",
                         "device": "GPU",
@@ -625,12 +605,12 @@ parse_test_cases = [
                         "inference-region": "1",
                         "model-instance-id": "resnet50",
                     },
-                },
-                {"id": "10", "type": "queue", "data": {}},
-                {
-                    "id": "11",
-                    "type": "gvaclassify",
-                    "data": {
+                ),
+                Node(id="10", type="queue", data={}),
+                Node(
+                    id="11",
+                    type="gvaclassify",
+                    data={
                         "model": "${MODEL_MOBILENET}",
                         "model-proc": "${MODEL_PROC_MOBILENET}",
                         "device": "GPU",
@@ -642,39 +622,39 @@ parse_test_cases = [
                         "inference-region": "1",
                         "model-instance-id": "mobilenetv2",
                     },
-                },
-                {"id": "12", "type": "queue", "data": {}},
-                {
-                    "id": "13",
-                    "type": "gvafpscounter",
-                    "data": {"starting-frame": "2000"},
-                },
-                {
-                    "id": "14",
-                    "type": "fakesink",
-                    "data": {"sync": "false", "async": "false"},
-                },
+                ),
+                Node(id="12", type="queue", data={}),
+                Node(
+                    id="13",
+                    type="gvafpscounter",
+                    data={"starting-frame": "2000"},
+                ),
+                Node(
+                    id="14",
+                    type="fakesink",
+                    data={"sync": "false", "async": "false"},
+                ),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "8", "source": "8", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "11", "source": "11", "target": "12"},
-                {"id": "12", "source": "12", "target": "13"},
-                {"id": "13", "source": "13", "target": "14"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="8", source="8", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="11", source="11", target="12"),
+                Edge(id="12", source="12", target="13"),
+                Edge(id="13", source="13", target="14"),
             ],
-        },
+        ),
     ),
+    # Magic 9 Heavy
     ParseTestCase(
-        # Magic 9 Heavy
         r"filesrc location=${VIDEO}! h265parse ! vah265dec ! "
         r"capsfilter caps=\"video/x-raw(memory:VAMemory)\" ! queue ! "
         r"gvadetect model=${MODEL_YOLOv11n} model-proc=${MODEL_PROC_YOLOv11n} "
@@ -691,25 +671,21 @@ parse_test_cases = [
         r"nireq=2 ie-config=NUM_STREAMS=2 batch-size=8 inference-interval=3 inference-region=1 "
         r"model-instance-id=mobilenetv2 ! queue ! "
         r"gvafpscounter starting-frame=2000 ! fakesink sync=false async=false",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "${VIDEO}"},
-                },
-                {"id": "1", "type": "h265parse", "data": {}},
-                {"id": "2", "type": "vah265dec", "data": {}},
-                {
-                    "id": "3",
-                    "type": "capsfilter",
-                    "data": {"caps": '\\"video/x-raw(memory:VAMemory)\\"'},
-                },
-                {"id": "4", "type": "queue", "data": {}},
-                {
-                    "id": "5",
-                    "type": "gvadetect",
-                    "data": {
+        Config(
+            nodes=[
+                Node(id="0", type="filesrc", data={"location": "${VIDEO}"}),
+                Node(id="1", type="h265parse", data={}),
+                Node(id="2", type="vah265dec", data={}),
+                Node(
+                    id="3",
+                    type="capsfilter",
+                    data={"caps": '\\"video/x-raw(memory:VAMemory)\\"'},
+                ),
+                Node(id="4", type="queue", data={}),
+                Node(
+                    id="5",
+                    type="gvadetect",
+                    data={
                         "model": "${MODEL_YOLOv11n}",
                         "model-proc": "${MODEL_PROC_YOLOv11n}",
                         "device": "GPU",
@@ -721,21 +697,21 @@ parse_test_cases = [
                         "threshold": "0.5",
                         "model-instance-id": "yolov11m",
                     },
-                },
-                {"id": "6", "type": "queue", "data": {}},
-                {
-                    "id": "7",
-                    "type": "gvatrack",
-                    "data": {
+                ),
+                Node(id="6", type="queue", data={}),
+                Node(
+                    id="7",
+                    type="gvatrack",
+                    data={
                         "tracking-type": "1",
                         "config": "tracking_per_class=false",
                     },
-                },
-                {"id": "8", "type": "queue", "data": {}},
-                {
-                    "id": "9",
-                    "type": "gvaclassify",
-                    "data": {
+                ),
+                Node(id="8", type="queue", data={}),
+                Node(
+                    id="9",
+                    type="gvaclassify",
+                    data={
                         "model": "${MODEL_RESNET}",
                         "model-proc": "${MODEL_PROC_RESNET}",
                         "device": "GPU",
@@ -747,12 +723,12 @@ parse_test_cases = [
                         "inference-region": "1",
                         "model-instance-id": "resnet50",
                     },
-                },
-                {"id": "10", "type": "queue", "data": {}},
-                {
-                    "id": "11",
-                    "type": "gvaclassify",
-                    "data": {
+                ),
+                Node(id="10", type="queue", data={}),
+                Node(
+                    id="11",
+                    type="gvaclassify",
+                    data={
                         "model": "${MODEL_MOBILENET}",
                         "model-proc": "${MODEL_PROC_MOBILENET}",
                         "device": "GPU",
@@ -764,39 +740,33 @@ parse_test_cases = [
                         "inference-region": "1",
                         "model-instance-id": "mobilenetv2",
                     },
-                },
-                {"id": "12", "type": "queue", "data": {}},
-                {
-                    "id": "13",
-                    "type": "gvafpscounter",
-                    "data": {"starting-frame": "2000"},
-                },
-                {
-                    "id": "14",
-                    "type": "fakesink",
-                    "data": {"sync": "false", "async": "false"},
-                },
+                ),
+                Node(id="12", type="queue", data={}),
+                Node(id="13", type="gvafpscounter", data={"starting-frame": "2000"}),
+                Node(
+                    id="14", type="fakesink", data={"sync": "false", "async": "false"}
+                ),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "8", "source": "8", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "11", "source": "11", "target": "12"},
-                {"id": "12", "source": "12", "target": "13"},
-                {"id": "13", "source": "13", "target": "14"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="8", source="8", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="11", source="11", target="12"),
+                Edge(id="12", source="12", target="13"),
+                Edge(id="13", source="13", target="14"),
             ],
-        },
+        ),
     ),
+    # Simple Video Structuration
     ParseTestCase(
-        # Simple Video Structuration
         r"filesrc location=${VIDEO} ! qtdemux ! h264parse ! vaapidecodebin ! "
         r"vapostproc ! video/x-raw\(memory:VAMemory\) ! "
         r"gvafpscounter starting-frame=500 ! "
@@ -808,31 +778,27 @@ parse_test_cases = [
         r"reclassify-interval=1 ! queue2 ! gvawatermark ! gvametaconvert   format=json   json-indent=4 ! "
         r"gvametapublish   method=file file-path=/dev/null ! "
         r"fakesink",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "${VIDEO}"},
-                },
-                {"id": "1", "type": "qtdemux", "data": {}},
-                {"id": "2", "type": "h264parse", "data": {}},
-                {"id": "3", "type": "vaapidecodebin", "data": {}},
-                {"id": "4", "type": "vapostproc", "data": {}},
-                {
-                    "id": "5",
-                    "type": "video/x-raw\\(memory:VAMemory\\)",
-                    "data": {},
-                },
-                {
-                    "id": "6",
-                    "type": "gvafpscounter",
-                    "data": {"starting-frame": "500"},
-                },
-                {
-                    "id": "7",
-                    "type": "gvadetect",
-                    "data": {
+        Config(
+            nodes=[
+                Node(
+                    id="0",
+                    type="filesrc",
+                    data={"location": "${VIDEO}"},
+                ),
+                Node(id="1", type="qtdemux", data={}),
+                Node(id="2", type="h264parse", data={}),
+                Node(id="3", type="vaapidecodebin", data={}),
+                Node(id="4", type="vapostproc", data={}),
+                Node(id="5", type="video/x-raw\\(memory:VAMemory\\)", data={}),
+                Node(
+                    id="6",
+                    type="gvafpscounter",
+                    data={"starting-frame": "500"},
+                ),
+                Node(
+                    id="7",
+                    type="gvadetect",
+                    data={
                         "model": "${LPR_MODEL}",
                         "model-instance-id": "detect0",
                         "pre-process-backend": "va-surface-sharing",
@@ -841,18 +807,18 @@ parse_test_cases = [
                         "inference-interval": "3",
                         "nireq": "0",
                     },
-                },
-                {"id": "8", "type": "queue2", "data": {}},
-                {
-                    "id": "9",
-                    "type": "gvatrack",
-                    "data": {"tracking-type": "short-term-imageless"},
-                },
-                {"id": "10", "type": "queue2", "data": {}},
-                {
-                    "id": "11",
-                    "type": "gvaclassify",
-                    "data": {
+                ),
+                Node(id="8", type="queue2", data={}),
+                Node(
+                    id="9",
+                    type="gvatrack",
+                    data={"tracking-type": "short-term-imageless"},
+                ),
+                Node(id="10", type="queue2", data={}),
+                Node(
+                    id="11",
+                    type="gvaclassify",
+                    data={
                         "model": "${OCR_MODEL}",
                         "model-instance-id": "classify0",
                         "pre-process-backend": "va-surface-sharing",
@@ -862,43 +828,43 @@ parse_test_cases = [
                         "nireq": "0",
                         "reclassify-interval": "1",
                     },
-                },
-                {"id": "12", "type": "queue2", "data": {}},
-                {"id": "13", "type": "gvawatermark", "data": {}},
-                {
-                    "id": "14",
-                    "type": "gvametaconvert",
-                    "data": {"format": "json", "json-indent": "4"},
-                },
-                {
-                    "id": "15",
-                    "type": "gvametapublish",
-                    "data": {"method": "file", "file-path": "/dev/null"},
-                },
-                {"id": "16", "type": "fakesink", "data": {}},
+                ),
+                Node(id="12", type="queue2", data={}),
+                Node(id="13", type="gvawatermark", data={}),
+                Node(
+                    id="14",
+                    type="gvametaconvert",
+                    data={"format": "json", "json-indent": "4"},
+                ),
+                Node(
+                    id="15",
+                    type="gvametapublish",
+                    data={"method": "file", "file-path": "/dev/null"},
+                ),
+                Node(id="16", type="fakesink", data={}),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "8", "source": "8", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "11", "source": "11", "target": "12"},
-                {"id": "12", "source": "12", "target": "13"},
-                {"id": "13", "source": "13", "target": "14"},
-                {"id": "14", "source": "14", "target": "15"},
-                {"id": "15", "source": "15", "target": "16"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="8", source="8", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="11", source="11", target="12"),
+                Edge(id="12", source="12", target="13"),
+                Edge(id="13", source="13", target="14"),
+                Edge(id="14", source="14", target="15"),
+                Edge(id="15", source="15", target="16"),
             ],
-        },
+        ),
     ),
+    # Human Pose Pipeline
     ParseTestCase(
-        # Human Pose Pipeline
         r"filesrc location=${VIDEO}! qtdemux ! h264parse ! vah264dec ! "
         r"video/x-raw(memory:VAMemory) ! "
         r"gvafpscounter starting-frame=500 ! "
@@ -909,267 +875,247 @@ parse_test_cases = [
         r"gvawatermark ! gvametaconvert   format=json   json-indent=4 ! "
         r"gvametapublish   method=file file-path=/dev/null ! "
         r"fakesink",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "${VIDEO}"},
-                },
-                {"id": "1", "type": "qtdemux", "data": {}},
-                {"id": "2", "type": "h264parse", "data": {}},
-                {"id": "3", "type": "vah264dec", "data": {}},
-                {"id": "4", "type": "video/x-raw(memory:VAMemory)", "data": {}},
-                {
-                    "id": "5",
-                    "type": "gvafpscounter",
-                    "data": {"starting-frame": "500"},
-                },
-                {
-                    "id": "6",
-                    "type": "gvadetect",
-                    "data": {
+        Config(
+            nodes=[
+                Node(id="0", type="filesrc", data={"location": "${VIDEO}"}),
+                Node(id="1", type="qtdemux", data={}),
+                Node(id="2", type="h264parse", data={}),
+                Node(id="3", type="vah264dec", data={}),
+                Node(id="4", type="video/x-raw(memory:VAMemory)", data={}),
+                Node(
+                    id="5",
+                    type="gvafpscounter",
+                    data={"starting-frame": "500"},
+                ),
+                Node(
+                    id="6",
+                    type="gvadetect",
+                    data={
                         "model": "${YOLO11n_POST_MODEL}",
                         "device": "GPU",
                         "pre-process-backend": "va-surface-sharing",
                         "model-instance-id": "yolo11-pose",
                     },
-                },
-                {"id": "7", "type": "queue2", "data": {}},
-                {
-                    "id": "8",
-                    "type": "gvatrack",
-                    "data": {"tracking-type": "short-term-imageless"},
-                },
-                {"id": "9", "type": "gvawatermark", "data": {}},
-                {
-                    "id": "10",
-                    "type": "gvametaconvert",
-                    "data": {"format": "json", "json-indent": "4"},
-                },
-                {
-                    "id": "11",
-                    "type": "gvametapublish",
-                    "data": {"method": "file", "file-path": "/dev/null"},
-                },
-                {"id": "12", "type": "fakesink", "data": {}},
+                ),
+                Node(id="7", type="queue2", data={}),
+                Node(
+                    id="8",
+                    type="gvatrack",
+                    data={"tracking-type": "short-term-imageless"},
+                ),
+                Node(id="9", type="gvawatermark", data={}),
+                Node(
+                    id="10",
+                    type="gvametaconvert",
+                    data={"format": "json", "json-indent": "4"},
+                ),
+                Node(
+                    id="11",
+                    type="gvametapublish",
+                    data={"method": "file", "file-path": "/dev/null"},
+                ),
+                Node(id="12", type="fakesink", data={}),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "8", "source": "8", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "11", "source": "11", "target": "12"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="8", source="8", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="11", source="11", target="12"),
             ],
-        },
+        ),
     ),
+    # Video Decode Pipeline
     ParseTestCase(
-        # Video Decode Pipeline
         r"filesrc location=${VIDEO} ! qtdemux ! h264parse ! vah264dec ! "
         r"video/x-raw\(memory:VAMemory\) ! "
         r"gvafpscounter starting-frame=500 ! "
         r"fakesink",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "${VIDEO}"},
-                },
-                {"id": "1", "type": "qtdemux", "data": {}},
-                {"id": "2", "type": "h264parse", "data": {}},
-                {"id": "3", "type": "vah264dec", "data": {}},
-                {
-                    "id": "4",
-                    "type": "video/x-raw\\(memory:VAMemory\\)",
-                    "data": {},
-                },
-                {
-                    "id": "5",
-                    "type": "gvafpscounter",
-                    "data": {"starting-frame": "500"},
-                },
-                {"id": "6", "type": "fakesink", "data": {}},
+        Config(
+            nodes=[
+                Node(id="0", type="filesrc", data={"location": "${VIDEO}"}),
+                Node(id="1", type="qtdemux", data={}),
+                Node(id="2", type="h264parse", data={}),
+                Node(id="3", type="vah264dec", data={}),
+                Node(
+                    id="4",
+                    type="video/x-raw\\(memory:VAMemory\\)",
+                    data={},
+                ),
+                Node(
+                    id="5",
+                    type="gvafpscounter",
+                    data={"starting-frame": "500"},
+                ),
+                Node(id="6", type="fakesink", data={}),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
             ],
-        },
+        ),
     ),
+    # Video Decode Scale Pipeline
     ParseTestCase(
-        # Video Decode Scale Pipeline
         r"filesrc location=${VIDEO} ! qtdemux ! h264parse ! vah264dec ! "
         r"video/x-raw\(memory:VAMemory\) ! "
         r"gvafpscounter starting-frame=500 ! "
         r"vapostproc ! video/x-raw\(memory:VAMemory\),width=320,height=240 ! fakesink",
-        {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "${VIDEO}"},
-                },
-                {"id": "1", "type": "qtdemux", "data": {}},
-                {"id": "2", "type": "h264parse", "data": {}},
-                {"id": "3", "type": "vah264dec", "data": {}},
-                {
-                    "id": "4",
-                    "type": "video/x-raw\\(memory:VAMemory\\)",
-                    "data": {},
-                },
-                {
-                    "id": "5",
-                    "type": "gvafpscounter",
-                    "data": {"starting-frame": "500"},
-                },
-                {"id": "6", "type": "vapostproc", "data": {}},
-                {
-                    "id": "7",
-                    "type": "video/x-raw\\(memory:VAMemory\\)",
-                    "data": {"width": "320", "height": "240"},
-                },
-                {"id": "8", "type": "fakesink", "data": {}},
+        Config(
+            nodes=[
+                Node(id="0", type="filesrc", data={"location": "${VIDEO}"}),
+                Node(id="1", type="qtdemux", data={}),
+                Node(id="2", type="h264parse", data={}),
+                Node(id="3", type="vah264dec", data={}),
+                Node(id="4", type="video/x-raw\\(memory:VAMemory\\)", data={}),
+                Node(id="5", type="gvafpscounter", data={"starting-frame": "500"}),
+                Node(id="6", type="vapostproc", data={}),
+                Node(
+                    id="7",
+                    type="video/x-raw\\(memory:VAMemory\\)",
+                    data={"width": "320", "height": "240"},
+                ),
+                Node(id="8", type="fakesink", data={}),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
             ],
-        },
+        ),
     ),
 ]
 
 
 unsorted_nodes_edges = [
+    # gst docs tee example
     ParseTestCase(
-        # gst docs tee example
         r"filesrc location=song.ogg ! decodebin ! tee name=t ! queue ! audioconvert ! audioresample "
         r"! autoaudiosink t. ! queue ! audioconvert ! goom ! videoconvert ! autovideosink",
-        {
-            "nodes": [
-                {"id": "1", "type": "decodebin", "data": {}},
-                {"id": "0", "type": "filesrc", "data": {"location": "song.ogg"}},
-                {"id": "3", "type": "queue", "data": {}},
-                {"id": "6", "type": "autoaudiosink", "data": {}},
-                {"id": "4", "type": "audioconvert", "data": {}},
-                {"id": "8", "type": "audioconvert", "data": {}},
-                {"id": "5", "type": "audioresample", "data": {}},
-                {"id": "7", "type": "queue", "data": {}},
-                {"id": "11", "type": "autovideosink", "data": {}},
-                {"id": "9", "type": "goom", "data": {}},
-                {"id": "2", "type": "tee", "data": {"name": "t"}},
-                {"id": "10", "type": "videoconvert", "data": {}},
+        Config(
+            nodes=[
+                Node(id="1", type="decodebin", data={}),
+                Node(id="0", type="filesrc", data={"location": "song.ogg"}),
+                Node(id="3", type="queue", data={}),
+                Node(id="6", type="autoaudiosink", data={}),
+                Node(id="4", type="audioconvert", data={}),
+                Node(id="8", type="audioconvert", data={}),
+                Node(id="5", type="audioresample", data={}),
+                Node(id="7", type="queue", data={}),
+                Node(id="11", type="autovideosink", data={}),
+                Node(id="9", type="goom", data={}),
+                Node(id="2", type="tee", data={"name": "t"}),
+                Node(id="10", type="videoconvert", data={}),
             ],
-            "edges": [
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "6", "source": "2", "target": "7"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "8", "source": "8", "target": "9"},
+            edges=[
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="0", source="0", target="1"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="6", source="2", target="7"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="8", source="8", target="9"),
             ],
-        },
+        ),
     ),
+    # gst docs tee example, ids start from 1
     ParseTestCase(
-        # gst docs tee example, ids start from 1
         r"filesrc location=song.ogg ! decodebin ! tee name=t ! queue ! audioconvert ! audioresample "
         r"! autoaudiosink t. ! queue ! audioconvert ! goom ! videoconvert ! autovideosink",
-        {
-            "nodes": [
-                {"id": "2", "type": "decodebin", "data": {}},
-                {"id": "1", "type": "filesrc", "data": {"location": "song.ogg"}},
-                {"id": "4", "type": "queue", "data": {}},
-                {"id": "7", "type": "autoaudiosink", "data": {}},
-                {"id": "5", "type": "audioconvert", "data": {}},
-                {"id": "9", "type": "audioconvert", "data": {}},
-                {"id": "6", "type": "audioresample", "data": {}},
-                {"id": "8", "type": "queue", "data": {}},
-                {"id": "12", "type": "autovideosink", "data": {}},
-                {"id": "10", "type": "goom", "data": {}},
-                {"id": "3", "type": "tee", "data": {"name": "t"}},
-                {"id": "11", "type": "videoconvert", "data": {}},
+        Config(
+            nodes=[
+                Node(id="2", type="decodebin", data={}),
+                Node(id="1", type="filesrc", data={"location": "song.ogg"}),
+                Node(id="4", type="queue", data={}),
+                Node(id="7", type="autoaudiosink", data={}),
+                Node(id="5", type="audioconvert", data={}),
+                Node(id="9", type="audioconvert", data={}),
+                Node(id="6", type="audioresample", data={}),
+                Node(id="8", type="queue", data={}),
+                Node(id="12", type="autovideosink", data={}),
+                Node(id="10", type="goom", data={}),
+                Node(id="3", type="tee", data={"name": "t"}),
+                Node(id="11", type="videoconvert", data={}),
             ],
-            "edges": [
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "8", "source": "8", "target": "9"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "11", "source": "11", "target": "12"},
-                {"id": "7", "source": "3", "target": "8"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "9", "source": "9", "target": "10"},
+            edges=[
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="8", source="8", target="9"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="11", source="11", target="12"),
+                Edge(id="7", source="3", target="8"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="9", source="9", target="10"),
             ],
-        },
+        ),
     ),
+    # 2 nested tees
     ParseTestCase(
-        # 2 nested tees
         r"filesrc location=song.ogg ! decodebin ! tee name=t ! queue ! audioconvert ! tee name=x ! "
         r"queue ! audiorate ! autoaudiosink x. ! queue ! audioresample ! autoaudiosink t. ! queue "
         r"! audioconvert ! goom ! videoconvert ! autovideosink",
-        {
-            "nodes": [
-                {"id": "1", "type": "decodebin", "data": {}},
-                {"id": "3", "type": "queue", "data": {}},
-                {"id": "2", "type": "tee", "data": {"name": "t"}},
-                {"id": "0", "type": "filesrc", "data": {"location": "song.ogg"}},
-                {"id": "4", "type": "audioconvert", "data": {}},
-                {"id": "6", "type": "queue", "data": {}},
-                {"id": "7", "type": "audiorate", "data": {}},
-                {"id": "5", "type": "tee", "data": {"name": "x"}},
-                {"id": "9", "type": "queue", "data": {}},
-                {"id": "10", "type": "audioresample", "data": {}},
-                {"id": "14", "type": "goom", "data": {}},
-                {"id": "16", "type": "autovideosink", "data": {}},
-                {"id": "8", "type": "autoaudiosink", "data": {}},
-                {"id": "11", "type": "autoaudiosink", "data": {}},
-                {"id": "12", "type": "queue", "data": {}},
-                {"id": "13", "type": "audioconvert", "data": {}},
-                {"id": "15", "type": "videoconvert", "data": {}},
+        Config(
+            nodes=[
+                Node(id="1", type="decodebin", data={}),
+                Node(id="3", type="queue", data={}),
+                Node(id="2", type="tee", data={"name": "t"}),
+                Node(id="0", type="filesrc", data={"location": "song.ogg"}),
+                Node(id="4", type="audioconvert", data={}),
+                Node(id="6", type="queue", data={}),
+                Node(id="7", type="audiorate", data={}),
+                Node(id="5", type="tee", data={"name": "x"}),
+                Node(id="9", type="queue", data={}),
+                Node(id="10", type="audioresample", data={}),
+                Node(id="14", type="goom", data={}),
+                Node(id="16", type="autovideosink", data={}),
+                Node(id="8", type="autoaudiosink", data={}),
+                Node(id="11", type="autoaudiosink", data={}),
+                Node(id="12", type="queue", data={}),
+                Node(id="13", type="audioconvert", data={}),
+                Node(id="15", type="videoconvert", data={}),
             ],
-            "edges": [
-                {"id": "15", "source": "15", "target": "16"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "2", "source": "2", "target": "3"},
-                {"id": "3", "source": "3", "target": "4"},
-                {"id": "4", "source": "4", "target": "5"},
-                {"id": "5", "source": "5", "target": "6"},
-                {"id": "6", "source": "6", "target": "7"},
-                {"id": "7", "source": "7", "target": "8"},
-                {"id": "13", "source": "13", "target": "14"},
-                {"id": "8", "source": "5", "target": "9"},
-                {"id": "9", "source": "9", "target": "10"},
-                {"id": "10", "source": "10", "target": "11"},
-                {"id": "12", "source": "12", "target": "13"},
-                {"id": "11", "source": "2", "target": "12"},
-                {"id": "14", "source": "14", "target": "15"},
+            edges=[
+                Edge(id="15", source="15", target="16"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="0", source="0", target="1"),
+                Edge(id="2", source="2", target="3"),
+                Edge(id="3", source="3", target="4"),
+                Edge(id="4", source="4", target="5"),
+                Edge(id="5", source="5", target="6"),
+                Edge(id="6", source="6", target="7"),
+                Edge(id="7", source="7", target="8"),
+                Edge(id="13", source="13", target="14"),
+                Edge(id="8", source="5", target="9"),
+                Edge(id="9", source="9", target="10"),
+                Edge(id="10", source="10", target="11"),
+                Edge(id="12", source="12", target="13"),
+                Edge(id="11", source="2", target="12"),
+                Edge(id="14", source="14", target="15"),
             ],
-        },
+        ),
     ),
 ]
 
@@ -1182,15 +1128,32 @@ def normalize(s: str) -> str:
     return s
 
 
+class TestToFromDict(unittest.TestCase):
+    def test_to_from_dict(self):
+        self.maxDiff = None
+
+        for tc in parse_test_cases + unsorted_nodes_edges:
+            d = tc.launch_dict.to_dict()
+            dc = Config.from_dict(d)
+
+            self.assertEqual(len(dc.nodes), len(tc.launch_dict.nodes))
+            for actual, expected in zip(dc.nodes, tc.launch_dict.nodes):
+                self.assertEqual(actual.id, expected.id)
+                self.assertEqual(actual.type, expected.type)
+                self.assertDictEqual(actual.data, expected.data)
+
+            self.assertEqual(len(dc.edges), len(tc.launch_dict.edges))
+            for actual, expected in zip(dc.edges, tc.launch_dict.edges):
+                self.assertEqual(actual.id, expected.id)
+                self.assertEqual(actual.source, expected.source)
+                self.assertEqual(actual.target, expected.target)
+
+
 class TestDictToString(unittest.TestCase):
     def test_dict_to_string(self):
         self.maxDiff = None
 
-        for tc in parse_test_cases:
-            actual = config_to_string(tc.launch_dict)
-            self.assertEqual(actual, normalize(tc.launch_string))
-
-        for tc in unsorted_nodes_edges:
+        for tc in parse_test_cases + unsorted_nodes_edges:
             actual = config_to_string(tc.launch_dict)
             self.assertEqual(actual, normalize(tc.launch_string))
 
@@ -1201,48 +1164,46 @@ class TestParseLaunchString(unittest.TestCase):
 
         for tc in parse_test_cases:
             actual = string_to_config(tc.launch_string)
-            self.assertDictEqual(actual, tc.launch_dict)
+            self.assertEqual(actual, tc.launch_dict)
 
     def test_empty_pipeline(self):
         pipeline = ""
         result = string_to_config(pipeline)
 
-        self.assertIn("nodes", result)
-        self.assertIn("edges", result)
+        self.assertEqual(len(result.nodes), 0)
+        self.assertEqual(len(result.edges), 0)
 
     def test_single_element(self):
         pipeline = "filesrc"
         result = string_to_config(pipeline)
 
-        self.assertEqual(len(result["nodes"]), 1)
-        self.assertEqual(result["nodes"][0]["type"], "filesrc")
-        self.assertEqual(len(result["edges"]), 0)
+        self.assertEqual(len(result.nodes), 1)
+        self.assertEqual(result.nodes[0].type, "filesrc")
+        self.assertEqual(len(result.edges), 0)
 
     def test_caps_filter(self):
-        # Caps filters like "video/x-raw(memory:VAMemory)" should be parsed
         pipeline = "filesrc ! video/x-raw(memory:VAMemory) ! filesink"
         result = string_to_config(pipeline)
 
-        # The caps filter should be treated as an element type
-        self.assertEqual(len(result["nodes"]), 3)
-        self.assertIn(
-            "video/x-raw(memory:VAMemory)", [n["type"] for n in result["nodes"]]
+        self.assertEqual(len(result.nodes), 3)
+        self.assertTrue(
+            any(n.type == "video/x-raw(memory:VAMemory)" for n in result.nodes)
         )
 
     def test_node_ids_are_sequential(self):
         pipeline = "filesrc ! queue ! filesink"
         result = string_to_config(pipeline)
 
-        self.assertEqual(result["nodes"][0]["id"], "0")
-        self.assertEqual(result["nodes"][1]["id"], "1")
-        self.assertEqual(result["nodes"][2]["id"], "2")
+        self.assertEqual(result.nodes[0].id, "0")
+        self.assertEqual(result.nodes[1].id, "1")
+        self.assertEqual(result.nodes[2].id, "2")
 
     def test_edge_ids_are_sequential(self):
         pipeline = "filesrc ! queue ! filesink"
         result = string_to_config(pipeline)
 
-        self.assertEqual(result["edges"][0]["id"], "0")
-        self.assertEqual(result["edges"][1]["id"], "1")
+        self.assertEqual(result.edges[0].id, "0")
+        self.assertEqual(result.edges[1].id, "1")
 
 
 class TestTokenize(unittest.TestCase):
@@ -1348,33 +1309,33 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
 
         result = string_to_config(launch_string)
 
-        self.assertEqual(len(result["nodes"]), 4)
-        gvadetect_node = result["nodes"][2]
-        self.assertEqual(gvadetect_node["type"], "gvadetect")
-        self.assertEqual(gvadetect_node["data"]["model"], "YOLOv8 Detector")
-        self.assertNotIn("model-proc", gvadetect_node["data"])
+        self.assertEqual(len(result.nodes), 4)
+        gvadetect_node = result.nodes[2]
+        self.assertEqual(gvadetect_node.type, "gvadetect")
+        self.assertEqual(gvadetect_node.data["model"], "YOLOv8 Detector")
+        self.assertNotIn("model-proc", gvadetect_node.data)
 
     @patch("convert.models_manager")
     def test_config_to_string_converts_display_name_to_model_path(self, mock_manager):
         self._setup_mock_models(mock_manager)
 
-        config = {
-            "nodes": [
-                {"id": "0", "type": "filesrc", "data": {"location": "/tmp/input.mp4"}},
-                {"id": "1", "type": "decodebin3", "data": {}},
-                {
-                    "id": "2",
-                    "type": "gvadetect",
-                    "data": {"model": "YOLOv8 Detector", "device": "GPU"},
-                },
-                {"id": "3", "type": "fakesink", "data": {}},
+        config = Config(
+            nodes=[
+                Node(id="0", type="filesrc", data={"location": "/tmp/input.mp4"}),
+                Node(id="1", type="decodebin3", data={}),
+                Node(
+                    id="2",
+                    type="gvadetect",
+                    data={"model": "YOLOv8 Detector", "device": "GPU"},
+                ),
+                Node(id="3", type="fakesink", data={}),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
-                {"id": "2", "source": "2", "target": "3"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="3"),
             ],
-        }
+        )
 
         result = config_to_string(config)
 
@@ -1394,12 +1355,12 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
 
         result = string_to_config(launch_string)
 
-        self.assertEqual(len(result["nodes"]), 5)
-        gvadetect_node = result["nodes"][2]
-        gvaclassify_node = result["nodes"][3]
+        self.assertEqual(len(result.nodes), 5)
+        gvadetect_node = result.nodes[2]
+        gvaclassify_node = result.nodes[3]
 
-        self.assertEqual(gvadetect_node["data"]["model"], "Detection Model")
-        self.assertEqual(gvaclassify_node["data"]["model"], "Classification Model")
+        self.assertEqual(gvadetect_node.data["model"], "Detection Model")
+        self.assertEqual(gvaclassify_node.data["model"], "Classification Model")
 
         config_string = config_to_string(result)
 
@@ -1440,10 +1401,10 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
 
         result = string_to_config(launch_string)
 
-        self.assertEqual(len(result["nodes"]), 3)
-        filesrc_node = result["nodes"][0]
-        self.assertEqual(filesrc_node["type"], "filesrc")
-        self.assertEqual(filesrc_node["data"]["location"], "sample_video.mp4")
+        self.assertEqual(len(result.nodes), 3)
+        filesrc_node = result.nodes[0]
+        self.assertEqual(filesrc_node.type, "filesrc")
+        self.assertEqual(filesrc_node.data["location"], "sample_video.mp4")
 
     @patch("convert.videos_manager")
     def test_config_to_string_converts_video_filename_to_path(
@@ -1451,21 +1412,17 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
     ):
         self._setup_mock_videos(mock_videos_manager)
 
-        config = {
-            "nodes": [
-                {
-                    "id": "0",
-                    "type": "filesrc",
-                    "data": {"location": "sample_video.mp4"},
-                },
-                {"id": "1", "type": "decodebin3", "data": {}},
-                {"id": "2", "type": "fakesink", "data": {}},
+        config = Config(
+            nodes=[
+                Node(id="0", type="filesrc", data={"location": "sample_video.mp4"}),
+                Node(id="1", type="decodebin3", data={}),
+                Node(id="2", type="fakesink", data={}),
             ],
-            "edges": [
-                {"id": "0", "source": "0", "target": "1"},
-                {"id": "1", "source": "1", "target": "2"},
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
             ],
-        }
+        )
 
         result = config_to_string(config)
 
@@ -1483,12 +1440,12 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
 
         result = string_to_config(launch_string)
 
-        self.assertEqual(len(result["nodes"]), 3)
-        filesrc_node = result["nodes"][0]
-        filesink_node = result["nodes"][2]
+        self.assertEqual(len(result.nodes), 3)
+        filesrc_node = result.nodes[0]
+        filesink_node = result.nodes[2]
 
-        self.assertEqual(filesrc_node["data"]["location"], "sample_video.mp4")
-        self.assertEqual(filesink_node["data"]["location"], "test_recording.mp4")
+        self.assertEqual(filesrc_node.data["location"], "sample_video.mp4")
+        self.assertEqual(filesink_node.data["location"], "test_recording.mp4")
 
         config_string = config_to_string(result)
 
@@ -1506,8 +1463,8 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
 
         result = string_to_config(launch_string)
 
-        filesrc_node = result["nodes"][0]
-        self.assertEqual(filesrc_node["data"]["location"], "/tmp/external_video.mp4")
+        filesrc_node = result.nodes[0]
+        self.assertEqual(filesrc_node.data["location"], "/tmp/external_video.mp4")
 
     @patch("convert.videos_manager")
     @patch("convert.models_manager")
@@ -1549,13 +1506,13 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
         result = string_to_config(launch_string)
 
         # Check conversions: video paths -> filenames, model path -> display name
-        filesrc_node = result["nodes"][0]
-        gvadetect_node = result["nodes"][2]
-        filesink_node = result["nodes"][3]
+        filesrc_node = result.nodes[0]
+        gvadetect_node = result.nodes[2]
+        filesink_node = result.nodes[3]
 
-        self.assertEqual(filesrc_node["data"]["location"], "sample_video.mp4")
-        self.assertEqual(gvadetect_node["data"]["model"], "Detection Model")
-        self.assertEqual(filesink_node["data"]["location"], "test_recording.mp4")
+        self.assertEqual(filesrc_node.data["location"], "sample_video.mp4")
+        self.assertEqual(gvadetect_node.data["model"], "Detection Model")
+        self.assertEqual(filesink_node.data["location"], "test_recording.mp4")
 
         # Round-trip: convert back to string
         config_string = config_to_string(result)
