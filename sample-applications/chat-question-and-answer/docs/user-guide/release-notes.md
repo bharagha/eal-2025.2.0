@@ -2,18 +2,14 @@
 
 ## Current Release
 
-**Version**: 1.3.0
+**Version**: 2.0.0
 **Release Date**: WW45 2025
 
 - Integrated OPEA UI with OEP backend and added conversation history to improve contextual responses.
 
 - Enhanced file and link uploads with success/failure alerts, duplicate detection alerts, file size exceed alerts, single-upload restriction, and selected file/urls deletion and bulk delete options.
 
-- Added options to rename, delete, and view full conversation titles via tooltip. Added a loading spinner beside conversation titles while a response is in progress for that conversation.
-
-- Introduced a blinking cursor to indicate when the AI is generating a response inside a conversation.
-
-- Prevented response spillover between conversations by binding responses to unique conversation IDs.
+- Added options to rename, delete, and view full conversation titles via tooltip. Added a loading spinner beside conversation titles while a response is in progress for that conversation. Added a blinking cursor to show when the AI is processing or generating a response.
 
 - Enhanced OPEA interface layout to maintain consistency with the existing UI design and user experience.
 
@@ -25,6 +21,8 @@
 - The upload button is temporarily disabled during chat response generation to prevent delays. File or link uploads trigger embedding generation, which runs on the same OVMS server as the LLM, potentially slowing response streaming if both run together.
 
 - Chat data is stored in localStorage for session continuity. After container restarts, old chats may reappear — clear your browser’s localStorage to start fresh.
+
+- Testing on EMT-S is not done due to EMT-S issues
 
 
 **Version**: 1.2.4 \
