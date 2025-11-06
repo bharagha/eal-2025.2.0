@@ -26,15 +26,12 @@ class Edge:
 
 
 @dataclass
-class Config:
+class Graph:
     nodes: list[Node]
     edges: list[Edge]
 
-    def to_dict(self) -> dict[str, list[dict[str, str | dict[str, str]]]]:
-        return asdict(self)
-
     @staticmethod
-    def from_dict(data: dict) -> "Config":
+    def from_dict(data: dict) -> "Graph":
         nodes = [
             Node(id=node["id"], type=node["type"], data=node["data"])
             for node in data["nodes"]
@@ -44,7 +41,132 @@ class Config:
             for edge in data["edges"]
         ]
 
-        return Config(nodes=nodes, edges=edges)
+        return Graph(nodes=nodes, edges=edges)
+
+    def to_dict(self) -> dict[str, list[dict[str, str | dict[str, str]]]]:
+        return asdict(self)
+
+    @staticmethod
+    def from_pipeline_description(pipeline_description: str) -> "Graph":
+        nodes: list[Node] = []
+        edges: list[Edge] = []
+
+        tee_indices: list[str] = []
+        prev_token = _Token("", "")
+
+        pipeline_description = pipeline_description.replace(",", " ")
+
+        for i, element in enumerate(pipeline_description.split("!")):
+            for token in _tokenize(element):
+                match token.kind:
+                    case "TYPE":
+                        nodes.append(Node(id=str(i), type=token.value, data={}))
+
+                        if i > 0:
+                            edges.append(
+                                Edge(
+                                    id=str(i - 1),
+                                    source=(
+                                        str(i - 1)
+                                        if prev_token.kind != "TEE_END"
+                                        else tee_indices.pop()
+                                    ),
+                                    target=str(i),
+                                )
+                            )
+
+                        if token.value == "tee":
+                            tee_indices.append(str(i))
+
+                    case "PROPERTY":
+                        key, value = re.split(r"\s*=\s*", token.value, maxsplit=1)
+                        if nodes:
+                            nodes[-1].data[key] = value
+
+                    case "MISMATCH":  # TODO
+                        print(f"MISMATCH: {token}")
+
+                prev_token = token
+
+        nodes = _model_path_to_display_name(nodes)
+        nodes = _video_path_to_display_name(nodes)
+
+        return Graph(nodes, edges)
+
+    def to_pipeline_description(self) -> str:
+        nodes = self.nodes
+        if not nodes:
+            return ""
+
+        nodes = _model_display_name_to_path(nodes)
+        nodes = _video_name_to_path(nodes)
+
+        edges = self.edges
+        node_by_id = {node.id: node for node in nodes}
+
+        # Build adjacency map for efficient edge lookup
+        edges_from: dict[str, list[str]] = defaultdict(list)
+        for edge in edges:
+            edges_from[edge.source].append(edge.target)
+
+        # Find tee elements and their names
+        tee_names = {
+            node.id: node.data["name"]
+            for node in nodes
+            if node.type == "tee" and "name" in node.data
+        }
+
+        # Find start nodes (nodes with no incoming edges)
+        all_node_ids = set(node_by_id.keys())
+        target_node_ids = set(edge.target for edge in edges)
+        start_nodes = all_node_ids - target_node_ids
+
+        # TODO log error for circular graphs
+        if not start_nodes:
+            print("Warning: Circular graph detected or no start nodes found.")
+            return ""
+
+        result_parts: list[str] = []
+        visited: set[str] = set()
+
+        def build_chain(start_id: str) -> None:
+            current_id = start_id
+
+            while current_id and current_id not in visited:
+                visited.add(current_id)
+                node = node_by_id.get(current_id)
+                if not node:
+                    break
+
+                result_parts.append(node.type)
+
+                for key, value in node.data.items():
+                    result_parts.append(f"{key}={value}")
+
+                targets = edges_from.get(current_id, [])
+
+                if not targets:
+                    break
+                if len(targets) == 1:
+                    result_parts.append("!")
+                    current_id = targets[0]
+                else:
+                    result_parts.append("!")
+                    build_chain(targets[0])
+
+                    for target_id in targets[1:]:
+                        tee_name = tee_names.get(current_id, "t")
+                        result_parts.append(f"{tee_name}.")
+                        result_parts.append("!")
+                        build_chain(target_id)
+
+                    return
+
+        for start_id in sorted(start_nodes):
+            if start_id not in visited:
+                build_chain(start_id)
+
+        return " ".join(result_parts)
 
 
 @dataclass
@@ -105,53 +227,6 @@ def _video_path_to_display_name(nodes):
     return nodes
 
 
-def string_to_config(launch_string: str) -> Config:
-    nodes: list[Node] = []
-    edges: list[Edge] = []
-
-    tee_indices: list[str] = []
-    prev_token = _Token("", "")
-
-    launch_string = launch_string.replace(",", " ")
-
-    for i, element in enumerate(launch_string.split("!")):
-        for token in _tokenize(element):
-            match token.kind:
-                case "TYPE":
-                    nodes.append(Node(id=str(i), type=token.value, data={}))
-
-                    if i > 0:
-                        edges.append(
-                            Edge(
-                                id=str(i - 1),
-                                source=(
-                                    str(i - 1)
-                                    if prev_token.kind != "TEE_END"
-                                    else tee_indices.pop()
-                                ),
-                                target=str(i),
-                            )
-                        )
-
-                    if token.value == "tee":
-                        tee_indices.append(str(i))
-
-                case "PROPERTY":
-                    key, value = re.split(r"\s*=\s*", token.value, maxsplit=1)
-                    if nodes:
-                        nodes[-1].data[key] = value
-
-                case "MISMATCH":  # TODO
-                    print(f"MISMATCH: {token}")
-
-            prev_token = token
-
-    nodes = _model_path_to_display_name(nodes)
-    nodes = _video_path_to_display_name(nodes)
-
-    return Config(nodes, edges)
-
-
 def _model_display_name_to_path(nodes):
     for node in nodes:
         name = node.data.get("model", None)
@@ -180,79 +255,3 @@ def _video_name_to_path(nodes):
             node.data[k] = path
 
     return nodes
-
-
-def config_to_string(pipeline: Config) -> str:
-    nodes = pipeline.nodes
-    if not nodes:
-        return ""
-
-    nodes = _model_display_name_to_path(nodes)
-    nodes = _video_name_to_path(nodes)
-
-    edges = pipeline.edges
-    node_by_id = {node.id: node for node in nodes}
-
-    # Build adjacency map for efficient edge lookup
-    edges_from: dict[str, list[str]] = defaultdict(list)
-    for edge in edges:
-        edges_from[edge.source].append(edge.target)
-
-    # Find tee elements and their names
-    tee_names = {
-        node.id: node.data["name"]
-        for node in nodes
-        if node.type == "tee" and "name" in node.data
-    }
-
-    # Find start nodes (nodes with no incoming edges)
-    all_node_ids = set(node_by_id.keys())
-    target_node_ids = set(edge.target for edge in edges)
-    start_nodes = all_node_ids - target_node_ids
-
-    # TODO log error for circular graphs
-    if not start_nodes:
-        print("Warning: Circular graph detected or no start nodes found.")
-        return ""
-
-    result_parts: list[str] = []
-    visited: set[str] = set()
-
-    def build_chain(start_id: str) -> None:
-        current_id = start_id
-
-        while current_id and current_id not in visited:
-            visited.add(current_id)
-            node = node_by_id.get(current_id)
-            if not node:
-                break
-
-            result_parts.append(node.type)
-
-            for key, value in node.data.items():
-                result_parts.append(f"{key}={value}")
-
-            targets = edges_from.get(current_id, [])
-
-            if not targets:
-                break
-            if len(targets) == 1:
-                result_parts.append("!")
-                current_id = targets[0]
-            else:
-                result_parts.append("!")
-                build_chain(targets[0])
-
-                for target_id in targets[1:]:
-                    tee_name = tee_names.get(current_id, "t")
-                    result_parts.append(f"{tee_name}.")
-                    result_parts.append("!")
-                    build_chain(target_id)
-
-                return
-
-    for start_id in sorted(start_nodes):
-        if start_id not in visited:
-            build_chain(start_id)
-
-    return " ".join(result_parts)

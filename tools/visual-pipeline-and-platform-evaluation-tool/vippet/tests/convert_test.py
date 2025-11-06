@@ -3,13 +3,13 @@ import unittest
 from dataclasses import dataclass
 from unittest.mock import MagicMock, patch
 
-from convert import Config, Edge, Node, _tokenize, config_to_string, string_to_config
+from convert import Graph, Edge, Node, _tokenize
 
 
 @dataclass
 class ParseTestCase:
-    launch_string: str
-    launch_dict: Config
+    pipeline_description: str
+    pipeline_graph: Graph
 
 
 parse_test_cases = [
@@ -26,7 +26,7 @@ parse_test_cases = [
         r"gvametaconvert format=json json-indent=4 source=/tmp/license-plate-detection.mp4 ! "
         r"gvametapublish method=file file-path=/dev/null ! vah264enc ! h264parse ! mp4mux ! "
         r"filesink location=/tmp/license-plate-detection-output.mp4",
-        Config(
+        Graph(
             nodes=[
                 Node(
                     id="0",
@@ -121,7 +121,7 @@ parse_test_cases = [
     ParseTestCase(
         r"filesrc location=song.ogg ! decodebin ! tee name=t ! queue ! audioconvert ! audioresample "
         r"! autoaudiosink t. ! queue ! audioconvert ! goom ! videoconvert ! autovideosink",
-        Config(
+        Graph(
             nodes=[
                 Node(
                     id="0",
@@ -160,7 +160,7 @@ parse_test_cases = [
         r"filesrc location=song.ogg ! decodebin ! tee name=t ! queue ! audioconvert ! tee name=x ! "
         r"queue ! audiorate ! autoaudiosink x. ! queue ! audioresample ! autoaudiosink t. ! queue "
         r"! audioconvert ! goom ! videoconvert ! autovideosink",
-        Config(
+        Graph(
             nodes=[
                 Node(id="0", type="filesrc", data={"location": "song.ogg"}),
                 Node(id="1", type="decodebin", data={}),
@@ -207,7 +207,7 @@ parse_test_cases = [
         r"gvadetect ! queue ! gvatrack ! gvaclassify ! queue ! "
         r"gvawatermark ! gvafpscounter ! gvametaconvert ! gvametapublish ! "
         r"vah264enc ! h264parse ! mp4mux ! filesink location=YYY",
-        Config(
+        Graph(
             nodes=[
                 Node(id="0", type="filesrc", data={"location": "XXX"}),
                 Node(id="1", type="demux", data={}),
@@ -276,7 +276,7 @@ parse_test_cases = [
         r"gvametaconvert format=json json-indent=4 ! "
         r"gvametapublish method=file file-path=/dev/null ! "
         r"vapostproc ! video/x-raw\(memory:VAMemory\),width=320,height=240 ! fakesink",
-        Config(
+        Graph(
             nodes=[
                 Node(
                     id="0",
@@ -392,7 +392,7 @@ parse_test_cases = [
         r"t0. ! queue2 ! vah264dec ! video/x-raw\(memory:VAMemory\) ! "
         r"gvafpscounter starting-frame=500 ! "
         r"vapostproc ! video/x-raw\(memory:VAMemory\),width=320,height=240 ! fakesink",
-        Config(
+        Graph(
             nodes=[
                 Node(id="0", type="filesrc", data={"location": "${VIDEO}"}),
                 Node(id="1", type="qtdemux", data={}),
@@ -446,7 +446,7 @@ parse_test_cases = [
         r"nireq=2 ie-config=NUM_STREAMS=2 batch-size=8 inference-interval=3 inference-region=1 "
         r"model-instance-id=resnet50 ! queue ! "
         r"gvafpscounter starting-frame=2000 ! fakesink sync=false async=false",
-        Config(
+        Graph(
             nodes=[
                 Node(
                     id="0",
@@ -549,7 +549,7 @@ parse_test_cases = [
         r"nireq=2 ie-config=NUM_STREAMS=2 batch-size=8 inference-interval=3 inference-region=1 "
         r"model-instance-id=mobilenetv2 ! queue ! "
         r"gvafpscounter starting-frame=2000 ! fakesink sync=false async=false",
-        Config(
+        Graph(
             nodes=[
                 Node(
                     id="0",
@@ -671,7 +671,7 @@ parse_test_cases = [
         r"nireq=2 ie-config=NUM_STREAMS=2 batch-size=8 inference-interval=3 inference-region=1 "
         r"model-instance-id=mobilenetv2 ! queue ! "
         r"gvafpscounter starting-frame=2000 ! fakesink sync=false async=false",
-        Config(
+        Graph(
             nodes=[
                 Node(id="0", type="filesrc", data={"location": "${VIDEO}"}),
                 Node(id="1", type="h265parse", data={}),
@@ -778,7 +778,7 @@ parse_test_cases = [
         r"reclassify-interval=1 ! queue2 ! gvawatermark ! gvametaconvert   format=json   json-indent=4 ! "
         r"gvametapublish   method=file file-path=/dev/null ! "
         r"fakesink",
-        Config(
+        Graph(
             nodes=[
                 Node(
                     id="0",
@@ -875,7 +875,7 @@ parse_test_cases = [
         r"gvawatermark ! gvametaconvert   format=json   json-indent=4 ! "
         r"gvametapublish   method=file file-path=/dev/null ! "
         r"fakesink",
-        Config(
+        Graph(
             nodes=[
                 Node(id="0", type="filesrc", data={"location": "${VIDEO}"}),
                 Node(id="1", type="qtdemux", data={}),
@@ -938,7 +938,7 @@ parse_test_cases = [
         r"video/x-raw\(memory:VAMemory\) ! "
         r"gvafpscounter starting-frame=500 ! "
         r"fakesink",
-        Config(
+        Graph(
             nodes=[
                 Node(id="0", type="filesrc", data={"location": "${VIDEO}"}),
                 Node(id="1", type="qtdemux", data={}),
@@ -972,7 +972,7 @@ parse_test_cases = [
         r"video/x-raw\(memory:VAMemory\) ! "
         r"gvafpscounter starting-frame=500 ! "
         r"vapostproc ! video/x-raw\(memory:VAMemory\),width=320,height=240 ! fakesink",
-        Config(
+        Graph(
             nodes=[
                 Node(id="0", type="filesrc", data={"location": "${VIDEO}"}),
                 Node(id="1", type="qtdemux", data={}),
@@ -1008,7 +1008,7 @@ unsorted_nodes_edges = [
     ParseTestCase(
         r"filesrc location=song.ogg ! decodebin ! tee name=t ! queue ! audioconvert ! audioresample "
         r"! autoaudiosink t. ! queue ! audioconvert ! goom ! videoconvert ! autovideosink",
-        Config(
+        Graph(
             nodes=[
                 Node(id="1", type="decodebin", data={}),
                 Node(id="0", type="filesrc", data={"location": "song.ogg"}),
@@ -1042,7 +1042,7 @@ unsorted_nodes_edges = [
     ParseTestCase(
         r"filesrc location=song.ogg ! decodebin ! tee name=t ! queue ! audioconvert ! audioresample "
         r"! autoaudiosink t. ! queue ! audioconvert ! goom ! videoconvert ! autovideosink",
-        Config(
+        Graph(
             nodes=[
                 Node(id="2", type="decodebin", data={}),
                 Node(id="1", type="filesrc", data={"location": "song.ogg"}),
@@ -1077,7 +1077,7 @@ unsorted_nodes_edges = [
         r"filesrc location=song.ogg ! decodebin ! tee name=t ! queue ! audioconvert ! tee name=x ! "
         r"queue ! audiorate ! autoaudiosink x. ! queue ! audioresample ! autoaudiosink t. ! queue "
         r"! audioconvert ! goom ! videoconvert ! autovideosink",
-        Config(
+        Graph(
             nodes=[
                 Node(id="1", type="decodebin", data={}),
                 Node(id="3", type="queue", data={}),
@@ -1133,17 +1133,17 @@ class TestToFromDict(unittest.TestCase):
         self.maxDiff = None
 
         for tc in parse_test_cases + unsorted_nodes_edges:
-            d = tc.launch_dict.to_dict()
-            dc = Config.from_dict(d)
+            d = tc.pipeline_graph.to_dict()
+            dc = Graph.from_dict(d)
 
-            self.assertEqual(len(dc.nodes), len(tc.launch_dict.nodes))
-            for actual, expected in zip(dc.nodes, tc.launch_dict.nodes):
+            self.assertEqual(len(dc.nodes), len(tc.pipeline_graph.nodes))
+            for actual, expected in zip(dc.nodes, tc.pipeline_graph.nodes):
                 self.assertEqual(actual.id, expected.id)
                 self.assertEqual(actual.type, expected.type)
                 self.assertDictEqual(actual.data, expected.data)
 
-            self.assertEqual(len(dc.edges), len(tc.launch_dict.edges))
-            for actual, expected in zip(dc.edges, tc.launch_dict.edges):
+            self.assertEqual(len(dc.edges), len(tc.pipeline_graph.edges))
+            for actual, expected in zip(dc.edges, tc.pipeline_graph.edges):
                 self.assertEqual(actual.id, expected.id)
                 self.assertEqual(actual.source, expected.source)
                 self.assertEqual(actual.target, expected.target)
@@ -1154,8 +1154,8 @@ class TestDictToString(unittest.TestCase):
         self.maxDiff = None
 
         for tc in parse_test_cases + unsorted_nodes_edges:
-            actual = config_to_string(tc.launch_dict)
-            self.assertEqual(actual, normalize(tc.launch_string))
+            actual = tc.pipeline_graph.to_pipeline_description()
+            self.assertEqual(actual, normalize(tc.pipeline_description))
 
 
 class TestParseLaunchString(unittest.TestCase):
@@ -1163,19 +1163,19 @@ class TestParseLaunchString(unittest.TestCase):
         self.maxDiff = None
 
         for tc in parse_test_cases:
-            actual = string_to_config(tc.launch_string)
-            self.assertEqual(actual, tc.launch_dict)
+            actual = Graph.from_pipeline_description(tc.pipeline_description)
+            self.assertEqual(actual, tc.pipeline_graph)
 
     def test_empty_pipeline(self):
         pipeline = ""
-        result = string_to_config(pipeline)
+        result = Graph.from_pipeline_description(pipeline)
 
         self.assertEqual(len(result.nodes), 0)
         self.assertEqual(len(result.edges), 0)
 
     def test_single_element(self):
         pipeline = "filesrc"
-        result = string_to_config(pipeline)
+        result = Graph.from_pipeline_description(pipeline)
 
         self.assertEqual(len(result.nodes), 1)
         self.assertEqual(result.nodes[0].type, "filesrc")
@@ -1183,7 +1183,7 @@ class TestParseLaunchString(unittest.TestCase):
 
     def test_caps_filter(self):
         pipeline = "filesrc ! video/x-raw(memory:VAMemory) ! filesink"
-        result = string_to_config(pipeline)
+        result = Graph.from_pipeline_description(pipeline)
 
         self.assertEqual(len(result.nodes), 3)
         self.assertTrue(
@@ -1192,7 +1192,7 @@ class TestParseLaunchString(unittest.TestCase):
 
     def test_node_ids_are_sequential(self):
         pipeline = "filesrc ! queue ! filesink"
-        result = string_to_config(pipeline)
+        result = Graph.from_pipeline_description(pipeline)
 
         self.assertEqual(result.nodes[0].id, "0")
         self.assertEqual(result.nodes[1].id, "1")
@@ -1200,7 +1200,7 @@ class TestParseLaunchString(unittest.TestCase):
 
     def test_edge_ids_are_sequential(self):
         pipeline = "filesrc ! queue ! filesink"
-        result = string_to_config(pipeline)
+        result = Graph.from_pipeline_description(pipeline)
 
         self.assertEqual(result.edges[0].id, "0")
         self.assertEqual(result.edges[1].id, "1")
@@ -1307,7 +1307,7 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
             "device=GPU ! fakesink"
         )
 
-        result = string_to_config(launch_string)
+        result = Graph.from_pipeline_description(launch_string)
 
         self.assertEqual(len(result.nodes), 4)
         gvadetect_node = result.nodes[2]
@@ -1319,7 +1319,7 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
     def test_config_to_string_converts_display_name_to_model_path(self, mock_manager):
         self._setup_mock_models(mock_manager)
 
-        config = Config(
+        config = Graph(
             nodes=[
                 Node(id="0", type="filesrc", data={"location": "/tmp/input.mp4"}),
                 Node(id="1", type="decodebin3", data={}),
@@ -1337,7 +1337,7 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
             ],
         )
 
-        result = config_to_string(config)
+        result = config.to_pipeline_description()
 
         self.assertIn("model=/models/output/yolov8_detector.xml", result)
         self.assertIn("model-proc=/models/output/yolov8_detector.json", result)
@@ -1353,7 +1353,7 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
             "model=/models/output/classification_model.xml device=GPU ! fakesink"
         )
 
-        result = string_to_config(launch_string)
+        result = Graph.from_pipeline_description(launch_string)
 
         self.assertEqual(len(result.nodes), 5)
         gvadetect_node = result.nodes[2]
@@ -1362,10 +1362,12 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
         self.assertEqual(gvadetect_node.data["model"], "Detection Model")
         self.assertEqual(gvaclassify_node.data["model"], "Classification Model")
 
-        config_string = config_to_string(result)
+        pipeline_description = result.to_pipeline_description()
 
-        self.assertIn("model=/models/output/detection_model.xml", config_string)
-        self.assertIn("model=/models/output/classification_model.xml", config_string)
+        self.assertIn("model=/models/output/detection_model.xml", pipeline_description)
+        self.assertIn(
+            "model=/models/output/classification_model.xml", pipeline_description
+        )
 
 
 class TestParseLaunchStringWithVideos(unittest.TestCase):
@@ -1399,7 +1401,7 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
             "filesrc location=/videos/input/sample_video.mp4 ! decodebin3 ! fakesink"
         )
 
-        result = string_to_config(launch_string)
+        result = Graph.from_pipeline_description(launch_string)
 
         self.assertEqual(len(result.nodes), 3)
         filesrc_node = result.nodes[0]
@@ -1412,7 +1414,7 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
     ):
         self._setup_mock_videos(mock_videos_manager)
 
-        config = Config(
+        config = Graph(
             nodes=[
                 Node(id="0", type="filesrc", data={"location": "sample_video.mp4"}),
                 Node(id="1", type="decodebin3", data={}),
@@ -1424,7 +1426,7 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
             ],
         )
 
-        result = config_to_string(config)
+        result = config.to_pipeline_description()
 
         self.assertIn("location=/videos/input/sample_video.mp4", result)
         self.assertNotIn("location=sample_video.mp4", result)
@@ -1438,7 +1440,7 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
             "filesink location=/videos/input/test_recording.mp4"
         )
 
-        result = string_to_config(launch_string)
+        result = Graph.from_pipeline_description(launch_string)
 
         self.assertEqual(len(result.nodes), 3)
         filesrc_node = result.nodes[0]
@@ -1447,10 +1449,10 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
         self.assertEqual(filesrc_node.data["location"], "sample_video.mp4")
         self.assertEqual(filesink_node.data["location"], "test_recording.mp4")
 
-        config_string = config_to_string(result)
+        pipeline_description = result.to_pipeline_description()
 
-        self.assertIn("location=/videos/input/sample_video.mp4", config_string)
-        self.assertIn("location=/videos/input/test_recording.mp4", config_string)
+        self.assertIn("location=/videos/input/sample_video.mp4", pipeline_description)
+        self.assertIn("location=/videos/input/test_recording.mp4", pipeline_description)
 
     @patch("convert.videos_manager")
     def test_video_path_not_in_recordings_path_unchanged(self, mock_videos_manager):
@@ -1461,7 +1463,7 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
             "filesrc location=/tmp/external_video.mp4 ! decodebin3 ! fakesink"
         )
 
-        result = string_to_config(launch_string)
+        result = Graph.from_pipeline_description(launch_string)
 
         filesrc_node = result.nodes[0]
         self.assertEqual(filesrc_node.data["location"], "/tmp/external_video.mp4")
@@ -1503,7 +1505,7 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
             "filesink location=/videos/input/test_recording.mp4"
         )
 
-        result = string_to_config(launch_string)
+        result = Graph.from_pipeline_description(launch_string)
 
         # Check conversions: video paths -> filenames, model path -> display name
         filesrc_node = result.nodes[0]
@@ -1515,11 +1517,11 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
         self.assertEqual(filesink_node.data["location"], "test_recording.mp4")
 
         # Round-trip: convert back to string
-        config_string = config_to_string(result)
+        pipeline_description = result.to_pipeline_description()
 
-        self.assertIn("location=/videos/input/sample_video.mp4", config_string)
-        self.assertIn("model=/models/output/detection.xml", config_string)
-        self.assertIn("location=/videos/input/test_recording.mp4", config_string)
+        self.assertIn("location=/videos/input/sample_video.mp4", pipeline_description)
+        self.assertIn("model=/models/output/detection.xml", pipeline_description)
+        self.assertIn("location=/videos/input/test_recording.mp4", pipeline_description)
 
 
 if __name__ == "__main__":

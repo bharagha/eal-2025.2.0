@@ -33,7 +33,7 @@ class TestPipelinesAPI(unittest.TestCase):
         ]
     }
     """
-    launch_cfg = schemas.LaunchConfig.model_validate_json(test_cfg)
+    launch_cfg = schemas.PipelineGraph.model_validate_json(test_cfg)
 
     @classmethod
     def setUpClass(cls):

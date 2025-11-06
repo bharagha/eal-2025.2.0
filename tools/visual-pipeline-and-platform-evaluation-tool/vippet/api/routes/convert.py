@@ -1,27 +1,27 @@
-from convert import Config, config_to_string, string_to_config
+from convert import Graph
 from fastapi import APIRouter
 
-from api.api_schemas import LaunchConfig, LaunchString
+from api.api_schemas import PipelineGraph, PipelineDescription
 
 router = APIRouter()
 
 
 @router.post(
-    "/to-config",
-    operation_id="to_config",
-    summary="Convert launch string to launch config",
+    "/to-graph",
+    operation_id="to_graph",
+    summary="Convert pipeline description to pipeline graph",
 )
-def to_config(request: LaunchString) -> LaunchConfig:
-    response = string_to_config(request.launch_string)
-    return LaunchConfig.model_validate(response.to_dict())
+def to_graph(request: PipelineDescription) -> PipelineGraph:
+    response = Graph.from_pipeline_description(request.pipeline_description)
+    return PipelineGraph.model_validate(response.to_dict())
 
 
 @router.post(
-    "/to-string",
-    operation_id="to_string",
-    summary="Convert launch config to launch string",
+    "/to-description",
+    operation_id="to_description",
+    summary="Convert pipeline graph to pipeline description",
 )
-def to_string(request: LaunchConfig) -> LaunchString:
+def to_description(request: PipelineGraph) -> PipelineDescription:
     d = request.model_dump()
-    response = config_to_string(Config.from_dict(d))
-    return LaunchString(launch_string=response)
+    response = Graph.from_dict(d).to_pipeline_description()
+    return PipelineDescription(pipeline_description=response)

@@ -18,7 +18,7 @@ from gstpipeline import PipelineLoader
 from pipeline_runner import PipelineRunner
 from benchmark import Benchmark
 from utils import download_file, replace_file_path
-from convert import config_to_string, Config
+from convert import Graph
 
 
 @dataclass
@@ -226,9 +226,9 @@ class InstanceManager:
                 file_name,
             )
 
-            launch_string = config_to_string(
-                Config.from_dict(pipeline_request.parameters.launch_config.model_dump())
-            )
+            launch_string = Graph.from_dict(
+                pipeline_request.parameters.launch_config.model_dump()
+            ).to_pipeline_description()
 
             # Replace file path in launch string if needed
             launch_string = replace_file_path(launch_string, file_path)
@@ -309,9 +309,9 @@ class InstanceManager:
                 file_name,
             )
 
-            launch_string = config_to_string(
-                Config.from_dict(pipeline_request.parameters.launch_config.model_dump())
-            )
+            launch_string = Graph.from_dict(
+                pipeline_request.parameters.launch_config.model_dump()
+            ).to_pipeline_description()
 
             # Replace file path in launch string if needed
             launch_string = replace_file_path(launch_string, file_path)

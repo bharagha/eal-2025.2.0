@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 
 from api.api_schemas import (
-    LaunchConfig,
+    PipelineGraph,
     PipelineRequestRun,
     PipelineParametersRun,
     PipelineRequestBenchmark,
@@ -52,7 +52,7 @@ class TestInstanceManager(unittest.TestCase):
         ]
     }
     """
-    launch_cfg = LaunchConfig.model_validate_json(test_cfg)
+    launch_cfg = PipelineGraph.model_validate_json(test_cfg)
 
     def test_run_pipeline_calls_execute_pipeline_and_returns_instance_id(self):
         manager = InstanceManager()
