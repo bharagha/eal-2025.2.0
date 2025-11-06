@@ -2,10 +2,7 @@ import logging
 
 from gstpipeline import PipelineLoader
 from api.api_schemas import PipelineType, Pipeline, PipelineDefinition, LaunchConfig
-from explore import GstInspector
 from convert import string_to_config
-
-gst_inspector = GstInspector()
 
 
 class PipelineManager:
@@ -56,19 +53,16 @@ class PipelineManager:
     def load_predefined_pipelines(self):
         predefined_pipelines = []
         for pipeline_name in PipelineLoader.list():
-            pipeline_gst, config = PipelineLoader.load(pipeline_name)
-            launch_string = pipeline_gst.get_default_gst_launch(
-                gst_inspector.get_elements()
-            )
-            cfg = string_to_config(launch_string)
+            config = PipelineLoader.config(pipeline_name)
+
+            pipeline_description = config.get("pipeline_description", "")
+            cfg = string_to_config(pipeline_description)
 
             predefined_pipelines.append(
                 Pipeline(
                     name="predefined_pipelines",
-                    version=config.get("metadata", {}).get(
-                        "classname", "Unnamed Pipeline"
-                    ),
-                    description=config.get("name", "Unnamed Pipeline"),
+                    version=config.get("name", "UnnamedPipeline"),
+                    description=config.get("display_name", "Unnamed Pipeline"),
                     type=PipelineType.GSTREAMER,
                     launch_config=LaunchConfig(nodes=cfg["nodes"], edges=cfg["edges"]),
                     parameters=None,
