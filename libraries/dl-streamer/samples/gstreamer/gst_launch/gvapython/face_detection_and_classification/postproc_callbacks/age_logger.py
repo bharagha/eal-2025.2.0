@@ -4,14 +4,18 @@
 # SPDX-License-Identifier: MIT
 # ==============================================================================
 
+# pylint: disable=missing-module-docstring
+
 from gstgva import VideoFrame
 
-
 class AgeLogger:
+    # pylint: disable=missing-class-docstring
     def __init__(self, log_file_path):
-        self.log_file = open(log_file_path, "a")
+        # pylint: disable=consider-using-with
+        self.log_file = open(log_file_path, "a", encoding="utf-8")
 
     def log_age(self, frame: VideoFrame) -> bool:
+        # pylint: disable=missing-function-docstring
         for roi in frame.regions():
             for tensor in roi.tensors():
                 if tensor.name() == "detection":

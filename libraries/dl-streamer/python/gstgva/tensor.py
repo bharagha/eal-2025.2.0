@@ -198,7 +198,7 @@ class Tensor:
     def label(self) -> str:
         # pylint: disable=missing-function-docstring
         if not self.is_detection():
-            return self["label"]   
+            return self["label"]
         raise RuntimeError("Detection GVA::Tensor can't have label.")
 
     ## @brief Get object id
@@ -256,7 +256,7 @@ class Tensor:
             # Fallback return value
             libgst.g_value_array_free(gvalue_array)
             return libgst.gst_structure_get_value(self.__structure, key)
-        
+
         value = []
         for i in range(0, gvalue_array.contents.n_values):
             g_value = libgobject.g_value_array_get_nth(gvalue_array, ctypes.c_uint(i))

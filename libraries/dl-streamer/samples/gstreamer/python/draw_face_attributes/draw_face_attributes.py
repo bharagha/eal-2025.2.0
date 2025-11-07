@@ -4,20 +4,21 @@
 # SPDX-License-Identifier: MIT
 # ==============================================================================
 
-from gstgva import VideoFrame, util
+# pylint: disable=missing-module-docstring
+
 import sys
 import os
+from argparse import ArgumentParser
+from gstgva import VideoFrame, util
 import numpy
 import cv2
-from argparse import ArgumentParser
-
 import gi
+from gi.repository import Gst, GLib, GstApp, GstVideo
 
 gi.require_version("GObject", "2.0")
 gi.require_version("Gst", "1.0")
 gi.require_version("GstApp", "1.0")
 gi.require_version("GstVideo", "1.0")
-from gi.repository import Gst, GLib, GstApp, GstVideo
 
 parser = ArgumentParser(add_help=False)
 _args = parser.add_argument_group("Options")
@@ -57,6 +58,7 @@ args = parser.parse_args()
 
 
 def frame_callback(frame: VideoFrame):
+    # pylint: disable=missing-function-docstring
     with frame.data() as mat:
         for roi in frame.regions():
             labels = []
@@ -98,6 +100,7 @@ def frame_callback(frame: VideoFrame):
 
 
 def pad_probe_callback(pad, info):
+    # pylint: disable=missing-function-docstring
     with util.GST_PAD_PROBE_INFO_BUFFER(info) as buffer:
         caps = pad.get_current_caps()
         frame = VideoFrame(buffer, caps=caps)
@@ -107,6 +110,7 @@ def pad_probe_callback(pad, info):
 
 
 def create_launch_string():
+    # pylint: disable=missing-function-docstring
     if "/dev/video" in args.input:
         source = "v4l2src device"
     elif "://" in args.input:
@@ -138,6 +142,7 @@ def create_launch_string():
 
 
 def glib_mainloop():
+    # pylint: disable=missing-function-docstring
     mainloop = GLib.MainLoop()
     try:
         mainloop.run()
@@ -146,6 +151,7 @@ def glib_mainloop():
 
 
 def bus_call(bus, message, pipeline):
+    # pylint: disable=missing-function-docstring,redefined-outer-name,unused-argument
     t = message.type
     if t == Gst.MessageType.EOS:
         print("pipeline ended")
@@ -153,7 +159,7 @@ def bus_call(bus, message, pipeline):
         sys.exit()
     elif t == Gst.MessageType.ERROR:
         err, debug = message.parse_error()
-        print("Error:\n{}\nAdditional debug info:\n{}\n".format(err, debug))
+        print(f"Error:\n{err}\nAdditional debug info:\n{debug}\n")
         pipeline.set_state(Gst.State.NULL)
         sys.exit()
     else:
@@ -162,6 +168,7 @@ def bus_call(bus, message, pipeline):
 
 
 def set_callbacks(pipeline):
+    # pylint: disable=missing-function-docstring,redefined-outer-name
     if args.output != "json":
         gvawatermark = pipeline.get_by_name("gvawatermark")
         pad = gvawatermark.get_static_pad("src")

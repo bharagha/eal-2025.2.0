@@ -4,13 +4,14 @@
 # SPDX-License-Identifier: MIT
 # ==============================================================================
 
+# pylint: disable=missing-module-docstring
+
 import sys
 import gi
+from gi.repository import Gst, GObject
+from gstgva import VideoFrame
 
 gi.require_version("Gst", "1.0")
-from gi.repository import Gst, GObject
-
-from gstgva import VideoFrame
 
 DETECT_THRESHOLD = 0.5
 
@@ -18,6 +19,7 @@ Gst.init(sys.argv)
 
 
 def process_frame(frame: VideoFrame, threshold: float = DETECT_THRESHOLD) -> bool:
+    # pylint: disable=missing-function-docstring,too-many-locals
     width = frame.video_info().width
     height = frame.video_info().height
 
@@ -39,7 +41,7 @@ def process_frame(frame: VideoFrame, threshold: float = DETECT_THRESHOLD) -> boo
             if confidence < threshold:
                 continue
 
-            roi = frame.add_region(
+            frame.add_region(
                 x_min, y_min, x_max - x_min, y_max - y_min, str(label_id), confidence
             )
 

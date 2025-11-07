@@ -8,21 +8,23 @@
 #  @brief This file contains gstgva.audio_event.AudioEvent class to control audio events
 # for particular gstgva.audio_frame.AudioFrame with gstgva.tensor.Tensor instances attached
 
-import ctypes
-import numpy
+# pylint: disable=missing-module-docstring
+
 from typing import List
 from collections import namedtuple
-
+import ctypes
+import numpy
+import gi
+from gi.repository import GstAudio, GLib, GObject, Gst
 from ..tensor import Tensor
 from ..util import libgst, libgobject, GLIST_POINTER
 from .audio_event_meta import AudioEventMeta
 
-import gi
 
 gi.require_version("GstAudio", "1.0")
 gi.require_version("GLib", "2.0")
 gi.require_version("Gst", "1.0")
-from gi.repository import GstAudio, GLib, GObject, Gst
+
 
 Segment = namedtuple("Segment", "start_time end_time")
 
@@ -35,10 +37,12 @@ Segment = namedtuple("Segment", "start_time end_time")
 # speech to text tensor objectresult
 
 
-class AudioEvent(object):
+class AudioEvent():
+    # pylint: disable=missing-class-docstring
     ## @brief Get clip of  AudioEvent as start and end time stamps
     #  @return Start and end time of AudioEvent
     def segment(self):
+        # pylint: disable=missing-function-docstring
         return Segment(
             start_time=self.__event_meta.start_timestamp, end_time=self.__event_meta.end_timestamp
         )
@@ -46,17 +50,20 @@ class AudioEvent(object):
     ## @brief Get AudioEvent label
     #  @return AudioEvent label
     def label(self) -> str:
+        # pylint: disable=missing-function-docstring
         return GLib.quark_to_string(self.__event_meta.event_type)
 
     ## @brief Get AudioEvent detection confidence (set by gvaaudiodetect)
     # @return last added detection Tensor confidence if exists, otherwise None
     def confidence(self) -> float:
+        # pylint: disable=missing-function-docstring
         detection = self.detection()
         return detection.confidence() if detection else None
 
     ## @brief Get all Tensor instances added to this AudioEvent
     # @return vector of Tensor instances added to this AudioEvent
     def tensors(self):
+        # pylint: disable=missing-function-docstring
         param = self.meta()._params
         while param:
             tensor_structure = param.contents.data
@@ -71,6 +78,7 @@ class AudioEvent(object):
     # @return detection Tensor, empty if there were no detection Tensor objects added to this
     # AudioEvent when this method was called
     def detection(self) -> Tensor:
+        # pylint: disable=missing-function-docstring
         for tensor in self.tensors():
             if tensor.is_detection():
                 return tensor
@@ -79,6 +87,7 @@ class AudioEvent(object):
     ## @brief Get label_id from detection Tensor, last added to this AudioEvent
     # @return last added detection Tensor label_id if exists, otherwise None
     def label_id(self) -> int:
+        # pylint: disable=missing-function-docstring
         detection = self.detection()
         return detection.label_id() if detection else None
 
@@ -88,6 +97,7 @@ class AudioEvent(object):
     # @return AudioEventMeta containing start, end time information and tensors
     # (inference results)
     def meta(self) -> AudioEventMeta:
+        # pylint: disable=missing-function-docstring
         return self.__event_meta
 
     ## @brief Iterate by AudioEventMeta instances attached to buffer

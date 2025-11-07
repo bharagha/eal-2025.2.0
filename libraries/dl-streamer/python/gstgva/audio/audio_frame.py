@@ -8,18 +8,14 @@
 #  @brief This file contains gstgva.audio_frame.AudioFrame class to control particular
 # inferenced frame and attached gstgva.audio_event.AudioEvent and gstgva.tensor.Tensor instances
 
-import ctypes
-import numpy
+# pylint: disable=missing-module-docstring
+
 from contextlib import contextmanager
 from typing import List
 from warnings import warn
-
+import ctypes
+import numpy
 import gi
-
-gi.require_version("Gst", "1.0")
-gi.require_version("GstAudio", "1.0")
-gi.require_version("GObject", "2.0")
-
 from gi.repository import GObject, Gst, GstAudio
 from .audio_event_meta import AudioEventMeta
 from .audio_event import AudioEvent
@@ -29,6 +25,9 @@ from ..util import GVAJSONMetaStr
 from ..tensor import Tensor
 from ..util import libgst, gst_buffer_data, AudioInfoFromCaps
 
+gi.require_version("Gst", "1.0")
+gi.require_version("GstAudio", "1.0")
+gi.require_version("GObject", "2.0")
 
 ## @brief This class represents audio frame - object for working with AudioEvent and Tensor
 # objects which belong to this audio frame . AudioEvent describes detected object (segments)
@@ -37,6 +36,7 @@ from ..util import libgst, gst_buffer_data, AudioInfoFromCaps
 # AudioFrame also provides access to underlying GstBuffer and GstAudioInfo describing frame's
 # audio information (such as format, channels, etc.).
 class AudioFrame:
+    # pylint: disable=missing-class-docstring
     ## @brief Construct AudioFrame instance from Gst.Buffer and GstAudio.AudioInfo or Gst.Caps.
     #  The preferred way of creating AudioFrame is to use Gst.Buffer and GstAudio.AudioInfo
     #  @param buffer Gst.Buffer to which metadata is attached and retrieved
@@ -59,31 +59,37 @@ class AudioFrame:
     #  getting audio information
     #  @return GstAudio.AudioInfo of this AudioFrame
     def audio_info(self) -> GstAudio.AudioInfo:
+        # pylint: disable=missing-function-docstring
         return self.__audio_info
 
     ## @brief Get AudioEvent objects attached to AudioFrame
     #  @return iterator of AudioEvent objects attached to AudioFrame
     def events(self):
+        # pylint: disable=missing-function-docstring
         return AudioEvent._iterate(self.__buffer)
 
     ## @brief Get Tensor objects attached to AudioFrame
     #  @return iterator of Tensor objects attached to AudioFrame
     def tensors(self):
+        # pylint: disable=missing-function-docstring
         return Tensor._iterate(self.__buffer)
 
     ## @brief Get messages attached to this AudioFrame
     #  @return GVAJSONMetaStr messages attached to this AudioFrame
     def messages(self) -> List[str]:
+        # pylint: disable=missing-function-docstring
         return [json_meta.get_message() for json_meta in GVAJSONMeta.iterate(self.__buffer)]
 
     ## @brief Attach message to this AudioFrame
     #  @param message message to attach to this AudioFrame
     def add_message(self, message: str):
+        # pylint: disable=missing-function-docstring
         GVAJSONMeta.add_json_meta(self.__buffer, message)
 
     ## @brief Remove message from this AudioFrame
     #  @param message GVAJSONMetaStr message to remove
     def remove_message(self, message: str):
+        # pylint: disable=missing-function-docstring
         if not isinstance(message, GVAJSONMetaStr) or not GVAJSONMeta.remove_json_meta(
             self.__buffer, message.meta
         ):
@@ -92,6 +98,7 @@ class AudioFrame:
     ## @brief Remove audio event with the specified index
     #  @param event audio event to remove
     def remove_event(self, event) -> None:
+        # pylint: disable=missing-function-docstring
         if not libgst.gst_buffer_remove_meta(hash(self.__buffer), ctypes.byref(event.meta())):
             raise RuntimeError(
                 "AudioFrame: Underlying GstGVAAudioEventMeta for AudioEvent "
@@ -109,6 +116,7 @@ class AudioFrame:
     ## @brief Get buffer data wrapped by numpy.ndarray
     #  @return numpy array representing raw audio samples
     def data(self, flag: Gst.MapFlags = Gst.MapFlags.WRITE) -> numpy.ndarray:
+        # pylint: disable=missing-function-docstring
         with gst_buffer_data(self.__buffer, flag) as data:
             try:
                 return numpy.ndarray((len(data)), buffer=data, dtype=numpy.uint8)

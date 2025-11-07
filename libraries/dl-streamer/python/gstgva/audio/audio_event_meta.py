@@ -4,12 +4,15 @@
 # SPDX-License-Identifier: MIT
 # ==============================================================================
 
+# pylint: disable=missing-module-docstring
+
 import ctypes
 from ..util import GLIST_POINTER
 
 
 # AudioEventMeta
 class AudioEventMeta(ctypes.Structure):
+    # pylint: disable=missing-class-docstring,too-few-public-methods
     _fields_ = [
         ("_meta_flags", ctypes.c_int),
         ("_info", ctypes.c_void_p),

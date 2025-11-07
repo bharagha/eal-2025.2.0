@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: MIT
 # ==============================================================================
 
+# pylint: disable=missing-module-docstring
+
 import argparse
 import time
 import logging
@@ -13,9 +15,10 @@ import re
 import subprocess
 
 import gi
+from gi.repository import Gst
 
 gi.require_version("Gst", "1.0")
-from gi.repository import Gst
+
 
 ####################################### Init ######################################################
 
@@ -30,6 +33,7 @@ logger.info("GStreamer version: %d.%d.%d", gst_version.major, gst_version.minor,
 
 
 def parse_element_parameters(element):
+    # pylint: disable=missing-function-docstring
     parameters = element.strip().split(" ")
     del parameters[0]
     parsed_parameters = {}
@@ -41,6 +45,7 @@ def parse_element_parameters(element):
 
 
 def assemble_parameters(parameters):
+    # pylint: disable=missing-function-docstring
     result = ""
     for parameter, value in parameters.items():
         result = result + parameter + "=" + value + " "
@@ -49,6 +54,7 @@ def assemble_parameters(parameters):
 
 
 def log_parameters_of_interest(pipeline):
+    # pylint: disable=missing-function-docstring
     for element in pipeline:
         if "gvadetect" in element:
             parameters = parse_element_parameters(element)
@@ -73,6 +79,7 @@ def log_parameters_of_interest(pipeline):
 
 
 def scan_system():
+    # pylint: disable=missing-function-docstring
     context = {"GPU": False, "NPU": False}
 
     # check for presence of GPU
@@ -126,6 +133,7 @@ def scan_system():
 
 
 def explore_pipelines(suggestions, base_fps, search_duration, sample_duration):
+    # pylint: disable=missing-function-docstring
     start_time = time.time()
     combinations = itertools.product(*suggestions)
     # first element is the original pipeline, use it as baseline
@@ -153,6 +161,7 @@ def explore_pipelines(suggestions, base_fps, search_duration, sample_duration):
 
 
 def sample_pipeline(pipeline, sample_duration):
+    # pylint: disable=missing-function-docstring,too-many-locals
     pipeline = pipeline.copy()
 
     # check if there is an fps counter after the last inference element
@@ -233,6 +242,7 @@ preprocessing_rules = {
 
 
 def preprocess_pipeline(pipeline):
+    # pylint: disable=missing-function-docstring
     pipeline = "!".join(pipeline)
     for pattern, replacement in preprocessing_rules.items():
         if re.search(pattern, pipeline):
@@ -245,6 +255,7 @@ def preprocess_pipeline(pipeline):
 
 
 def add_device_suggestions(suggestions, context):
+    # pylint: disable=missing-function-docstring
     for suggestion in suggestions:
         for element in ["gvadetect", "gvaclassify"]:
             if element in suggestion[0]:
@@ -266,6 +277,7 @@ def add_device_suggestions(suggestions, context):
 
 
 def add_batch_suggestions(suggestions, _):
+    # pylint: disable=missing-function-docstring
     batches = [1, 2, 4, 8, 16, 32]
     for suggestion in suggestions:
         for element in ["gvadetect", "gvaclassify"]:
@@ -277,6 +289,7 @@ def add_batch_suggestions(suggestions, _):
 
 
 def add_nireq_suggestions(suggestions, _):
+    # pylint: disable=missing-function-docstring
     nireqs = range(1, 9)
     for suggestion in suggestions:
         for element in ["gvadetect", "gvaclassify"]:
@@ -300,6 +313,7 @@ def add_nireq_suggestions(suggestions, _):
 # 6. Any time a better pipeline is found, save it and its performance information.
 # 7. Return the best discovered pipeline.
 def get_optimized_pipeline(pipeline, search_duration=300, sample_duration=10):
+    # pylint: disable=missing-function-docstring
     context = scan_system()
 
     pipeline = pipeline.split("!")
@@ -338,6 +352,7 @@ def get_optimized_pipeline(pipeline, search_duration=300, sample_duration=10):
 
 
 def prepare_suggestions(pipeline):
+    # pylint: disable=missing-function-docstring
     # Prepare the suggestions structure
     # Suggestions structure:
     #   [
@@ -353,6 +368,7 @@ def prepare_suggestions(pipeline):
 
 
 def main():
+    # pylint: disable=missing-function-docstring
     parser = argparse.ArgumentParser(
         prog="DLStreamer Pipeline Optimization Tool",
         description=("Use this tool to try and find versions of " +
