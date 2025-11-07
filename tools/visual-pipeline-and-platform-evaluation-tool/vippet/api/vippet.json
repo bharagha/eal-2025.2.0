@@ -896,10 +896,10 @@
           "type": {
             "$ref": "#/components/schemas/PipelineType"
           },
-          "launch_config": {
+          "pipeline_graph": {
             "additionalProperties": true,
             "type": "object",
-            "title": "Launch Config"
+            "title": "Pipeline Graph"
           },
           "parameters": {
             "anyOf": [
@@ -918,7 +918,7 @@
           "version",
           "description",
           "type",
-          "launch_config",
+          "pipeline_graph",
           "parameters"
         ],
         "title": "Pipeline"
@@ -940,9 +940,9 @@
           "type": {
             "$ref": "#/components/schemas/PipelineType"
           },
-          "launch_string": {
+          "pipeline_description": {
             "type": "string",
-            "title": "Launch String"
+            "title": "Pipeline Description"
           },
           "parameters": {
             "anyOf": [
@@ -961,7 +961,7 @@
           "version",
           "description",
           "type",
-          "launch_string",
+          "pipeline_description",
           "parameters"
         ],
         "title": "PipelineDefinition"
@@ -1139,14 +1139,14 @@
             "title": "Ai Stream Rate",
             "default": 100
           },
-          "launch_config": {
+          "pipeline_graph": {
             "type": "string",
-            "title": "Launch Config"
+            "title": "Pipeline Graph"
           }
         },
         "type": "object",
         "required": [
-          "launch_config"
+          "pipeline_graph"
         ],
         "title": "PipelineParametersBenchmark"
       },
@@ -1162,14 +1162,14 @@
             "title": "Recording Channels",
             "default": 0
           },
-          "launch_config": {
+          "pipeline_graph": {
             "type": "string",
-            "title": "Launch Config"
+            "title": "Pipeline Graph"
           }
         },
         "type": "object",
         "required": [
-          "launch_config"
+          "pipeline_graph"
         ],
         "title": "PipelineParametersRun"
       },
@@ -1410,9 +1410,9 @@
           "type": {
             "$ref": "#/components/schemas/PipelineType"
           },
-          "launch_string": {
+          "pipeline_description": {
             "type": "string",
-            "title": "Launch String"
+            "title": "Pipeline Description"
           },
           "parameters": {
             "anyOf": [
@@ -1428,7 +1428,7 @@
         "type": "object",
         "required": [
           "type",
-          "launch_string",
+          "pipeline_description",
           "parameters"
         ],
         "title": "PipelineValidation"
