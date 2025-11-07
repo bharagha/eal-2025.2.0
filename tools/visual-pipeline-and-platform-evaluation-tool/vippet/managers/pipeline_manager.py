@@ -17,7 +17,7 @@ class PipelineManager:
             )
 
         pipeline_graph = Graph.from_pipeline_description(
-            new_pipeline.launch_string
+            new_pipeline.pipeline_description
         ).to_dict()
 
         pipeline = Pipeline(
@@ -25,7 +25,7 @@ class PipelineManager:
             version=new_pipeline.version,
             description=new_pipeline.description,
             type=new_pipeline.type,
-            launch_config=PipelineGraph.model_validate(pipeline_graph),
+            pipeline_graph=PipelineGraph.model_validate(pipeline_graph),
             parameters=new_pipeline.parameters,
         )
 
@@ -68,7 +68,7 @@ class PipelineManager:
                     version=config.get("name", "UnnamedPipeline"),
                     description=config.get("display_name", "Unnamed Pipeline"),
                     type=PipelineType.GSTREAMER,
-                    launch_config=PipelineGraph.model_validate(pipeline_graph),
+                    pipeline_graph=PipelineGraph.model_validate(pipeline_graph),
                     parameters=None,
                 )
             )

@@ -226,15 +226,15 @@ class InstanceManager:
                 file_name,
             )
 
-            launch_string = Graph.from_dict(
-                pipeline_request.parameters.launch_config.model_dump()
+            pipeline_description = Graph.from_dict(
+                pipeline_request.parameters.pipeline_graph.model_dump()
             ).to_pipeline_description()
 
             # Replace file path in launch string if needed
-            launch_string = replace_file_path(launch_string, file_path)
+            pipeline_description = replace_file_path(pipeline_description, file_path)
 
             # Initialize pipeline object from launch string
-            gst_pipeline = PipelineLoader.load(launch_string)
+            gst_pipeline = PipelineLoader.load(pipeline_description)
 
             inferencing_channels = pipeline_request.parameters.inferencing_channels
             recording_channels = pipeline_request.parameters.recording_channels
@@ -309,15 +309,15 @@ class InstanceManager:
                 file_name,
             )
 
-            launch_string = Graph.from_dict(
-                pipeline_request.parameters.launch_config.model_dump()
+            pipeline_description = Graph.from_dict(
+                pipeline_request.parameters.pipeline_graph.model_dump()
             ).to_pipeline_description()
 
             # Replace file path in launch string if needed
-            launch_string = replace_file_path(launch_string, file_path)
+            pipeline_description = replace_file_path(pipeline_description, file_path)
 
             # Initialize pipeline object from launch string
-            gst_pipeline = PipelineLoader.load(launch_string)
+            gst_pipeline = PipelineLoader.load(pipeline_description)
 
             # Initialize Benchmark
             benchmark = Benchmark()

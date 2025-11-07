@@ -5,6 +5,11 @@
     "description": "API for Visual Pipeline and Platform Evaluation Tool",
     "version": "1.0.0"
   },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
   "paths": {
     "/pipelines": {
       "get": {
@@ -647,18 +652,18 @@
         }
       }
     },
-    "/convert/to-config": {
+    "/convert/to-graph": {
       "post": {
         "tags": [
           "convert"
         ],
-        "summary": "Convert launch string to launch config",
-        "operationId": "to_config",
+        "summary": "Convert pipeline description to pipeline graph",
+        "operationId": "to_graph",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LaunchString"
+                "$ref": "#/components/schemas/PipelineDescription"
               }
             }
           },
@@ -670,7 +675,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LaunchConfig"
+                  "$ref": "#/components/schemas/PipelineGraph"
                 }
               }
             }
@@ -688,18 +693,18 @@
         }
       }
     },
-    "/convert/to-string": {
+    "/convert/to-description": {
       "post": {
         "tags": [
           "convert"
         ],
-        "summary": "Convert launch config to launch string",
-        "operationId": "to_string",
+        "summary": "Convert pipeline graph to pipeline description",
+        "operationId": "to_description",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LaunchConfig"
+                "$ref": "#/components/schemas/PipelineGraph"
               }
             }
           },
@@ -711,7 +716,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LaunchString"
+                  "$ref": "#/components/schemas/PipelineDescription"
                 }
               }
             }
@@ -823,43 +828,6 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
-      "LaunchConfig": {
-        "properties": {
-          "nodes": {
-            "items": {
-              "$ref": "#/components/schemas/Node"
-            },
-            "type": "array",
-            "title": "Nodes"
-          },
-          "edges": {
-            "items": {
-              "$ref": "#/components/schemas/Edge"
-            },
-            "type": "array",
-            "title": "Edges"
-          }
-        },
-        "type": "object",
-        "required": [
-          "nodes",
-          "edges"
-        ],
-        "title": "LaunchConfig"
-      },
-      "LaunchString": {
-        "properties": {
-          "launch_string": {
-            "type": "string",
-            "title": "Launch String"
-          }
-        },
-        "type": "object",
-        "required": [
-          "launch_string"
-        ],
-        "title": "LaunchString"
-      },
       "Model": {
         "properties": {
           "name": {
@@ -952,8 +920,8 @@
           "type": {
             "$ref": "#/components/schemas/PipelineType"
           },
-          "launch_config": {
-            "$ref": "#/components/schemas/LaunchConfig"
+          "pipeline_graph": {
+            "$ref": "#/components/schemas/PipelineGraph"
           },
           "parameters": {
             "anyOf": [
@@ -972,7 +940,7 @@
           "version",
           "description",
           "type",
-          "launch_config",
+          "pipeline_graph",
           "parameters"
         ],
         "title": "Pipeline"
@@ -994,9 +962,9 @@
           "type": {
             "$ref": "#/components/schemas/PipelineType"
           },
-          "launch_string": {
+          "pipeline_description": {
             "type": "string",
-            "title": "Launch String"
+            "title": "Pipeline Description"
           },
           "parameters": {
             "anyOf": [
@@ -1015,10 +983,47 @@
           "version",
           "description",
           "type",
-          "launch_string",
+          "pipeline_description",
           "parameters"
         ],
         "title": "PipelineDefinition"
+      },
+      "PipelineDescription": {
+        "properties": {
+          "pipeline_description": {
+            "type": "string",
+            "title": "Pipeline Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pipeline_description"
+        ],
+        "title": "PipelineDescription"
+      },
+      "PipelineGraph": {
+        "properties": {
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/Node"
+            },
+            "type": "array",
+            "title": "Nodes"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/Edge"
+            },
+            "type": "array",
+            "title": "Edges"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nodes",
+          "edges"
+        ],
+        "title": "PipelineGraph"
       },
       "PipelineInstanceState": {
         "type": "string",
@@ -1152,6 +1157,7 @@
           "default": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -1179,13 +1185,13 @@
             "title": "Ai Stream Rate",
             "default": 100
           },
-          "launch_config": {
-            "$ref": "#/components/schemas/LaunchConfig"
+          "pipeline_graph": {
+            "$ref": "#/components/schemas/PipelineGraph"
           }
         },
         "type": "object",
         "required": [
-          "launch_config"
+          "pipeline_graph"
         ],
         "title": "PipelineParametersBenchmark"
       },
@@ -1201,13 +1207,13 @@
             "title": "Ai Stream Rate",
             "default": 100
           },
-          "launch_config": {
-            "$ref": "#/components/schemas/LaunchConfig"
+          "pipeline_graph": {
+            "$ref": "#/components/schemas/PipelineGraph"
           }
         },
         "type": "object",
         "required": [
-          "launch_config"
+          "pipeline_graph"
         ],
         "title": "PipelineParametersBenchmark"
       },
@@ -1223,13 +1229,13 @@
             "title": "Recording Channels",
             "default": 0
           },
-          "launch_config": {
-            "$ref": "#/components/schemas/LaunchConfig"
+          "pipeline_graph": {
+            "$ref": "#/components/schemas/PipelineGraph"
           }
         },
         "type": "object",
         "required": [
-          "launch_config"
+          "pipeline_graph"
         ],
         "title": "PipelineParametersRun"
       },
@@ -1245,13 +1251,13 @@
             "title": "Recording Channels",
             "default": 0
           },
-          "launch_config": {
-            "$ref": "#/components/schemas/LaunchConfig"
+          "pipeline_graph": {
+            "$ref": "#/components/schemas/PipelineGraph"
           }
         },
         "type": "object",
         "required": [
-          "launch_config"
+          "pipeline_graph"
         ],
         "title": "PipelineParametersRun"
       },
@@ -1361,6 +1367,7 @@
           "parameters": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -1491,9 +1498,9 @@
           "type": {
             "$ref": "#/components/schemas/PipelineType"
           },
-          "launch_string": {
+          "pipeline_description": {
             "type": "string",
-            "title": "Launch String"
+            "title": "Pipeline Description"
           },
           "parameters": {
             "anyOf": [
@@ -1509,7 +1516,7 @@
         "type": "object",
         "required": [
           "type",
-          "launch_string",
+          "pipeline_description",
           "parameters"
         ],
         "title": "PipelineValidation"

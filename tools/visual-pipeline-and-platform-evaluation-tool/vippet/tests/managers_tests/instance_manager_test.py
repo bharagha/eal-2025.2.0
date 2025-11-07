@@ -17,7 +17,7 @@ from managers.instance_manager import InstanceManager, PipelineInstance
 
 
 class TestInstanceManager(unittest.TestCase):
-    test_cfg = """
+    test_graph = """
     {
         "nodes": [
             {
@@ -52,7 +52,6 @@ class TestInstanceManager(unittest.TestCase):
         ]
     }
     """
-    launch_cfg = PipelineGraph.model_validate_json(test_cfg)
 
     def test_run_pipeline_calls_execute_pipeline_and_returns_instance_id(self):
         manager = InstanceManager()
@@ -66,7 +65,7 @@ class TestInstanceManager(unittest.TestCase):
             parameters=PipelineParametersRun(
                 inferencing_channels=1,
                 recording_channels=0,
-                launch_config=self.launch_cfg,
+                pipeline_graph=PipelineGraph.model_validate_json(self.test_graph),
             ),
             tags=None,
         )
@@ -92,7 +91,7 @@ class TestInstanceManager(unittest.TestCase):
             parameters=PipelineParametersRun(
                 inferencing_channels=1,
                 recording_channels=0,
-                launch_config=self.launch_cfg,
+                pipeline_graph=PipelineGraph.model_validate_json(self.test_graph),
             ),
             tags=None,
         )
@@ -123,7 +122,7 @@ class TestInstanceManager(unittest.TestCase):
             parameters=PipelineParametersBenchmark(
                 fps_floor=30,
                 ai_stream_rate=100,
-                launch_config=self.launch_cfg,
+                pipeline_graph=PipelineGraph.model_validate_json(self.test_graph),
             ),
             tags=None,
         )
@@ -159,7 +158,7 @@ class TestInstanceManager(unittest.TestCase):
             parameters=PipelineParametersRun(
                 inferencing_channels=1,
                 recording_channels=0,
-                launch_config=self.launch_cfg,
+                pipeline_graph=PipelineGraph.model_validate_json(self.test_graph),
             ),
             tags=None,
         )
@@ -172,7 +171,7 @@ class TestInstanceManager(unittest.TestCase):
             parameters=PipelineParametersBenchmark(
                 fps_floor=30,
                 ai_stream_rate=100,
-                launch_config=self.launch_cfg,
+                pipeline_graph=PipelineGraph.model_validate_json(self.test_graph),
             ),
             tags=None,
         )
@@ -220,7 +219,7 @@ class TestInstanceManager(unittest.TestCase):
             parameters=PipelineParametersRun(
                 inferencing_channels=1,
                 recording_channels=0,
-                launch_config=self.launch_cfg,
+                pipeline_graph=PipelineGraph.model_validate_json(self.test_graph),
             ),
             tags=None,
         )
@@ -265,7 +264,7 @@ class TestInstanceManager(unittest.TestCase):
             parameters=PipelineParametersRun(
                 inferencing_channels=1,
                 recording_channels=0,
-                launch_config=self.launch_cfg,
+                pipeline_graph=PipelineGraph.model_validate_json(self.test_graph),
             ),
             tags=None,
         )

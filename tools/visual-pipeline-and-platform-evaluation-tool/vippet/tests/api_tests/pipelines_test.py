@@ -8,7 +8,7 @@ from api.routes.pipelines import router as pipelines_router
 
 
 class TestPipelinesAPI(unittest.TestCase):
-    test_cfg = """
+    test_graph = """
     {
         "nodes": [
             {
@@ -33,7 +33,6 @@ class TestPipelinesAPI(unittest.TestCase):
         ]
     }
     """
-    launch_cfg = schemas.PipelineGraph.model_validate_json(test_cfg)
 
     @classmethod
     def setUpClass(cls):
@@ -50,7 +49,7 @@ class TestPipelinesAPI(unittest.TestCase):
                 version="SmartNVRPipeline",
                 description="Smart Network Video Recorder (NVR) Proxy Pipeline",
                 type=schemas.PipelineType.GSTREAMER,
-                launch_config=self.launch_cfg,
+                pipeline_graph=schemas.PipelineGraph.model_validate_json(self.test_graph),
                 parameters=None,
             ),
             schemas.Pipeline(
@@ -58,7 +57,7 @@ class TestPipelinesAPI(unittest.TestCase):
                 version="TestPipeline",
                 description="Test Pipeline Description",
                 type=schemas.PipelineType.GSTREAMER,
-                launch_config=self.launch_cfg,
+                pipeline_graph=schemas.PipelineGraph.model_validate_json(self.test_graph),
                 parameters=None,
             ),
         ]
@@ -79,7 +78,7 @@ class TestPipelinesAPI(unittest.TestCase):
             "Smart Network Video Recorder (NVR) Proxy Pipeline",
         )
         self.assertEqual(first_pipeline["type"], schemas.PipelineType.GSTREAMER)
-        self.assertIn("launch_config", first_pipeline)
+        self.assertIn("pipeline_graph", first_pipeline)
         self.assertIsNone(first_pipeline["parameters"])
 
         # Check the contents of the second pipeline
@@ -88,7 +87,7 @@ class TestPipelinesAPI(unittest.TestCase):
         self.assertEqual(second_pipeline["version"], "TestPipeline")
         self.assertEqual(second_pipeline["description"], "Test Pipeline Description")
         self.assertEqual(second_pipeline["type"], schemas.PipelineType.GSTREAMER)
-        self.assertIn("launch_config", second_pipeline)
+        self.assertIn("pipeline_graph", second_pipeline)
         self.assertIsNone(second_pipeline["parameters"])
 
     @patch("api.routes.pipelines.pipeline_manager")
@@ -100,7 +99,7 @@ class TestPipelinesAPI(unittest.TestCase):
             "version": "test-pipeline",
             "description": "A custom test pipeline",
             "type": schemas.PipelineType.GSTREAMER,
-            "launch_string": "filesrc location=/tmp/test.mp4 ! decodebin ! autovideosink",
+            "pipeline_description": "filesrc location=/tmp/test.mp4 ! decodebin ! autovideosink",
             "parameters": None,
         }
 
@@ -125,7 +124,7 @@ class TestPipelinesAPI(unittest.TestCase):
             "version": "test-pipeline",
             "description": "A custom test pipeline",
             "type": schemas.PipelineType.GSTREAMER,
-            "launch_string": "filesrc location=/tmp/test.mp4 ! decodebin ! autovideosink",
+            "pipeline_description": "filesrc location=/tmp/test.mp4 ! decodebin ! autovideosink",
             "parameters": None,
         }
 
@@ -148,7 +147,7 @@ class TestPipelinesAPI(unittest.TestCase):
             "version": "test-pipeline",
             "description": "A custom test pipeline",
             "type": schemas.PipelineType.GSTREAMER,
-            "launch_string": "filesrc location=/tmp/test.mp4 ! decodebin ! autovideosink",
+            "pipeline_description": "filesrc location=/tmp/test.mp4 ! decodebin ! autovideosink",
             "parameters": None,
         }
 
@@ -168,7 +167,7 @@ class TestPipelinesAPI(unittest.TestCase):
                 version="test-pipeline",
                 description="A custom test pipeline",
                 type=schemas.PipelineType.GSTREAMER,
-                launch_config=self.launch_cfg,
+                pipeline_graph=schemas.PipelineGraph.model_validate_json(self.test_graph),
                 parameters=None,
             )
         )
@@ -181,7 +180,7 @@ class TestPipelinesAPI(unittest.TestCase):
         self.assertEqual(data["version"], "test-pipeline")
         self.assertEqual(data["description"], "A custom test pipeline")
         self.assertEqual(data["type"], schemas.PipelineType.GSTREAMER)
-        self.assertIn("launch_config", data)
+        self.assertIn("pipeline_graph", data)
         self.assertIsNone(data["parameters"])
 
     @patch("api.routes.pipelines.pipeline_manager")
