@@ -233,7 +233,7 @@ class InstanceManager:
             pipeline_description = replace_file_path(pipeline_description, file_path)
 
             # Initialize pipeline object from launch string
-            gst_pipeline = PipelineLoader.load(pipeline_description)
+            gst_pipeline = PipelineLoader.load(pipeline_request.run_configs)
 
             inferencing_channels = pipeline_request.parameters.inferencing_channels
             recording_channels = pipeline_request.parameters.recording_channels

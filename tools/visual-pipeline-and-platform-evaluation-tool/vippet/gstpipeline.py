@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import List
 import yaml
 
+from api.api_schemas import Pipeline, PipelineRunSpec
+
 
 class GstPipeline:
     def __init__(self, pipeline_description):
@@ -10,14 +12,16 @@ class GstPipeline:
 
     def evaluate(
         self,
-        regular_channels: int,
-        inference_channels: int,
+        run_configs: list[PipelineRunSpec],
     ) -> str:
-        # Remove "gst-launch-1.0 -q " prefix if present
-        description = self._pipeline_description.lstrip()
-        if description.startswith("gst-launch-1.0 -q "):
-            description = description[len("gst-launch-1.0 -q ") :]
-        return " ".join([description] * inference_channels)
+        descriptions = [
+            " ".join(
+                [self._pipeline_description[f"{run_config.name}-{run_config.version}"]]
+                * run_config.channels
+            )
+            for run_config in run_configs
+        ]
+        return " ".join(descriptions)
 
 
 class PipelineLoader:
@@ -72,7 +76,9 @@ class PipelineLoader:
             return yaml.safe_load(f.read())
 
     @staticmethod
-    def load(pipeline_description: str) -> GstPipeline:
+    def load(
+        pipelines: list[Pipeline], run_configs: list[PipelineRunSpec]
+    ) -> GstPipeline:
         """
         Load a custom pipeline from a launch string.
 
@@ -82,4 +88,12 @@ class PipelineLoader:
         Returns:
             GstPipeline: An instance of GstPipeline initialized with the launch string.
         """
-        return GstPipeline(pipeline_description)
+        pipeline_descriptions = {
+            f"{run_config.name}-{run_config.version}": pipeline.pipeline_graph
+            for run_config in run_configs
+            for pipeline in pipelines
+            if pipeline.name == run_config.name
+            and pipeline.version == run_config.version
+        }
+
+        return GstPipeline(pipeline_descriptions)

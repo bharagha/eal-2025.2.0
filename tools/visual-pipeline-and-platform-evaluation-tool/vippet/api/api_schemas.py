@@ -52,16 +52,16 @@ class PipelineParameters(BaseModel):
     default: Optional[Dict[str, Any]]
 
 
-class PipelineParametersRun(BaseModel):
-    inferencing_channels: int = 1
-    recording_channels: int = 0
-    pipeline_graph: str
+class PipelineRunSpec(BaseModel):
+    name: str
+    version: str
+    channels: int = 1
 
 
-class PipelineParametersBenchmark(BaseModel):
-    fps_floor: int = 30
+class PipelineBenchmarkSpec(BaseModel):
+    name: str
+    version: str
     ai_stream_rate: int = 100
-    pipeline_graph: str
 
 
 class Pipeline(BaseModel):
@@ -89,17 +89,12 @@ class PipelineValidation(BaseModel):
 
 
 class PipelineRequestRun(BaseModel):
-    async_: Optional[bool] = Body(default=True, alias="async")
-    source: Source
-    parameters: PipelineParametersRun
-    tags: Optional[Dict[str, str]]
+    run_configs: list[PipelineRunSpec]
 
 
 class PipelineRequestBenchmark(BaseModel):
-    async_: Optional[bool] = Body(default=True, alias="async")
-    source: Source
-    parameters: PipelineParametersBenchmark
-    tags: Optional[Dict[str, str]]
+    fps_floor: int = 30
+    benchmark_configs: list[PipelineBenchmarkSpec]
 
 
 class PipelineRequestOptimize(BaseModel):
