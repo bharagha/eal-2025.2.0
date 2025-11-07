@@ -65,6 +65,10 @@ class PipelineGraph(BaseModel):
     edges: list[Edge]
 
 
+class MessageResponse(BaseModel):
+    message: str
+
+
 class PipelineParameters(BaseModel):
     default: Optional[Dict[str, Any]]
 
@@ -124,6 +128,10 @@ class PipelineRequestOptimize(BaseModel):
     source: Source
     parameters: Optional[Dict[str, Any]]
     tags: Optional[Dict[str, str]]
+
+
+class PipelineInstanceResponse(BaseModel):
+    instance_id: str
 
 
 class PipelineInstanceStatus(BaseModel):

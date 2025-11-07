@@ -137,9 +137,9 @@ class TestPipelinesAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.json(),
-            {
-                "detail": "Pipeline with name 'user-defined-pipelines' and version 'test-pipeline' already exists."
-            },
+            schemas.MessageResponse(
+                message="Pipeline with name 'user-defined-pipelines' and version 'test-pipeline' already exists."
+            ).model_dump(),
         )
 
     @patch("api.routes.pipelines.pipeline_manager")
@@ -160,7 +160,9 @@ class TestPipelinesAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(
             response.json(),
-            {"detail": "Failed to create pipeline: Unexpected error"},
+            schemas.MessageResponse(
+                message="Failed to create pipeline: Unexpected error"
+            ).model_dump(),
         )
 
     @patch("api.routes.pipelines.pipeline_manager")
@@ -200,9 +202,9 @@ class TestPipelinesAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             response.json(),
-            {
-                "detail": "Pipeline with name 'user-defined-pipelines' and version 'nonexistent' not found."
-            },
+            schemas.MessageResponse(
+                message="Pipeline with name 'user-defined-pipelines' and version 'nonexistent' not found."
+            ).model_dump(),
         )
 
     @patch("api.routes.pipelines.pipeline_manager")
@@ -216,7 +218,9 @@ class TestPipelinesAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(
             response.json(),
-            {"detail": "Unexpected error: Unexpected error"},
+            schemas.MessageResponse(
+                message="Unexpected error: Unexpected error"
+            ).model_dump(),
         )
 
     @patch("api.routes.pipelines.instance_manager")
