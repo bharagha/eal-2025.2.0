@@ -50,6 +50,7 @@ class Graph:
     @staticmethod
     def from_pipeline_description(pipeline_description: str) -> "Graph":
         logger.debug(f"Parsing pipeline description: {pipeline_description}...")
+
         nodes: list[Node] = []
         edges: list[Edge] = []
 
@@ -81,6 +82,7 @@ class Graph:
 
         logger.debug(f"Nodes:\n{nodes}")
         logger.debug(f"Edges:\n{edges}")
+
         return Graph(nodes, edges)
 
     def to_pipeline_description(self) -> str:
@@ -91,6 +93,7 @@ class Graph:
         logger.debug("Converting graph to pipeline description")
         logger.debug(f"Nodes:\n{self.nodes}")
         logger.debug(f"Edges:\n{self.edges}")
+
         nodes = self.nodes[:]
         _model_display_name_to_path(nodes)
         _video_name_to_path(nodes)
@@ -128,6 +131,7 @@ class Graph:
 
         pipeline_description = " ".join(result_parts)
         logger.info(f"Generated pipeline description: {pipeline_description}...")
+
         return pipeline_description
 
 
@@ -166,9 +170,9 @@ def _add_node(
     prev_token_kind: str | None,
     tee_stack: list[str],
 ) -> None:
-    """Add a new node and its corresponding edge to the graph."""
     node_id_str = str(node_id)
     logger.debug(f"Adding node {node_id_str}: type={token.value}")
+
     nodes.append(Node(id=node_id_str, type=token.value, data={}))
 
     if node_id > 0:
@@ -184,7 +188,6 @@ def _add_node(
 
 
 def _add_property_to_last_node(nodes: list[Node], token: _Token) -> None:
-    """Add a property to the most recently created node."""
     if not nodes:
         logger.warning("Attempted to add property but no nodes exist")
         return
@@ -192,31 +195,6 @@ def _add_property_to_last_node(nodes: list[Node], token: _Token) -> None:
     key, value = re.split(r"\s*=\s*", token.value, maxsplit=1)
     nodes[-1].data[key] = value
     logger.debug(f"Added property to node {nodes[-1].id}: {key}={value}")
-
-
-def _model_path_to_display_name(nodes: list[Node]) -> None:
-    for node in nodes:
-        path = node.data.get("model")
-        if not path:
-            continue
-
-        model = models_manager.find_installed_model_by_model_path_full(path)
-        if model:
-            node.data["model"] = model.display_name
-            node.data.pop("model-proc", None)
-            logger.debug(
-                f"Converted model path to display name: {path} -> {model.display_name}"
-            )
-        else:
-            logger.warning(f"Model path not found in installed models: {path}")
-
-
-def _video_path_to_display_name(nodes: list[Node]) -> None:
-    for node in nodes:
-        for k, v in node.data.items():
-            if filename := videos_manager.get_video_filename(v):
-                node.data[k] = filename
-                logger.debug(f"Converted video path to filename: {v} -> {filename}")
 
 
 def _build_chain(
@@ -227,10 +205,6 @@ def _build_chain(
     visited: set[str],
     result_parts: list[str],
 ) -> None:
-    """
-    Recursively build pipeline description chain starting from a given node.
-    Handles linear chains and tee branches.
-    """
     current_id = start_id
 
     while current_id and current_id not in visited:
@@ -266,6 +240,23 @@ def _build_chain(
             break
 
 
+def _model_path_to_display_name(nodes: list[Node]) -> None:
+    for node in nodes:
+        path = node.data.get("model")
+        if not path:
+            continue
+
+        model = models_manager.find_installed_model_by_model_path_full(path)
+        if model:
+            node.data["model"] = model.display_name
+            node.data.pop("model-proc", None)
+            logger.debug(
+                f"Converted model path to display name: {path} -> {model.display_name}"
+            )
+        else:
+            logger.warning(f"Model path not found in installed models: {path}")
+
+
 def _model_display_name_to_path(nodes: list[Node]) -> None:
     for node in nodes:
         name = node.data.get("model")
@@ -282,6 +273,14 @@ def _model_display_name_to_path(nodes: list[Node]) -> None:
             )
         else:
             logger.warning(f"Model display name not found in installed models: {name}")
+
+
+def _video_path_to_display_name(nodes: list[Node]) -> None:
+    for node in nodes:
+        for k, v in node.data.items():
+            if filename := videos_manager.get_video_filename(v):
+                node.data[k] = filename
+                logger.debug(f"Converted video path to filename: {v} -> {filename}")
 
 
 def _video_name_to_path(nodes: list[Node]) -> None:

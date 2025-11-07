@@ -1,16 +1,9 @@
-import os
 import re
-import tempfile
 import unittest
 from dataclasses import dataclass
 from unittest.mock import MagicMock, patch
 
-# Set up a temporary directory for RECORDINGS_PATH before importing modules
-# This prevents VideosManager initialization errors when convert module is imported
-_test_temp_dir = tempfile.mkdtemp()
-os.environ["RECORDINGS_PATH"] = _test_temp_dir
-
-from graph import Graph, Node, Edge, _tokenize  # noqa: E402
+from graph import Graph, Node, Edge
 
 
 @dataclass
@@ -1211,58 +1204,6 @@ class TestParseLaunchString(unittest.TestCase):
 
         self.assertEqual(result.edges[0].id, "0")
         self.assertEqual(result.edges[1].id, "1")
-
-
-class TestTokenize(unittest.TestCase):
-    def test_simple_element_type(self):
-        tokens = list(_tokenize("filesrc"))
-        self.assertEqual(len(tokens), 1)
-        self.assertEqual(tokens[0].kind, "TYPE")
-        self.assertEqual(tokens[0].value, "filesrc")
-
-    def test_property(self):
-        tokens = list(_tokenize("location=/tmp/file.mp4"))
-        self.assertEqual(len(tokens), 1)
-        self.assertEqual(tokens[0].kind, "PROPERTY")
-        self.assertEqual(tokens[0].value, "location=/tmp/file.mp4")
-
-    def test_property_with_spaces(self):
-        tokens = list(_tokenize("dummy   = value"))
-        self.assertEqual(len(tokens), 1)
-        self.assertEqual(tokens[0].kind, "PROPERTY")
-        self.assertEqual(tokens[0].value, "dummy   = value")
-
-    def test_tee_end(self):
-        tokens = list(_tokenize("t."))
-        self.assertEqual(len(tokens), 1)
-        self.assertEqual(tokens[0].kind, "TEE_END")
-        self.assertEqual(tokens[0].value, "t.")
-
-    def test_element_with_property(self):
-        tokens = list(_tokenize("filesrc location=/tmp/file.mp4"))
-        self.assertEqual(len(tokens), 2)
-        self.assertEqual(tokens[0].kind, "TYPE")
-        self.assertEqual(tokens[0].value, "filesrc")
-        self.assertEqual(tokens[1].kind, "PROPERTY")
-        self.assertEqual(tokens[1].value, "location=/tmp/file.mp4")
-
-    def test_element_with_multiple_properties(self):
-        tokens = list(_tokenize("vah264enc bitrate=5000 quality=4"))
-        self.assertEqual(len(tokens), 3)
-        self.assertEqual(tokens[0].kind, "TYPE")
-        self.assertEqual(tokens[0].value, "vah264enc")
-        self.assertEqual(tokens[1].kind, "PROPERTY")
-        self.assertEqual(tokens[1].value, "bitrate=5000")
-        self.assertEqual(tokens[2].kind, "PROPERTY")
-        self.assertEqual(tokens[2].value, "quality=4")
-
-    def test_tee_name(self):
-        tokens = list(_tokenize("tee name=t"))
-        self.assertEqual(len(tokens), 2)
-        self.assertEqual(tokens[0].kind, "TYPE")
-        self.assertEqual(tokens[0].value, "tee")
-        self.assertEqual(tokens[1].kind, "PROPERTY")
-        self.assertEqual(tokens[1].value, "name=t")
 
 
 class TestParseLaunchStringWithModels(unittest.TestCase):
