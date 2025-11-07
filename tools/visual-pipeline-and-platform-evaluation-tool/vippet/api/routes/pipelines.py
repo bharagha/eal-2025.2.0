@@ -1,6 +1,6 @@
 import tempfile
 from typing import List
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 import api.api_schemas as schemas
