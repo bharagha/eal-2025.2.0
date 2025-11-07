@@ -62,8 +62,10 @@ bool TrackerFactory::RegisterAll() {
         }
         std::string device = gva_track->device ? gva_track->device : "CPU";
 
-        return new DeepSortWrapper::DeepSortTracker(feature_model_path, device, 0.7f, 70, 3, 0.2f, 100,
-                                                    std::move(mapper));
+        return new DeepSortWrapper::DeepSortTracker(
+            feature_model_path, device, DeepSortWrapper::DEFAULT_MAX_IOU_DISTANCE, DeepSortWrapper::DEFAULT_MAX_AGE,
+            DeepSortWrapper::DEFAULT_N_INIT, DeepSortWrapper::DEFAULT_MAX_COSINE_DISTANCE,
+            DeepSortWrapper::DEFAULT_NN_BUDGET, std::move(mapper));
     };
 
     result &= TrackerFactory::Register(GstGvaTrackingType::DEEP_SORT, create_deep_sort_tracker);
