@@ -1301,13 +1301,13 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
     def test_string_to_config_converts_model_path_to_display_name(self, mock_manager):
         self._setup_mock_models(mock_manager)
 
-        launch_string = (
+        pipeline_description = (
             "filesrc location=/tmp/input.mp4 ! decodebin3 ! gvadetect "
             "model=/models/output/yolov8_detector.xml model-proc=/models/output/yolov8_detector.json "
             "device=GPU ! fakesink"
         )
 
-        result = Graph.from_pipeline_description(launch_string)
+        result = Graph.from_pipeline_description(pipeline_description)
 
         self.assertEqual(len(result.nodes), 4)
         gvadetect_node = result.nodes[2]
@@ -1347,13 +1347,13 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
     def test_multiple_models_conversion(self, mock_manager):
         self._setup_mock_models(mock_manager)
 
-        launch_string = (
+        pipeline_description = (
             "filesrc location=/tmp/input.mp4 ! decodebin3 ! gvadetect "
             "model=/models/output/detection_model.xml device=GPU ! gvaclassify "
             "model=/models/output/classification_model.xml device=GPU ! fakesink"
         )
 
-        result = Graph.from_pipeline_description(launch_string)
+        result = Graph.from_pipeline_description(pipeline_description)
 
         self.assertEqual(len(result.nodes), 5)
         gvadetect_node = result.nodes[2]
@@ -1397,11 +1397,11 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
     ):
         self._setup_mock_videos(mock_videos_manager)
 
-        launch_string = (
+        pipeline_description = (
             "filesrc location=/videos/input/sample_video.mp4 ! decodebin3 ! fakesink"
         )
 
-        result = Graph.from_pipeline_description(launch_string)
+        result = Graph.from_pipeline_description(pipeline_description)
 
         self.assertEqual(len(result.nodes), 3)
         filesrc_node = result.nodes[0]
@@ -1435,12 +1435,12 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
     def test_multiple_video_properties_conversion(self, mock_videos_manager):
         self._setup_mock_videos(mock_videos_manager)
 
-        launch_string = (
+        pipeline_description = (
             "filesrc location=/videos/input/sample_video.mp4 ! decodebin3 ! "
             "filesink location=/videos/input/test_recording.mp4"
         )
 
-        result = Graph.from_pipeline_description(launch_string)
+        result = Graph.from_pipeline_description(pipeline_description)
 
         self.assertEqual(len(result.nodes), 3)
         filesrc_node = result.nodes[0]
@@ -1459,11 +1459,11 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
         mock_videos_manager.get_video_filename.return_value = ""
         mock_videos_manager.get_video_path.return_value = ""
 
-        launch_string = (
+        pipeline_description = (
             "filesrc location=/tmp/external_video.mp4 ! decodebin3 ! fakesink"
         )
 
-        result = Graph.from_pipeline_description(launch_string)
+        result = Graph.from_pipeline_description(pipeline_description)
 
         filesrc_node = result.nodes[0]
         self.assertEqual(filesrc_node.data["location"], "/tmp/external_video.mp4")
@@ -1499,13 +1499,13 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
             find_by_name
         )
 
-        launch_string = (
+        pipeline_description = (
             "filesrc location=/videos/input/sample_video.mp4 ! decodebin3 ! "
             "gvadetect model=/models/output/detection.xml ! "
             "filesink location=/videos/input/test_recording.mp4"
         )
 
-        result = Graph.from_pipeline_description(launch_string)
+        result = Graph.from_pipeline_description(pipeline_description)
 
         # Check conversions: video paths -> filenames, model path -> display name
         filesrc_node = result.nodes[0]

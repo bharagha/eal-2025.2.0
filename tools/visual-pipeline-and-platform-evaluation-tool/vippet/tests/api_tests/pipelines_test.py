@@ -49,7 +49,9 @@ class TestPipelinesAPI(unittest.TestCase):
                 version="SmartNVRPipeline",
                 description="Smart Network Video Recorder (NVR) Proxy Pipeline",
                 type=schemas.PipelineType.GSTREAMER,
-                pipeline_graph=schemas.PipelineGraph.model_validate_json(self.test_graph),
+                pipeline_graph=schemas.PipelineGraph.model_validate_json(
+                    self.test_graph
+                ),
                 parameters=None,
             ),
             schemas.Pipeline(
@@ -57,7 +59,9 @@ class TestPipelinesAPI(unittest.TestCase):
                 version="TestPipeline",
                 description="Test Pipeline Description",
                 type=schemas.PipelineType.GSTREAMER,
-                pipeline_graph=schemas.PipelineGraph.model_validate_json(self.test_graph),
+                pipeline_graph=schemas.PipelineGraph.model_validate_json(
+                    self.test_graph
+                ),
                 parameters=None,
             ),
         ]
@@ -167,7 +171,9 @@ class TestPipelinesAPI(unittest.TestCase):
                 version="test-pipeline",
                 description="A custom test pipeline",
                 type=schemas.PipelineType.GSTREAMER,
-                pipeline_graph=schemas.PipelineGraph.model_validate_json(self.test_graph),
+                pipeline_graph=schemas.PipelineGraph.model_validate_json(
+                    self.test_graph
+                ),
                 parameters=None,
             )
         )
