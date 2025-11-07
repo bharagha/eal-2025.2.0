@@ -8,7 +8,6 @@ import {
   messageReceived,
 } from "@/store/reducers/metrics.ts";
 
-// Construct WebSocket URL based on current location
 const getWebSocketUrl = () => {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const host = window.location.host;
@@ -20,18 +19,13 @@ export const useWebSocketConnection = () => {
   const webSocketRef = useRef<WebSocket | null>(null);
 
   const connectWebSocket = useCallback(() => {
-    // Prevent multiple connections
     if (
       webSocketRef.current?.readyState === WebSocket.CONNECTING ||
       webSocketRef.current?.readyState === WebSocket.OPEN
     ) {
-      console.log("WebSocket already connecting/connected, skipping");
       return;
     }
 
-    console.log("Creating new WebSocket connection");
-
-    // Close existing connection if any
     if (webSocketRef.current) {
       webSocketRef.current.close();
     }
@@ -67,10 +61,8 @@ export const useWebSocketConnection = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    // Initial connection
     connectWebSocket();
 
-    // Cleanup function
     return () => {
       if (webSocketRef.current) {
         webSocketRef.current.close();
