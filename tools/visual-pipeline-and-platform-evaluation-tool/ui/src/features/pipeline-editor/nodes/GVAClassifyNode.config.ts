@@ -1,7 +1,7 @@
 import {
   DEVICE_TYPES,
   INFERENCE_REGION_TYPES,
-} from "@/components/nodes/shared-types.ts";
+} from "@/features/pipeline-editor/nodes/shared-types.ts";
 
 export const gvaClassifyConfig = {
   editableProperties: [

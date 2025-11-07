@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import type { Node } from "@xyflow/react";
-import { gvaMetaConvertConfig } from "./nodes/GVAMetaConvertNode.config";
-import { gvaTrackConfig } from "@/components/nodes/GVATrackNode.config.ts";
-import { gvaClassifyConfig } from "@/components/nodes/GVAClassifyNode.config.ts";
-import { gvaDetectConfig } from "@/components/nodes/GVADetectNode.config.ts";
+import { gvaMetaConvertConfig } from "./nodes/GVAMetaConvertNode.config.ts";
+import { gvaTrackConfig } from "@/features/pipeline-editor/nodes/GVATrackNode.config.ts";
+import { gvaClassifyConfig } from "@/features/pipeline-editor/nodes/GVAClassifyNode.config.ts";
+import { gvaDetectConfig } from "@/features/pipeline-editor/nodes/GVADetectNode.config.ts";
 
 type NodePropertyConfig = {
   key: string;

@@ -1,5 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import type { DeviceType } from "@/components/nodes/shared-types.ts";
+import type { DeviceType } from "@/features/pipeline-editor/nodes/shared-types.ts";
 
 type GVAClassifyNodeProps = {
   data: {

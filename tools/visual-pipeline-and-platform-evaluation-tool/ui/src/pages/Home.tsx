@@ -37,7 +37,7 @@ const Home = () => {
     );
   }
 
-  return <div>Home</div>;
+  return <div>Loading predefined pipelines...</div>;
 };
 
 export default Home;

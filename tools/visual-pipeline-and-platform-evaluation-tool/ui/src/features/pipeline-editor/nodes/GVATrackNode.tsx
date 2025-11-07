@@ -1,5 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import type { GVA_TRACKING_TYPES } from "@/components/nodes/GVATrackNode.config.ts";
+import type { GVA_TRACKING_TYPES } from "@/features/pipeline-editor/nodes/GVATrackNode.config.ts";
 
 export type GvaTrackingType = (typeof GVA_TRACKING_TYPES)[number];
 

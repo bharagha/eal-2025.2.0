@@ -10,28 +10,26 @@ import {
   Controls,
   type Edge,
   type Node,
+  type NodeMouseHandler,
   Position,
   ReactFlow,
   useEdgesState,
   useNodesState,
-  type NodeMouseHandler,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useEffect, useState } from "react";
 import dagre from "dagre";
-import { nodeTypes, nodeWidths, defaultNodeWidth } from "@/components/nodes";
-import NodeDataPanel from "@/components/NodeDataPanel";
-import FpsDisplay from "@/components/FpsDisplay";
-import { Save, Play, Square } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  defaultNodeWidth,
+  nodeTypes,
+  nodeWidths,
+} from "@/features/pipeline-editor/nodes";
+import NodeDataPanel from "@/features/pipeline-editor/NodeDataPanel.tsx";
+import FpsDisplay from "@/features/pipeline-editor/FpsDisplay.tsx";
 import { toast } from "sonner";
+import RunPipelineButton from "@/features/pipeline-editor/RunPipelineButton.tsx";
+import StopPipelineButton from "@/features/pipeline-editor/StopPipelineButton.tsx";
+import StatePreviewButton from "@/features/pipeline-editor/StatePreviewButton.tsx";
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -45,232 +43,9 @@ const getNodeWidth = (nodeType: string): number => {
 
 const transformApiNodes = (apiNodes: Node[]): Node[] => {
   return apiNodes.map((node) => {
-    // Transform nodes based on their type
-    // if (node.type === "filesrc") {
-    //   return {
-    //     ...node,
-    //     type: "filesrc", // This will use our custom FileSrcNode component
-    //     data: {
-    //       ...node.data,
-    //       location: node.data.location || "/path/to/default/file.mp4", // Add location property
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "qtdemux") {
-    //   return {
-    //     ...node,
-    //     type: "qtdemux", // This will use our custom QtdemuxNode component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "h264parse") {
-    //   return {
-    //     ...node,
-    //     type: "h264parse", // This will use our custom H264ParseNode component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "vah264dec") {
-    //   return {
-    //     ...node,
-    //     type: "vah264dec", // This will use our custom VAH264DecNode component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "gvafpscounter") {
-    //   return {
-    //     ...node,
-    //     type: "gvafpscounter", // This will use our custom GVAFpsCounterNode component
-    //     data: {
-    //       ...node.data,
-    //       "starting-frame": node.data["starting-frame"] || "0", // Add starting-frame property
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "gvadetect") {
-    //   return {
-    //     ...node,
-    //     type: "gvadetect", // This will use our custom GVADetectNode component
-    //     data: {
-    //       ...node.data,
-    //       model: node.data.model || "", // Add model property
-    //       device: node.data.device || "", // Add device property
-    //       "pre-process-backend": node.data["pre-process-backend"] || "", // Add pre-process-backend property
-    //       "inference-backend": node.data["inference-backend"] || "", // Add inference-backend property
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "queue2") {
-    //   return {
-    //     ...node,
-    //     type: "queue2", // This will use our custom Queue2Node component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "gvatrack") {
-    //   return {
-    //     ...node,
-    //     type: "gvatrack", // This will use our custom GVATrackNode component
-    //     data: {
-    //       ...node.data,
-    //       "tracking-type": node.data["tracking-type"] || "", // Add tracking-type property
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "gvawatermark") {
-    //   return {
-    //     ...node,
-    //     type: "gvawatermark", // This will use our custom GVAWatermarkNode component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "gvametaconvert") {
-    //   return {
-    //     ...node,
-    //     type: "gvametaconvert", // This will use our custom GVAMetaConvertNode component
-    //     data: node.data,
-    //   };
-    // }
-    //
-    // if (node.type === "gvametapublish") {
-    //   return {
-    //     ...node,
-    //     type: "gvametapublish", // This will use our custom GVAMetaPublishNode component
-    //     data: {
-    //       ...node.data,
-    //       method: node.data.method || "", // Add method property
-    //       "file-path": node.data["file-path"] || "", // Add file-path property
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "fakesink") {
-    //   return {
-    //     ...node,
-    //     type: "fakesink", // This will use our custom FakeSinkNode component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "video/x-raw(memory:VAMemory)") {
-    //   return {
-    //     ...node,
-    //     type: "video/x-raw(memory:VAMemory)", // This will use our custom VideoXRawNode component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "vapostproc") {
-    //   return {
-    //     ...node,
-    //     type: "vapostproc", // This will use our custom VAPostProcNode component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "video/x-raw") {
-    //   return {
-    //     ...node,
-    //     type: "video/x-raw", // This will use our custom VideoXRawWithDimensionsNode component
-    //     data: {
-    //       ...node.data,
-    //       width: node.data.width || "", // Add width property
-    //       height: node.data.height || "", // Add height property
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "mp4mux") {
-    //   return {
-    //     ...node,
-    //     type: "mp4mux", // This will use our custom Mp4MuxNode component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "filesink") {
-    //   return {
-    //     ...node,
-    //     type: "filesink", // This will use our custom FileSinkNode component
-    //     data: {
-    //       ...node.data,
-    //       location: node.data.location || "/path/to/output/file.mp4", // Add location property
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "vah264enc") {
-    //   return {
-    //     ...node,
-    //     type: "vah264enc", // This will use our custom VAH264EncNode component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "decodebin3") {
-    //   return {
-    //     ...node,
-    //     type: "decodebin3", // This will use our custom Decodebin3Node component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "queue") {
-    //   return {
-    //     ...node,
-    //     type: "queue", // This will use our custom QueueNode component
-    //     data: {
-    //       ...node.data,
-    //     },
-    //   };
-    // }
-    //
-    // if (node.type === "gvaclassify") {
-    //   return {
-    //     ...node,
-    //     type: "gvaclassify", // This will use our custom GVAClassifyNode component
-    //     data: {
-    //       ...node.data,
-    //       model: node.data.model || "", // Add model property
-    //     },
-    //   };
-    // }
-
-    // For other node types, return as default node
     return {
       ...node,
-      type: node.type, // React Flow's default node type
+      type: node.type,
     };
   });
 };
@@ -457,19 +232,163 @@ const Pipelines = () => {
   useEffect(() => {
     if (isSuccess && data?.launch_config) {
       // Get the raw nodes and edges from API
-      const rawNodes = data.launch_config.nodes || [];
-      const rawEdges = data.launch_config.edges || [];
+      // const rawNodes = data.launch_config.nodes || [];
+      // const rawEdges = data.launch_config.edges || [];
+
+      const rawNodes = [
+        {
+          id: "0",
+          type: "filesrc",
+          data: {
+            location: "${VIDEO}",
+          },
+        },
+        {
+          id: "1",
+          type: "qtdemux",
+          data: {},
+        },
+        {
+          id: "2",
+          type: "h264parse",
+          data: {},
+        },
+        {
+          id: "3",
+          type: "vah264dec",
+          data: {},
+        },
+        {
+          id: "4",
+          type: "video/x-raw(memory:VAMemory)",
+          data: {},
+        },
+        {
+          id: "5",
+          type: "gvafpscounter",
+          data: {
+            "starting-frame": "500",
+          },
+        },
+        {
+          id: "6",
+          type: "gvadetect",
+          data: {
+            model: "${YOLO11n_POST_MODEL}",
+            device: "GPU",
+            "pre-process-backend": "va-surface-sharing",
+            "model-instance-id": "yolo11-pose",
+          },
+        },
+        {
+          id: "7",
+          type: "queue2",
+          data: {},
+        },
+        {
+          id: "8",
+          type: "gvatrack",
+          data: {
+            "tracking-type": "short-term-imageless",
+          },
+        },
+        {
+          id: "9",
+          type: "gvawatermark",
+          data: {},
+        },
+        {
+          id: "10",
+          type: "gvametaconvert",
+          data: {
+            format: "json",
+            "json-indent": "4",
+          },
+        },
+        {
+          id: "11",
+          type: "gvametapublish",
+          data: {
+            method: "file",
+            "file-path": "/dev/null",
+          },
+        },
+        {
+          id: "12",
+          type: "fakesink",
+          data: {},
+        },
+      ];
+
+      const rawEdges = [
+        {
+          id: "0",
+          source: "0",
+          target: "1",
+        },
+        {
+          id: "1",
+          source: "1",
+          target: "2",
+        },
+        {
+          id: "2",
+          source: "2",
+          target: "3",
+        },
+        {
+          id: "3",
+          source: "3",
+          target: "4",
+        },
+        {
+          id: "4",
+          source: "4",
+          target: "5",
+        },
+        {
+          id: "5",
+          source: "5",
+          target: "6",
+        },
+        {
+          id: "6",
+          source: "6",
+          target: "7",
+        },
+        {
+          id: "7",
+          source: "7",
+          target: "8",
+        },
+        {
+          id: "8",
+          source: "8",
+          target: "9",
+        },
+        {
+          id: "9",
+          source: "9",
+          target: "10",
+        },
+        {
+          id: "10",
+          source: "10",
+          target: "11",
+        },
+        {
+          id: "11",
+          source: "11",
+          target: "12",
+        },
+      ];
 
       // Transform nodes to include custom types and properties
       const transformedNodes = transformApiNodes(rawNodes as Node[]);
 
       // Apply Dagre layout to position nodes automatically
       const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(
-          transformedNodes,
-          rawEdges,
-          "LR", // Top to Bottom layout, can be changed to "LR" for Left to Right
-        );
+        getLayoutedElements(transformedNodes, rawEdges, "LR");
 
       setNodes(layoutedNodes);
       setEdges(layoutedEdges);
@@ -494,70 +413,24 @@ const Pipelines = () => {
           <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
         </ReactFlow>
 
-        {/* Top-right UI elements */}
         <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 items-end">
           {/* FPS Display */}
           <FpsDisplay />
 
-          {/* Action Buttons */}
           <div className="flex gap-2">
-            {/* Run/Stop Button */}
             {pipelineInstanceId ? (
-              <button
-                onClick={handleStopPipeline}
-                disabled={isStopping}
-                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white p-2 rounded-lg shadow-lg transition-colors"
-                title="Stop Pipeline"
-              >
-                <Square className="w-5 h-5" />
-              </button>
+              <StopPipelineButton
+                isStopping={isStopping}
+                onStopPipeline={handleStopPipeline}
+              />
             ) : (
-              <button
-                onClick={handleRunPipeline}
-                disabled={isRunning}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white p-2 rounded-lg shadow-lg transition-colors"
-                title="Run Pipeline"
-              >
-                <Play className="w-5 h-5" />
-              </button>
+              <RunPipelineButton
+                isRunning={isRunning}
+                onRunPipeline={handleRunPipeline}
+              />
             )}
 
-            {/* Save Button */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg shadow-lg transition-colors">
-                  <Save className="w-5 h-5" />
-                </button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-                <DialogHeader>
-                  <DialogTitle>Pipeline State</DialogTitle>
-                  <DialogDescription>
-                    Current nodes and edges state of the React Flow pipeline
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="overflow-auto max-h-[60vh]">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">
-                        Nodes ({nodes.length})
-                      </h3>
-                      <pre className="bg-gray-100 p-4 rounded-lg text-sm overflow-auto">
-                        {JSON.stringify(nodes, null, 2)}
-                      </pre>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">
-                        Edges ({edges.length})
-                      </h3>
-                      <pre className="bg-gray-100 p-4 rounded-lg text-sm overflow-auto">
-                        {JSON.stringify(edges, null, 2)}
-                      </pre>
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <StatePreviewButton edges={edges} nodes={nodes} />
           </div>
         </div>
 

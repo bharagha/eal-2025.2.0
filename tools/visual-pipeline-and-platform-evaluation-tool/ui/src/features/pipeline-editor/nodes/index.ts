@@ -1,28 +1,28 @@
-import FileSrcNode, { FileSrcNodeWidth } from "./FileSrcNode";
-import QtdemuxNode from "./QtdemuxNode";
-import H264ParseNode from "./H264ParseNode";
-import VAH264DecNode from "./VAH264DecNode";
-import GVAFpsCounterNode from "./GVAFpsCounterNode";
-import GVADetectNode, { GVADetectNodeWidth } from "./GVADetectNode";
-import Queue2Node from "./Queue2Node";
-import GVATrackNode from "./GVATrackNode";
-import GVAWatermarkNode from "./GVAWatermarkNode";
+import FileSrcNode, { FileSrcNodeWidth } from "./FileSrcNode.tsx";
+import QtdemuxNode from "./QtdemuxNode.tsx";
+import H264ParseNode from "./H264ParseNode.tsx";
+import VAH264DecNode from "./VAH264DecNode.tsx";
+import GVAFpsCounterNode from "./GVAFpsCounterNode.tsx";
+import GVADetectNode, { GVADetectNodeWidth } from "./GVADetectNode.tsx";
+import Queue2Node from "./Queue2Node.tsx";
+import GVATrackNode from "./GVATrackNode.tsx";
+import GVAWatermarkNode from "./GVAWatermarkNode.tsx";
 import GVAMetaConvertNode, {
   GVAMetaConvertNodeWidth,
-} from "./GVAMetaConvertNode";
+} from "./GVAMetaConvertNode.tsx";
 import GVAMetaPublishNode, {
   GVAMetaPublishNodeWidth,
-} from "./GVAMetaPublishNode";
-import FakeSinkNode from "./FakeSinkNode";
-import VideoXRawNode from "./VideoXRawNode";
-import VAPostProcNode from "./VAPostProcNode";
-import VideoXRawWithDimensionsNode from "./VideoXRawWithDimensionsNode";
-import Mp4MuxNode from "./Mp4MuxNode";
-import FileSinkNode from "./FileSinkNode";
-import VAH264EncNode from "./VAH264EncNode";
-import Decodebin3Node from "./Decodebin3Node";
-import QueueNode, { QueueNodeWidth } from "./QueueNode";
-import GVAClassifyNode from "./GVAClassifyNode";
+} from "./GVAMetaPublishNode.tsx";
+import FakeSinkNode from "./FakeSinkNode.tsx";
+import VideoXRawNode from "./VideoXRawNode.tsx";
+import VAPostProcNode from "./VAPostProcNode.tsx";
+import VideoXRawWithDimensionsNode from "./VideoXRawWithDimensionsNode.tsx";
+import Mp4MuxNode from "./Mp4MuxNode.tsx";
+import FileSinkNode from "./FileSinkNode.tsx";
+import VAH264EncNode from "./VAH264EncNode.tsx";
+import Decodebin3Node from "./Decodebin3Node.tsx";
+import QueueNode, { QueueNodeWidth } from "./QueueNode.tsx";
+import GVAClassifyNode from "./GVAClassifyNode.tsx";
 
 export const nodeTypes = {
   filesrc: FileSrcNode,
