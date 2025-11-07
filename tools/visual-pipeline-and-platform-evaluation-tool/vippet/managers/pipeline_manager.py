@@ -2,7 +2,7 @@ import logging
 
 from gstpipeline import PipelineLoader
 from api.api_schemas import PipelineType, Pipeline, PipelineDefinition, PipelineGraph
-from convert import Graph
+from graph import Graph
 
 
 class PipelineManager:

@@ -1,9 +1,16 @@
+import os
 import re
+import tempfile
 import unittest
 from dataclasses import dataclass
 from unittest.mock import MagicMock, patch
 
-from convert import Graph, Edge, Node, _tokenize
+# Set up a temporary directory for RECORDINGS_PATH before importing modules
+# This prevents VideosManager initialization errors when convert module is imported
+_test_temp_dir = tempfile.mkdtemp()
+os.environ["RECORDINGS_PATH"] = _test_temp_dir
+
+from graph import Graph, Node, Edge, _tokenize  # noqa: E402
 
 
 @dataclass
@@ -1297,7 +1304,7 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
         mock_manager.find_installed_model_by_model_path_full.side_effect = find_by_path
         mock_manager.find_installed_model_by_display_name.side_effect = find_by_name
 
-    @patch("convert.models_manager")
+    @patch("graph.models_manager")
     def test_string_to_config_converts_model_path_to_display_name(self, mock_manager):
         self._setup_mock_models(mock_manager)
 
@@ -1315,7 +1322,7 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
         self.assertEqual(gvadetect_node.data["model"], "YOLOv8 Detector")
         self.assertNotIn("model-proc", gvadetect_node.data)
 
-    @patch("convert.models_manager")
+    @patch("graph.models_manager")
     def test_config_to_string_converts_display_name_to_model_path(self, mock_manager):
         self._setup_mock_models(mock_manager)
 
@@ -1343,7 +1350,7 @@ class TestParseLaunchStringWithModels(unittest.TestCase):
         self.assertIn("model-proc=/models/output/yolov8_detector.json", result)
         self.assertNotIn("YOLOv8 Detector", result)
 
-    @patch("convert.models_manager")
+    @patch("graph.models_manager")
     def test_multiple_models_conversion(self, mock_manager):
         self._setup_mock_models(mock_manager)
 
@@ -1391,7 +1398,7 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
         mock_manager.get_video_filename = get_filename
         mock_manager.get_video_path = get_path
 
-    @patch("convert.videos_manager")
+    @patch("graph.videos_manager")
     def test_string_to_config_converts_video_path_to_filename(
         self, mock_videos_manager
     ):
@@ -1408,7 +1415,7 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
         self.assertEqual(filesrc_node.type, "filesrc")
         self.assertEqual(filesrc_node.data["location"], "sample_video.mp4")
 
-    @patch("convert.videos_manager")
+    @patch("graph.videos_manager")
     def test_config_to_string_converts_video_filename_to_path(
         self, mock_videos_manager
     ):
@@ -1431,7 +1438,7 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
         self.assertIn("location=/videos/input/sample_video.mp4", result)
         self.assertNotIn("location=sample_video.mp4", result)
 
-    @patch("convert.videos_manager")
+    @patch("graph.videos_manager")
     def test_multiple_video_properties_conversion(self, mock_videos_manager):
         self._setup_mock_videos(mock_videos_manager)
 
@@ -1454,7 +1461,7 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
         self.assertIn("location=/videos/input/sample_video.mp4", pipeline_description)
         self.assertIn("location=/videos/input/test_recording.mp4", pipeline_description)
 
-    @patch("convert.videos_manager")
+    @patch("graph.videos_manager")
     def test_video_path_not_in_recordings_path_unchanged(self, mock_videos_manager):
         mock_videos_manager.get_video_filename.return_value = ""
         mock_videos_manager.get_video_path.return_value = ""
@@ -1468,8 +1475,8 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
         filesrc_node = result.nodes[0]
         self.assertEqual(filesrc_node.data["location"], "/tmp/external_video.mp4")
 
-    @patch("convert.videos_manager")
-    @patch("convert.models_manager")
+    @patch("graph.videos_manager")
+    @patch("graph.models_manager")
     def test_combined_models_and_videos_conversion(
         self, mock_models_manager, mock_videos_manager
     ):

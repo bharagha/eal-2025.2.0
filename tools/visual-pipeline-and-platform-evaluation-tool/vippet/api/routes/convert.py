@@ -1,4 +1,4 @@
-from convert import Graph
+from graph import Graph
 from fastapi import APIRouter
 
 from api.api_schemas import PipelineGraph, PipelineDescription
@@ -12,8 +12,8 @@ router = APIRouter()
     summary="Convert pipeline description to pipeline graph",
 )
 def to_graph(request: PipelineDescription) -> PipelineGraph:
-    response = Graph.from_pipeline_description(request.pipeline_description)
-    return PipelineGraph.model_validate(response.to_dict())
+    graph = Graph.from_pipeline_description(request.pipeline_description)
+    return PipelineGraph.model_validate(graph.to_dict())
 
 
 @router.post(
@@ -22,6 +22,6 @@ def to_graph(request: PipelineDescription) -> PipelineGraph:
     summary="Convert pipeline graph to pipeline description",
 )
 def to_description(request: PipelineGraph) -> PipelineDescription:
-    d = request.model_dump()
-    response = Graph.from_dict(d).to_pipeline_description()
-    return PipelineDescription(pipeline_description=response)
+    graph = Graph.from_dict(request.model_dump())
+    pipeline_description = graph.to_pipeline_description()
+    return PipelineDescription(pipeline_description=pipeline_description)

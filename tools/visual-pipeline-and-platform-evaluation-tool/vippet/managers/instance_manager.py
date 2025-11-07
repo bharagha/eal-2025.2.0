@@ -18,7 +18,7 @@ from gstpipeline import PipelineLoader
 from pipeline_runner import PipelineRunner
 from benchmark import Benchmark
 from utils import download_file, replace_file_path
-from convert import Graph
+from graph import Graph
 
 
 @dataclass
