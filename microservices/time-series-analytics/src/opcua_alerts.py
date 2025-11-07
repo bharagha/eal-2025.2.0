@@ -89,9 +89,9 @@ class OpcuaAlerts:
             try:
                 if secure_mode.lower() == "true":
                     kapacitor_cert = ("/run/secrets/"
-                                    "time_series_analytics_microservice_Server_server_certificate.pem")
+                                    "server_certificate.pem")
                     kapacitor_key = ("/run/secrets/"
-                                   "time_series_analytics_microservice_Server_server_key.pem")
+                                   "server_key.pem")
                     self.client.set_security_string(
                         f"Basic256Sha256,SignAndEncrypt,{kapacitor_cert},{kapacitor_key}")
                     self.client.set_user("admin")
@@ -121,7 +121,7 @@ class OpcuaAlerts:
             RuntimeError: If connection to OPC UA server fails
         """
         self.node_id, self.namespace, self.opcua_server = self.load_opcua_config()
-        secure_mode = os.getenv("SECURE_MODE", "false")
+        secure_mode = os.getenv("OPCUA_SECURE_MODE", "false")
         connected = await self.connect_opcua_client(secure_mode)
         if not connected:
             logger.error("Failed to connect to OPC UA server.")
