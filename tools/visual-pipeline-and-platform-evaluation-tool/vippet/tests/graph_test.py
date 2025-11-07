@@ -1531,5 +1531,49 @@ class TestParseLaunchStringWithVideos(unittest.TestCase):
         self.assertIn("location=/videos/input/test_recording.mp4", pipeline_description)
 
 
+class TestNegativeCases(unittest.TestCase):
+    def test_circular_graph_returns_empty_string(self):
+        """Test that a circular graph is detected and returns empty pipeline description."""
+        # Create a circular graph: node 0 -> node 1 -> node 2 -> node 0
+        circular_graph = Graph(
+            nodes=[
+                Node(id="0", type="filesrc", data={"location": "test.mp4"}),
+                Node(id="1", type="queue", data={}),
+                Node(id="2", type="filesink", data={"location": "output.mp4"}),
+            ],
+            edges=[
+                Edge(id="0", source="0", target="1"),
+                Edge(id="1", source="1", target="2"),
+                Edge(id="2", source="2", target="0"),  # Creates circular reference
+            ],
+        )
+
+        result = circular_graph.to_pipeline_description()
+        self.assertEqual(result, "")
+
+    def test_graph_with_no_start_nodes_returns_empty_string(self):
+        """Test that a graph where all nodes are targets returns empty pipeline description."""
+        # All nodes are targets (no start nodes)
+        no_start_graph = Graph(
+            nodes=[
+                Node(id="0", type="filesrc", data={}),
+                Node(id="1", type="queue", data={}),
+            ],
+            edges=[
+                Edge(id="0", source="2", target="0"),  # References non-existent node
+                Edge(id="1", source="2", target="1"),  # References non-existent node
+            ],
+        )
+
+        result = no_start_graph.to_pipeline_description()
+        self.assertEqual(result, "")
+
+    def test_empty_graph_returns_empty_string(self):
+        """Test that an empty graph returns empty pipeline description."""
+        empty_graph = Graph(nodes=[], edges=[])
+        result = empty_graph.to_pipeline_description()
+        self.assertEqual(result, "")
+
+
 if __name__ == "__main__":
     unittest.main()
