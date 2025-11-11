@@ -178,7 +178,7 @@ setup_inference() {
                         echo "Error: vLLM support is deprecated and no longer available."
                         echo "Please use OVMS as the Model Server instead."
                         echo "Usage: setup.sh llm=OVMS embed=<Embedding Service>"
-                        exit 1
+                        #exit 1
                         ;;
                 ovms)
                         export ENDPOINT_URL=http://ovms-service/v3
@@ -199,7 +199,7 @@ setup_inference() {
                         echo "Error: TGI support is deprecated and no longer available."
                         echo "Please use OVMS as the Model Server instead."
                         echo "Usage: setup.sh llm=OVMS embed=<Embedding Service>"
-                        exit 1
+                        #exit 1
                         ;;
                 *)
                         echo "Invalid Model Server option: $service"
